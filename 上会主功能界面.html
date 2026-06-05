@@ -1,0 +1,2381 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOF下投上会确认系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .top-header {
+            background: #1890ff;
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .top-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .header-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.4);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        .header-btn:hover {
+            background: rgba(255,255,255,0.25);
+        }
+
+        /* ===== Tab切换 ===== */
+        .tab-bar {
+            background: white;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 0 24px;
+            display: flex;
+            gap: 0;
+        }
+        .tab-item {
+            padding: 14px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #666;
+            font-size: 14px;
+            transition: all 0.2s;
+            margin-bottom: -1px;
+        }
+        .tab-item:hover { color: #1890ff; }
+        .tab-item.active {
+            color: #1890ff;
+            border-bottom-color: #1890ff;
+            font-weight: 500;
+        }
+
+        /* ===== 主内容区 ===== */
+        .main-content {
+            max-width: 1600px;
+            margin: 16px auto;
+            padding: 0 24px;
+        }
+
+        /* ===== 工具栏 ===== */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .toolbar-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .toolbar-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .tool-btn {
+            padding: 7px 14px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            transition: all 0.2s;
+        }
+        .tool-btn:hover { border-color: #1890ff; color: #1890ff; }
+        .tool-btn.primary {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        .tool-btn.primary:hover { background: #40a9ff; }
+        .record-count {
+            color: #999;
+            font-size: 13px;
+        }
+        .batch-btn {
+            padding: 6px 14px;
+            border: 1px solid #d9d9d9;
+            background: #fafafa;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #666;
+        }
+        .batch-btn:hover { border-color: #1890ff; color: #1890ff; }
+
+        /* ===== 表格区域 ===== */
+        .table-wrapper {
+            background: white;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #fafafa;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 500;
+            color: #666;
+            font-size: 13px;
+            border-bottom: 1px solid #e8e8e8;
+            white-space: nowrap;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+            font-size: 13px;
+        }
+        tr:hover { background: #fafafa; }
+
+        /* 标签样式 */
+        .tag-blue {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .tag-purple {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #f9f0ff;
+            color: #722ed1;
+            border: 1px solid #d3adf7;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .status-exempt {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .status-done {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .status-pending {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+        .status-waiting {
+            display: inline-block;
+            padding: 2px 10px;
+            background: #fff1f0;
+            color: #cf1322;
+            border: 1px solid #ffa39e;
+            border-radius: 10px;
+            font-size: 12px;
+        }
+
+        /* 操作链接 */
+        .action-link {
+            color: #1890ff;
+            text-decoration: none;
+            cursor: pointer;
+            margin-right: 12px;
+            font-size: 13px;
+        }
+        .action-link:hover { text-decoration: underline; }
+
+        /* 复选框 */
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #1890ff;
+            cursor: pointer;
+        }
+
+        /* ===== 母基金视图（左右布局）===== */
+        .fund-detail-view { display: none; }
+        .fund-detail-view.active { display: block; }
+        .table-view { display: block; }
+        .table-view.hidden { display: none; }
+
+        .detail-layout {
+            display: flex;
+            gap: 16px;
+            min-height: calc(100vh - 180px);
+        }
+
+        /* 左侧边栏 */
+        .detail-sidebar {
+            width: 260px;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-search {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .sidebar-search input {
+            width: 100%;
+            padding: 7px 10px 7px 30px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E") no-repeat 8px center;
+        }
+        .sidebar-list { flex: 1; overflow-y: auto; padding: 8px 0; }
+        .sidebar-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .sidebar-item:hover { background: #fafafa; }
+        .sidebar-item.active {
+            background: #e6f7ff;
+            border-left-color: #1890ff;
+        }
+        .sidebar-item-name { font-weight: 500; font-size: 14px; color: #333; }
+        .sidebar-item-code { font-size: 12px; color: #999; }
+        .sidebar-item-tag {
+            display: inline-block;
+            padding: 1px 6px;
+            background: #fff1f0;
+            color: #cf1322;
+            border-radius: 2px;
+            font-size: 11px;
+            align-self: flex-start;
+            margin-top: 2px;
+        }
+
+        /* 右侧详情 */
+        .detail-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        /* 基金信息卡片 */
+        .fund-info-card {
+            background: white;
+            border-radius: 4px;
+            padding: 20px 24px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+        }
+        .fund-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        .fund-info-title { font-size: 18px; font-weight: 600; color: #333; }
+        .fund-info-subtitle { font-size: 13px; color: #999; margin-top: 4px; }
+        .fund-info-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+        .info-item { display: flex; flex-direction: column; gap: 4px; }
+        .info-label { font-size: 13px; color: #999; }
+        .info-value { font-size: 15px; font-weight: 500; color: #333; }
+        .info-value.red { color: #cf1322; }
+        .info-value.green { color: #52c41a; }
+
+        /* 建仓调仓记录 */
+        .record-card {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .record-card-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .record-title { font-size: 15px; font-weight: 500; }
+        .record-subtitle { font-size: 13px; color: #666; margin-left: 12px; }
+        .record-actions { display: flex; gap: 8px; }
+        .record-body { flex: 1; overflow-y: auto; }
+
+        /* ===== 平铺式表单页面 ===== */
+        .form-page {
+            display: none;
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+            padding: 24px;
+        }
+        .form-page.active { display: block; }
+
+        .form-page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .form-page-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-page-title .hint {
+            font-size: 13px;
+            color: #999;
+            font-weight: normal;
+            margin-left: 8px;
+        }
+        .back-link {
+            color: #1890ff;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .back-link:hover { text-decoration: underline; }
+
+        /* 表单行 */
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .form-row.full { grid-template-columns: 1fr; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label {
+            font-size: 13px;
+            color: #666;
+        }
+        .form-input,
+        .form-select,
+        .form-textarea {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+        }
+        .form-textarea { resize: vertical; min-height: 60px; }
+        .required { color: #ff4d4f; margin-left: 2px; }
+        .hint-text { font-size: 12px; color: #999; }
+        .hint-text.error { color: #ff4d4f; }
+
+        /* 明细表格 */
+        .detail-table-section {
+            margin-top: 8px;
+        }
+        .detail-table-section th { background: #fafafa; font-size: 13px; }
+        .detail-table-section td { font-size: 13px; padding: 10px 8px; }
+
+        /* 添加明细按钮 */
+        .add-detail-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            color: #1890ff;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 8px;
+            border: none;
+            background: none;
+            padding: 4px 0;
+        }
+        .add-detail-row:hover { opacity: 0.8; }
+
+        /* 单选组 */
+        .radio-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .radio-option input[type="radio"] { accent-color: #1890ff; }
+
+        /* 小图标按钮 */
+        .icon-btn {
+            width: 26px;
+            height: 26px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            color: #666;
+            transition: all 0.2s;
+            padding: 0;
+        }
+        .icon-btn:hover { border-color: #1890ff; color: #1890ff; }
+
+        /* 底部操作 */
+        .form-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .btn {
+            padding: 8px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            transition: all 0.2s;
+        }
+        .btn-default:hover { border-color: #1890ff; color: #1890ff; }
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+        .btn-primary:hover { background: #40a9ff; }
+
+        /* 提示信息条 */
+        .tip-bar {
+            background: #fffbe6;
+            border: 1px solid #ffe58f;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #ad6800;
+            margin-bottom: 16px;
+        }
+
+        /* 复选框组 */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            top: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            padding: 12px 24px;
+            border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            z-index: 9999;
+            font-size: 14px;
+            animation: toastIn 0.3s ease-out;
+            border-left: 4px solid #52c41a;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* 视图容器 - 各视图独立控制显隐 */
+
+        /* ===== 下拉菜单 ===== */
+        .dropdown-menu {
+            position: absolute;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            z-index: 1000;
+            min-width: 160px;
+            padding: 4px 0;
+        }
+        .dropdown-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+            transition: background 0.15s;
+        }
+        .dropdown-item:hover { background: #f5f5f5; }
+        .dropdown-item-title {
+            font-weight: 500;
+            color: #1890ff;
+            font-size: 14px;
+            padding: 8px 16px 4px;
+            font-size: 13px;
+        }
+
+        /* ===== 模态弹窗 ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 1100px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+        .modal-subtitle {
+            font-size: 13px;
+            color: #999;
+            margin-left: 10px;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-close:hover { color: #333; }
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 24px;
+        }
+        .modal-footer {
+            padding: 14px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        /* 批量填充区域 */
+        .batch-fill-section {
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .batch-fill-hint {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 12px;
+        }
+        .batch-fill-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .apply-all-btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .apply-all-btn:hover { background: #40a9ff; }
+
+        /* 排期计划表格增强 */
+        .plan-status-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+        .plan-status-confirming { background: #fff7e6; color: #ad6800; }
+        .plan-status-executing { background: #e6f7ff; color: #1890ff; }
+
+        /* 豁免按钮 */
+        .exempt-btn {
+            padding:2px 8px;
+            font-size:12px;
+            border:1px solid #d9d9d9;
+            border-radius:4px;
+            background:#f5f5f5;
+            color:#999;
+            cursor:pointer;
+            transition:all 0.2s;
+        }
+        .exempt-btn:hover { border-color:#1890ff; color:#1890ff; }
+        .exempt-btn.active {
+            background:#e6f7ff;
+            border-color:#1890ff;
+            color:#1890ff;
+            font-weight:500;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== 页面1：表格视图 / 母基金视图 ==================== -->
+<div class="view-container" id="listView">
+
+    <!-- 顶部导航 -->
+    <div class="top-header">
+        <h1>FOF下投上会确认系统</h1>
+        <div class="header-actions">
+            <button class="header-btn" onclick="showPage('newPosition')">+新建建仓</button>
+            <button class="header-btn" onclick="showPage('newAdjust')">+新增调仓</button>
+        </div>
+    </div>
+
+    <!-- Tab栏 -->
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="switchTab('table')">表格视图</div>
+        <div class="tab-item" onclick="switchTab('detail')">母基金视图</div>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+
+        <!-- ========== 表格视图 ========== -->
+        <div id="tableView" class="table-view">
+            <!-- 工具栏 -->
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <button class="tool-btn">🔧 列配置</button>
+                    <button class="tool-btn">🔽 筛选</button>
+                </div>
+                <div class="toolbar-right">
+                    <span class="record-count" id="recordCount">共 36 条记录</span>
+                    <button class="batch-btn" onclick="showBatchExemptMenu(event)">批量豁免</button>
+                    <button class="batch-btn" onclick="showBatchStatusMenu(event)">批量修改状态</button>
+                    <button class="batch-btn" onclick="openModal('batchCreatePlanModal')">批量排期下单</button>
+                </div>
+            </div>
+
+            <!-- 数据表格 -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width:36px"><input type="checkbox" onclick="toggleAll(this)"></th>
+                            <th>操作类型</th>
+                            <th>上会状态</th>
+                            <th>本次总金额(万)</th>
+                            <th>投资助理</th>
+                            <th>母基金</th>
+                            <th>子基金管理人</th>
+                            <th>子基金代码</th>
+                            <th>子基金名称</th>
+                            <th>策略</th>
+                            <th>金额(万)</th>
+                            <th>配置比例</th>
+                            <th>调仓金额(万)</th>
+                            <th>池子</th>
+                            <th>已排期金额</th>
+                            <th>待排期金额</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mainTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ========== 母基金视图 ========== -->
+        <div id="detailView" class="fund-detail-view">
+            <div class="detail-layout">
+                <!-- 左侧边栏 -->
+                <div class="detail-sidebar">
+                    <div class="sidebar-search">
+                        <input type="text" placeholder="母基金" oninput="filterSidebar(this.value)">
+                    </div>
+                    <div class="sidebar-search" style="border:none;padding:8px 12px;">
+                        <input type="text" placeholder="📅 上会日期" oninput="filterSidebarDate(this.value)">
+                    </div>
+                    <div class="sidebar-list" id="sidebarList"></div>
+                </div>
+
+                <!-- 右侧详情 -->
+                <div class="detail-main" id="detailMainContent">
+                    <!-- 动态渲染 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==================== 页面2：新建建仓 ==================== -->
+<div class="view-container" id="newPositionView" style="display:none;">
+    <div class="top-header">
+        <h1>FOF下投上会确认系统</h1>
+        <div class="header-actions">
+            <button class="header-btn" onclick="showPage('newPosition')">+新建建仓</button>
+            <button class="header-btn" onclick="showPage('newAdjust')">+新增调仓</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="form-page active" id="newPositionForm">
+            <div class="form-page-header">
+                <span class="form-page-title">新建建仓<span class="hint">编辑也是这个页面</span></span>
+                <a class="back-link" onclick="showPage('list')">← 返回列表</a>
+            </div>
+
+            <!-- 基本信息 -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">本次建仓总金额</label>
+                    <input type="text" class="form-input" id="npTotalAmount" placeholder="">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">投资助理</label>
+                    <select class="form-select" id="npAssistant">
+                        <option value="">请选择</option>
+                        <option value="张晓明">张晓明</option>
+                        <option value="刘芳">刘芳</option>
+                        <option value="王志强">王志强</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">上会/方案日期</label>
+                    <input type="date" class="form-input" id="npDate">
+                </div>
+            </div>
+
+            <!-- 明细表格 -->
+            <div class="detail-table-section">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>母基金</th>
+                                <th>子基金</th>
+                                <th>策略</th>
+                                <th>配置比例 <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="npRatioType" checked onclick="toggleNpInputMode()"> 按比例</label></th>
+                                <th>金额(万) <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="npRatioType" onclick="toggleNpInputMode()"> 按金额</label></th>
+                                <th>池子</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="npDetailBody"></tbody>
+                    </table>
+                </div>
+                <button class="add-detail-row" onclick="addNpDetailRow()">＋ 添加明细</button>
+            </div>
+
+            <div class="form-footer">
+                <button class="btn btn-default" onclick="showPage('list')">取消</button>
+                <button class="btn btn-primary" onclick="saveNewPosition()">创建</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==================== 页面3：新建调仓 ==================== -->
+<div class="view-container" id="newAdjustView" style="display:none;">
+    <div class="top-header">
+        <h1>FOF下投上会确认系统</h1>
+        <div class="header-actions">
+            <button class="header-btn" onclick="showPage('newPosition')">+新建建仓</button>
+            <button class="header-btn" onclick="showPage('newAdjust')">+新增调仓</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="form-page active" id="newAdjustForm">
+            <div class="form-page-header">
+                <span class="form-page-title">新建调仓</span>
+                <a class="back-link" onclick="showPage('list')">← 返回列表</a>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">本次调仓总金额</label>
+                    <input type="text" class="form-input" id="naTotalAmount">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">投资助理</label>
+                    <select class="form-select" id="naAssistant">
+                        <option value="">自动带出建仓投助</option>
+                        <option value="张晓明">张晓明</option>
+                        <option value="刘芳">刘芳</option>
+                        <option value="王志强">王志强</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">上会/方案日期</label>
+                    <input type="date" class="form-input" id="naDate">
+                </div>
+            </div>
+
+            <div class="form-row full">
+                <div class="form-group">
+                    <label class="form-label">调仓原因 <span class="required">*</span></label>
+                    <textarea class="form-textarea" id="naReason" placeholder="" oninput="checkNaReason()"></textarea>
+                    <span class="hint-text error" id="naReasonHint" style="display:none;">必填20字</span>
+                </div>
+            </div>
+
+            <div class="detail-table-section">
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>母基金</th>
+                                <th>子基金</th>
+                                <th>策略</th>
+                                <th>配置比例 <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="naRatioType" checked onclick="toggleNaInputMode()"> 按比例</label></th>
+                                <th>金额(万) <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="naRatioType" onclick="toggleNaInputMode()"> 按金额</label></th>
+                                <th>池子</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="naDetailBody"></tbody>
+                    </table>
+                </div>
+                <button class="add-detail-row" onclick="addNaDetailRow()">＋ 添加明细</button>
+            </div>
+
+            <div class="form-footer">
+                <button class="btn btn-default" onclick="showPage('list')">取消</button>
+                <button class="btn btn-primary" onclick="saveNewAdjust()">创建</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==================== 页面4：排期下单 ==================== -->
+<div class="view-container" id="scheduleOrderView" style="display:none;">
+    <div class="top-header">
+        <h1>FOF下投上会确认系统</h1>
+        <div class="header-actions">
+            <button class="header-btn" onclick="showPage('newPosition')">+新建建仓</button>
+            <button class="header-btn" onclick="showPage('newAdjust')">+新增调仓</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="form-page active" id="scheduleForm">
+            <div class="form-page-header">
+                <span class="form-page-title">排期下单</span>
+                <a class="back-link" onclick="showPage('list')">← 返回列表</a>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">母基金</label>
+                    <select class="form-select" id="soParentFund">
+                        <option value="">SKZX001 私客尊享FOF1号</option>
+                        <option value="">SKZX002 私客尊享FOF2号</option>
+                        <option value="">SKZX003 私客尊享FOF3号</option>
+                        <option value="">SKZX004 私客尊享FOF4号</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">子基金</label>
+                    <select class="form-select" id="soSubFund">
+                        <option value="">NB008 宁波幻方混合1号</option>
+                        <option value="">HF002 幻方量化中性3号</option>
+                        <option value="">LJ004 灵均CTA策略2号</option>
+                        <option value="">YN006 因诺中性策略4号</option>
+                        <option value="">HY007 黑翼对冲基金6号</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">投资策略</label>
+                    <select class="form-select" id="soStrategy">
+                        <option value="">混合策略</option>
+                        <option value="">量化对冲</option>
+                        <option value="">CTA策略</option>
+                        <option value="">量化中性</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="tip-bar" id="soTradeTip">
+                最近交易日期:2026-05-13(赎回);最新持仓日:2026-05-10
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">交易类型</label>
+                    <select class="form-select" id="soTradeType">
+                        <option value="">请选择</option>
+                        <option value="申购">申购</option>
+                        <option value="赎回">赎回</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">计划金额 (万)</label>
+                    <input type="text" class="form-input" id="soAmount" value="295">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">拟交易日期</label>
+                    <input type="date" class="form-input" id="soTradeDate">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">材料形式</label>
+                    <select class="form-select" id="soMaterial">
+                        <option value="">请选择</option>
+                        <option value="纸质">纸质</option>
+                        <option value="电子">电子</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">加急理由</label>
+                    <input type="text" class="form-input" id="soUrgentReason" placeholder="每个工作日开放">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-option"><input type="checkbox" id="soUrgent"> 加急</label>
+                        <label class="checkbox-option"><input type="checkbox" id="soConvert"> 转换</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">投资理由</label>
+                    <select class="form-select" id="soInvestReason">
+                        <option value="">请选择</option>
+                        <option value="新发产品">新发产品</option>
+                        <option value="业绩优秀">业绩优秀</option>
+                        <option value="策略调整">策略调整</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label class="form-label">投资备注</label>
+                    <input type="text" class="form-input" id="soRemark">
+                </div>
+            </div>
+
+            <div class="form-footer">
+                <button class="btn btn-default" onclick="showPage('list')">取消</button>
+                <button class="btn btn-primary" onclick="saveScheduleOrder()">创建投资计划</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// ============================================================
+//  数据定义
+// ============================================================
+
+// 母基金数据
+const parentFunds = [
+    { code: 'SKZX001', name: '私募尊享FOF1号', status: 'normal',
+      establishDate: '2025-07-22', latestDate: '2026-05-11',
+      unitNav: '1.0334', totalNav: '1.0519', manager: '张建强',
+      netAsset: '9234.00', totalReturn: '308.56', weeklyReturn: '0.00%',
+      annualReturn: '108.00%', ytdReturn: '16.00%' },
+    { code: 'SKZX002', name: '私募尊享FOF2号', status: 'pending',
+      establishDate: '2025-09-10', latestDate: '2026-05-11',
+      unitNav: '1.0210', totalNav: '1.0420', manager: '李明辉',
+      netAsset: '5620.00', totalReturn: '210.30', weeklyReturn: '-0.32%',
+      annualReturn: '85.50%', ytdReturn: '12.80%' },
+    { code: 'SKZX003', name: '私募尊享FOF3号', status: 'normal',
+      establishDate: '2025-11-05', latestDate: '2026-05-11',
+      unitNav: '1.0567', totalNav: '1.0890', manager: '王志强',
+      netAsset: '7890.00', totalReturn: '456.80', weeklyReturn: '0.15%',
+      annualReturn: '120.30%', ytdReturn: '22.10%' },
+    { code: 'SKZX004', name: '私募尊享FOF4号', status: 'normal',
+      establishDate: '2026-01-15', latestDate: '2026-05-11',
+      unitNav: '1.0123', totalNav: '1.0250', manager: '赵晓峰',
+      netAsset: '3450.00', totalReturn: '125.60', weeklyReturn: '0.08%',
+      annualReturn: '65.40%', ytdReturn: '8.90%' }
+];
+
+// 主表格数据
+const mainTableData = [
+    { id: 1, opType: '建仓', status: '豁免上会', totalAmount: 1268, assistant: '张晓明',
+      parentFund: 'SKZX001 私客尊享FOF1号', subManager: '幻方量化', subCode: 'HF002',
+      subName: '幻方量化中性3号', strategy: '量化中性', amount: 256,
+      ratio: '20.19%', adjAmt: '-', pool: '上分50池-核心池', scheduled: 0, pending: 256 },
+    { id: 2, opType: '调仓', status: '已上会', totalAmount: 1268, assistant: '张晓明',
+      parentFund: 'SKZX001 私客尊享FOF1号', subManager: '灵均投资', subCode: 'LJ004',
+      subName: '灵均CTA策略2号', strategy: 'CTA策略', amount: 237,
+      ratio: '18.69%', adjAmt: 120, pool: '上分50池-配置池', scheduled: 117, pending: 120 },
+    { id: 3, opType: '调仓', status: '已上会', totalAmount: 1268, assistant: '张晓明',
+      parentFund: 'SKZX001 私客尊享FOF1号', subManager: '灵均投资', subCode: 'LJ004',
+      subName: '灵均CTA策略2号', strategy: 'CTA策略', amount: 108,
+      ratio: '8.52%', adjAmt: 55, pool: '上分50池-配置池', scheduled: 53, pending: 55 },
+    { id: 4, opType: '建仓', status: '豁免上会', totalAmount: 1268, assistant: '张晓明',
+      parentFund: 'SKZX001 私客尊享FOF1号', subManager: '幻方量化', subCode: 'HF002',
+      subName: '幻方量化中性3号', strategy: '量化中性', amount: 114,
+      ratio: '8.99%', adjAmt: '-', pool: '上分50池-核心池', scheduled: 0, pending: 114 },
+    { id: 5, opType: '调仓', status: '待上会', totalAmount: 735, assistant: '王志强',
+      parentFund: 'SKZX002 私客尊享FOF2号', subManager: '灵均投资', subCode: 'LJ004',
+      subName: '灵均CTA策略2号', strategy: 'CTA策略', amount: '-',
+      ratio: '-', adjAmt: '-', pool: '-', scheduled: 0, pending: '-' },
+    { id: 6, opType: '调仓', status: '待上会', totalAmount: 735, assistant: '王志强',
+      parentFund: 'SKZX002 私客尊享FOF2号', subManager: '因诺资产', subCode: 'YN006',
+      subName: '因诺中性策略4号', strategy: '量化中性', amount: '-',
+      ratio: '-', adjAmt: '-', pool: '-', scheduled: 0, pending: '-' },
+    { id: 7, opType: '调仓', status: '待上会', totalAmount: 735, assistant: '王志强',
+      parentFund: 'SKZX002 私客尊享FOF2号', subManager: '因诺资产', subCode: 'YN006',
+      subName: '因诺中性策略4号', strategy: '量化中性', amount: '-',
+      ratio: '-', adjAmt: '-', pool: '-', scheduled: 0, pending: '-' },
+    { id: 8, opType: '调仓', status: '待上会', totalAmount: 735, assistant: '王志强',
+      parentFund: 'SKZX002 私客尊享FOF2号', subManager: '黑翼资产', subCode: 'HY007',
+      subName: '黑翼对冲基金6号', strategy: '量化对冲', amount: '-',
+      ratio: '-', adjAmt: '-', pool: '-', scheduled: 0, pending: '-' },
+    { id: 9, opType: '建仓', status: '已上会', totalAmount: 604, assistant: '张晓明',
+      parentFund: 'SKZX003 私客尊享FOF3号', subManager: '幻方量化', subCode: 'HF002',
+      subName: '幻方量化中性3号', strategy: '量化中性', amount: '-',
+      ratio: '-', adjAmt: '-', pool: '-', scheduled: 0, pending: '-' },
+    { id: 10, opType: '调仓', status: '待上会', totalAmount: 604, assistant: '张晓明',
+       parentFund: 'SKZX003 私客尊享FOF3号', subManager: '黑翼资产', subCode: 'HY007',
+       subName: '黑翼对冲基金6号', strategy: '量化对冲', amount: '-',
+       ratio: '-', adjAmt: '-', pool: '-', scheduled: 0, pending: '-' }
+];
+
+// 建仓/调仓记录数据
+const positionRecords = [
+    { id: 1, type: '调仓', date: '2026-02-03', totalAmount: 562.00, assistant: '刘芳',
+      details: [
+          { status: '待上会', subManager: '衍复投资', subCode: 'YF005', subName: '衍复量化增强1号',
+            strategy: '量化指增', evalDate: '2026-05-15', investedAmt: 408.00, ratio: '6.56%',
+            reason: '根据市场环境调整策略配置', adjAmt: 97.00 },
+          { status: '已上会', subManager: '宁波幻方', subCode: 'NB008', subName: '宁波幻方混合1号',
+            strategy: '混合策略', evalDate: '2026-05-04', investedAmt: 648.00, ratio: '10.41%',
+            reason: '根据市场环境调整策略配置', adjAmt: 92.00 },
+          { status: '待上会', subManager: '因诺资产', subCode: 'YN006', subName: '因诺中性策略4号',
+            strategy: '量化中性', evalDate: '2026-05-15', investedAmt: 413.00, ratio: '6.64%',
+            reason: '增强组合防守属性', adjAmt: 147.00 }
+      ]
+    }
+];
+
+let currentDetailFundIndex = 0;
+
+// ============================================================
+//  视图切换
+// ============================================================
+function showPage(page) {
+    document.getElementById('listView').style.display = page === 'list' ? 'block' : 'none';
+    document.getElementById('newPositionView').style.display = page === 'newPosition' ? 'block' : 'none';
+    document.getElementById('newAdjustView').style.display = page === 'newAdjust' ? 'block' : 'none';
+    document.getElementById('scheduleOrderView').style.display = page === 'schedule' ? 'block' : 'none';
+
+    if (page === 'list') switchTab(currentTab || 'table');
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    const tableView = document.getElementById('tableView');
+    const detailView = document.getElementById('detailView');
+    const tabs = document.querySelectorAll('.tab-item');
+
+    if (tab === 'table') {
+        tableView.classList.remove('hidden');
+        detailView.classList.remove('active');
+        tabs[0].classList.add('active');
+        tabs[1].classList.remove('active');
+    } else {
+        tableView.classList.add('hidden');
+        detailView.classList.add('active');
+        tabs[0].classList.remove('active');
+        tabs[1].classList.add('active');
+        renderDetailView();
+    }
+}
+
+// ============================================================
+//  渲染主表格
+// ============================================================
+function renderMainTable() {
+    const tbody = document.getElementById('mainTableBody');
+    tbody.innerHTML = mainTableData.map(row => `
+        <tr>
+            <td><input type="checkbox"></td>
+            <td><span class="${row.opType === '建仓' ? 'tag-blue' : 'tag-purple'}">${row.opType}</span></td>
+            <td><span class="${getStatusClass(row.status)}">${row.status}</span></td>
+            <td>${row.totalAmount}</td>
+            <td>${row.assistant}</td>
+            <td style="max-width:160px">${row.parentFund}</td>
+            <td>${row.subManager}</td>
+            <td>${row.subCode}</td>
+            <td>${row.subName}</td>
+            <td>${row.strategy}</td>
+            <td>${row.amount}</td>
+            <td>${row.ratio}</td>
+            <td>${row.adjAmt}</td>
+            <td>${row.pool}</td>
+            <td>${row.scheduled > 0 ? '<a class="action-link" style="color:#1890ff;cursor:pointer;" onclick="openModal(\'scheduledPlansModal\')">' + row.scheduled + '</a>' : row.scheduled}</td>
+            <td>${row.pending}</td>
+            <td>
+                <a class="action-link" onclick="editRow(${row.id})">编辑</a>
+                <a class="action-link" onclick="openScheduleOrder(${row.id})">排期</a>
+            </td>
+        </tr>
+    `).join('');
+    document.getElementById('recordCount').textContent = `共 ${mainTableData.length} 条记录`;
+}
+
+function getStatusClass(status) {
+    const map = { '豁免上会': 'status-exempt', '已上会': 'status-done', '待上会': 'status-pending' };
+    return map[status] || 'status-waiting';
+}
+
+function toggleAll(el) {
+    const checkboxes = document.querySelectorAll('#mainTableBody input[type="checkbox"]');
+    checkboxes.forEach(cb => cb.checked = el.checked);
+}
+
+function editRow(id) { showPage('newPosition'); }
+function scheduleRow(id) { showPage('schedule'); }
+
+// ============================================================
+//  渲染母基金视图
+// ============================================================
+function renderDetailView() {
+    // 渲染左侧边栏
+    const sidebarList = document.getElementById('sidebarList');
+    sidebarList.innerHTML = parentFunds.map((fund, i) => `
+        <div class="sidebar-item ${i === currentDetailFundIndex ? 'active' : ''}" onclick="selectFund(${i})">
+            <span class="sidebar-item-name">${fund.name}</span>
+            <span class="sidebar-item-code">${fund.code}</span>
+            ${fund.status === 'pending' ? '<span class="sidebar-item-tag">待上会</span>' : ''}
+        </div>
+    `).join('');
+
+    renderFundDetail(parentFunds[currentDetailFundIndex]);
+}
+
+function selectFund(index) {
+    currentDetailFundIndex = index;
+    document.querySelectorAll('.sidebar-item').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+    });
+    renderFundDetail(parentFunds[index]);
+}
+
+function renderFundDetail(fund) {
+    const main = document.getElementById('detailMainContent');
+
+    main.innerHTML = `
+        <!-- 基金信息卡片 -->
+        <div class="fund-info-card">
+            <div class="fund-info-header">
+                <div>
+                    <div class="fund-info-title">${fund.name}</div>
+                    <div class="fund-info-subtitle">普通运作情况</div>
+                </div>
+            </div>
+            <div class="fund-info-grid">
+                <div class="info-item">
+                    <span class="info-label">成立日期</span>
+                    <span class="info-value">${fund.establishDate}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">最新日期</span>
+                    <span class="info-value">${fund.latestDate}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">单位净值</span>
+                    <span class="info-value">${fund.unitNav}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">累计净值</span>
+                    <span class="info-value">${fund.totalNav}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">投资经理</span>
+                    <span class="info-value">${fund.manager}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">净资产(万元)</span>
+                    <span class="info-value">${fund.netAsset}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">累计收益金额(万元)</span>
+                    <span class="info-value">${fund.totalReturn}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">本周收益率 ↗</span>
+                    <span class="info-value">${fund.weeklyReturn}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">年化收益率 ↗</span>
+                    <span class="info-value red">${fund.annualReturn}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">今年收益率 ↗</span>
+                    <span class="info-value red">${fund.ytdReturn}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 建仓和调仓记录 -->
+        <div class="record-card">
+            <div class="record-card-header">
+                <span class="record-title">建仓和调仓记录</span>
+            </div>
+            <div class="record-body">
+                ${renderRecordTable()}
+            </div>
+        </div>
+    `;
+}
+
+function renderRecordTable() {
+    let html = '';
+
+    // ===== 调仓记录（图4上半部分）=====
+    html += `
+        <div style="padding:12px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;background:#fafafa;font-size:13px;">
+            <span><strong>调仓</strong> - 2026-01-10 &nbsp;&nbsp;<span style="color:#1890ff">总金额:573.00万</span> &nbsp;&nbsp; 投资助理:<strong>李婷婷</strong></span>
+            <div style="display:flex;gap:6px;">
+                <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="openEditRecordModal('调仓','2026-01-10',573.00,'李婷婷')">✏ 编辑</button>
+                <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="showBatchStatusMenu(event)">批量修改状态</button>
+                <button class="tool-btn primary" style="padding:4px 10px;font-size:12px" onclick="openModal('batchCreatePlanModal')">批量排期下单</button>
+            </div>
+        </div>
+        <div class="table-wrapper" style="border-radius:0;border:none;box-shadow:none;">
+            <table>
+                <thead><tr>
+                    <th style="width:36px"><input type="checkbox"></th>
+                    <th>上会状态</th>
+                    <th>子基金管理人</th>
+                    <th>子基金代码</th>
+                    <th>子基金名称</th>
+                    <th>策略</th>
+                    <th>最新估值日期</th>
+                    <th>已投金额(万)</th>
+                    <th>配置比例</th>
+                    <th>调仓原因</th>
+                    <th>调仓金额(万)</th>
+                    <th>操作</th>
+                </tr></thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-exempt">豁免上会</span></td>
+                        <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>量化指增</td>
+                        <td>2026-05-13</td><td>574.00</td><td>6.46%</td>
+                        <td style="max-width:140px;font-size:12px;">平滑组合整体收益风险特征</td><td>86.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',86)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-done">已上会</span></td>
+                        <td>九坤投资</td><td>JK001</td><td>九坤量化对冲1号</td><td>量化对冲</td>
+                        <td>2026-05-12</td><td>435.00</td><td>4.90%</td>
+                        <td style="max-width:140px;font-size:12px;">增强组合防守属性</td><td>163.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('九坤投资','JK001','九坤量化对冲1号','量化对冲',163)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-done">已上会</span></td>
+                        <td>幻方量化</td><td>HF002</td><td>幻方量化中性3号</td><td>量化中性</td>
+                        <td>2026-05-04</td><td>663.00</td><td>7.46%</td>
+                        <td style="max-width:140px;font-size:12px;">平滑组合整体收益风险特征</td><td>57.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('幻方量化','HF002','幻方量化中性3号','量化中性',57)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-done">已上会</span></td>
+                        <td>黑翼资产</td><td>HY007</td><td>黑翼对冲基金6号</td><td>量化对冲</td>
+                        <td>2026-05-16</td><td>624.00</td><td>7.02%</td>
+                        <td style="max-width:140px;font-size:12px;">根据市场环境调整策略配置</td><td>119.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('黑翼资产','HY007','黑翼对冲基金6号','量化对冲',119)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    // ===== 建仓记录（图4下半部分）=====
+    html += `
+        <div style="padding:12px 20px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;background:#fafafa;font-size:13px;margin-top:16px;">
+            <span><strong>建仓</strong> - 2025-10-12 &nbsp;&nbsp;<span style="color:#1890ff">总金额:1,146.00万</span> &nbsp;&nbsp; 投资助理:<strong>刘芳</strong></span>
+            <div style="display:flex;gap:6px;">
+                <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="openEditRecordModal('建仓','2025-10-12',1146.00,'刘芳')">✏ 编辑</button>
+                <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="showBatchStatusMenu(event)">批量修改状态</button>
+                <button class="tool-btn primary" style="padding:4px 10px;font-size:12px" onclick="openModal('batchCreatePlanModal')">批量排期下单</button>
+            </div>
+        </div>
+        <div class="table-wrapper" style="border-radius:0;border:none;box-shadow:none;">
+            <table>
+                <thead><tr>
+                    <th style="width:36px"><input type="checkbox"></th>
+                    <th>上会状态</th>
+                    <th>子基金管理人</th>
+                    <th>子基金代码</th>
+                    <th>子基金名称</th>
+                    <th>策略</th>
+                    <th>金额(万)</th>
+                    <th>配置比例</th>
+                    <th>池子</th>
+                    <th>证券交易落地营业部</th>
+                    <th>期货交易落地营业部</th>
+                    <th>已排期(万)</th>
+                    <th>待排期(万)</th>
+                    <th>操作</th>
+                </tr></thead>
+                <tbody>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-exempt">豁免上会</span></td>
+                        <td>幻方量化</td><td>HF002</td><td>幻方量化中性3号</td><td>量化中性</td>
+                        <td>229.00</td><td>19.98%</td><td>上分50池-核心池</td>
+                        <td style="font-size:12px;">北京金融街营业部总部</td><td style="font-size:12px;">北京金融街营业部总部</td>
+                        <td>0.00</td><td>229.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('幻方量化','HF002','幻方量化中性3号','量化中性',229)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-exempt">豁免上会</span></td>
+                        <td>宁波幻方</td><td>NB008</td><td>宁波幻方混合1号</td><td>混合策略</td>
+                        <td>231.00</td><td>20.16%</td><td>上分50池-配置池</td>
+                        <td style="font-size:12px;">北京金融街营业部</td><td style="font-size:12px;">杭州西湖营业部</td>
+                        <td>0.00</td><td>231.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('宁波幻方','NB008','宁波幻方混合1号','混合策略',231)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-pending">豁免上会</span></td>
+                        <td>九坤投资</td><td>JK001</td><td>九坤量化对冲1号</td><td>量化对冲</td>
+                        <td>289.00</td><td>25.22%</td><td>上分50池-配置池</td>
+                        <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">上海陆家嘴营业部</td>
+                        <td>0.00</td><td>289.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('九坤投资','JK001','九坤量化对冲1号','量化对冲',289)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-waiting">待上会</span></td>
+                        <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>量化指增</td>
+                        <td>199.00</td><td>17.36%</td><td>上分50池-核心池</td>
+                        <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">南京新街口营业部</td>
+                        <td><a style="color:#1890ff;cursor:pointer;font-weight:500;" onclick="openModal('scheduledPlansModal')">573.00</a></td><td>199.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',199)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    `;
+    return html;
+}
+
+
+// ============================================================
+//  新建建仓 - 明细行管理
+// ============================================================
+function addNpDetailRow() {
+    const tbody = document.getElementById('npDetailBody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><select class="form-select np-parent" style="min-width:140px" onchange="autoFillNpStrategy(this)">
+            <option value="SKZX001" data-strategy="">SKZX001 私客尊享FOF1号</option>
+            <option value="SKZX002" data-strategy="">SKZX002 私客尊享FOF2号</option>
+            <option value="SKZX003" data-strategy="">SKZX003 私客尊享FOF3号</option>
+        </select></td>
+        <td><select class="form-select np-sub" style="min-width:150px" onchange="autoFillNpStrategy(this)">
+            <option value="HF002" data-strategy="量化中性">HF002 幻方量化中性3号</option>
+            <option value="LJ004" data-strategy="CTA策略">LJ004 灵均CTA策略2号</option>
+            <option value="YN006" data-strategy="量化中性">YN006 因诺中性策略4号</option>
+        </select></td>
+        <td><span class="np-strategy-display" style="color:#666;font-size:13px;">-</span></td>
+        <td><input type="text" class="form-input np-ratio" style="width:80px" placeholder="" oninput="calcNpAmount(this)"></td>
+        <td><input type="text" class="form-input np-amount" style="width:90px" placeholder="" oninput="calcNpRatio(this)" readonly></td>
+        <td>上分50池</td>
+        <td style="white-space:nowrap;">
+            <button class="exempt-btn" onclick="toggleExempt(this)">豁免</button>
+            <button class="icon-btn" title="复制" onclick="copyNpRow(this)">📋</button>
+            <button class="icon-btn" title="删除" onclick="this.closest('tr').remove()">🗑</button>
+        </td>
+    `;
+    tbody.appendChild(row);
+    // 初始化输入模式
+    toggleNpInputMode();
+}
+function copyNpRow(btn) {
+    const row = btn.closest('tr');
+    const clone = row.cloneNode(true);
+    row.parentNode.insertBefore(clone, row.nextSibling);
+}
+function saveNewPosition() {
+    showToast('✅ 建仓记录创建成功！');
+    setTimeout(() => showPage('list'), 1200);
+}
+
+// ============================================================
+//  建仓 - 策略自动填充 / 比例金额联动 / 豁免切换
+// ============================================================
+
+// 子基金选择 → 自动填充策略
+function autoFillNpStrategy(selectEl) {
+    const row = selectEl.closest('tr');
+    const subSelect = row.querySelector('.np-sub');
+    if (!subSelect) return;
+    const opt = subSelect.options[subSelect.selectedIndex];
+    const strategy = opt.getAttribute('data-strategy') || '-';
+    row.querySelector('.np-strategy-display').textContent = strategy;
+}
+function autoFillNaStrategy(selectEl) {
+    const row = selectEl.closest('tr');
+    const subSelect = row.querySelector('.na-sub');
+    if (!subSelect) return;
+    const opt = subSelect.options[subSelect.selectedIndex];
+    const strategy = opt.getAttribute('data-strategy') || '-';
+    row.querySelector('.na-strategy-display').textContent = strategy;
+}
+
+// 建仓 - 输入模式切换（按比例/按金额）
+function toggleNpInputMode() {
+    const isRatioMode = document.querySelector('input[name="npRatioType"]:checked').value === undefined ||
+                         document.querySelector('input[name="npRatioType"]:checked').parentNode.textContent.includes('按比例');
+    // 第一个radio=按比例(checked)
+    const byRatio = document.querySelector('input[name="npRatioType"]:checked') === document.querySelectorAll('input[name="npRatioType"]')[0];
+    document.querySelectorAll('#npDetailBody tr').forEach(row => {
+        const ratioInput = row.querySelector('.np-ratio');
+        const amountInput = row.querySelector('.np-amount');
+        if (ratioInput && amountInput) {
+            ratioInput.readOnly = !byRatio;
+            amountInput.readOnly = byRatio;
+            ratioInput.style.background = byRatio ? '#fff' : '#f5f5f5';
+            amountInput.style.background = byRatio ? '#f5f5f5' : '#fff';
+        }
+    });
+}
+
+// 调仓 - 输入模式切换
+function toggleNaInputMode() {
+    const byRatio = document.querySelector('input[name="naRatioType"]:checked') === document.querySelectorAll('input[name="naRatioType"]')[0];
+    document.querySelectorAll('#naDetailBody tr').forEach(row => {
+        const ratioInput = row.querySelector('.na-ratio');
+        const amountInput = row.querySelector('.na-amount');
+        if (ratioInput && amountInput) {
+            ratioInput.readOnly = !byRatio;
+            amountInput.readOnly = byRatio;
+            ratioInput.style.background = byRatio ? '#fff' : '#f5f5f5';
+            amountInput.style.background = byRatio ? '#f5f5f5' : '#fff';
+        }
+    });
+}
+
+// 建仓 - 填比例→算金额
+function calcNpAmount(ratioInput) {
+    const row = ratioInput.closest('tr');
+    const totalAmt = parseFloat(document.getElementById('npTotalAmount').value) || 0;
+    const ratio = parseFloat(ratioInput.value) || 0;
+    const amount = totalAmt * ratio / 100;
+    const amtInput = row.querySelector('.np-amount');
+    if (amtInput) amtInput.value = amount > 0 ? amount.toFixed(2) : '';
+}
+
+// 建仓 - 填金额→算比例
+function calcNpRatio(amountInput) {
+    const row = amountInput.closest('tr');
+    const totalAmt = parseFloat(document.getElementById('npTotalAmount').value) || 0;
+    const amount = parseFloat(amountInput.value) || 0;
+    const ratio = totalAmt > 0 ? (amount / totalAmt * 100) : 0;
+    const ratioInput = row.querySelector('.np-ratio');
+    if (ratioInput) ratioInput.value = ratio > 0 ? ratio.toFixed(2) : '';
+}
+
+// 调仓 - 填比例→算金额
+function calcNaAmount(ratioInput) {
+    const row = ratioInput.closest('tr');
+    const totalAmt = parseFloat(document.getElementById('naTotalAmount').value) || 0;
+    const ratio = parseFloat(ratioInput.value) || 0;
+    const amount = totalAmt * ratio / 100;
+    const amtInput = row.querySelector('.na-amount');
+    if (amtInput) amtInput.value = amount > 0 ? amount.toFixed(2) : '';
+}
+
+// 调仓 - 填金额→算比例
+function calcNaRatio(amountInput) {
+    const row = amountInput.closest('tr');
+    const totalAmt = parseFloat(document.getElementById('naTotalAmount').value) || 0;
+    const amount = parseFloat(amountInput.value) || 0;
+    const ratio = totalAmt > 0 ? (amount / totalAmt * 100) : 0;
+    const ratioInput = row.querySelector('.na-ratio');
+    if (ratioInput) ratioInput.value = ratio > 0 ? ratio.toFixed(2) : '';
+}
+
+// 豁免按钮 灰↔蓝 切换
+function toggleExempt(btn) {
+    btn.classList.toggle('active');
+}
+
+
+// ============================================================
+//  新建调仓 - 明细行管理
+// ============================================================
+function addNaDetailRow() {
+    const tbody = document.getElementById('naDetailBody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><select class="form-select na-parent" style="min-width:140px" onchange="autoFillNaStrategy(this)">
+            <option value="SKZX001" data-strategy="">SKZX001 私客尊享FOF1号</option>
+            <option value="SKZX002" data-strategy="">SKZX002 私客尊享FOF2号</option>
+        </select></td>
+        <td><select class="form-select na-sub" style="min-width:150px" onchange="autoFillNaStrategy(this)">
+            <option value="HF002" data-strategy="量化中性">HF002 幻方量化中性3号</option>
+            <option value="LJ004" data-strategy="CTA策略">LJ004 灵均CTA策略2号</option>
+        </select></td>
+        <td><span class="na-strategy-display" style="color:#666;font-size:13px;">-</span></td>
+        <td><input type="text" class="form-input na-ratio" style="width:80px" placeholder="" oninput="calcNaAmount(this)"></td>
+        <td><input type="text" class="form-input na-amount" style="width:90px" placeholder="" oninput="calcNaRatio(this)" readonly></td>
+        <td>上分50池</td>
+        <td style="white-space:nowrap;">
+            <button class="exempt-btn" onclick="toggleExempt(this)">豁免</button>
+            <button class="icon-btn" title="复制" onclick="copyNaRow(this)">📋</button>
+            <button class="icon-btn" title="删除" onclick="this.closest('tr').remove()">🗑</button>
+        </td>
+    `;
+    tbody.appendChild(row);
+    toggleNaInputMode();
+}
+function copyNaRow(btn) { const r = btn.closest('tr'); const c = r.cloneNode(true); r.parentNode.insertBefore(c, r.nextSibling); }
+function checkNaReason() {
+    const v = document.getElementById('naReason').value;
+    const hint = document.getElementById('naReasonHint');
+    hint.style.display = v.length >= 20 ? 'none' : 'inline';
+}
+function saveNewAdjust() {
+    const reason = document.getElementById('naReason').value;
+    if (reason.length < 20) {
+        document.getElementById('naReasonHint').style.display = 'inline';
+        return;
+    }
+    showToast('✅ 调仓记录创建成功！');
+    setTimeout(() => showPage('list'), 1200);
+}
+
+
+// ============================================================
+//  排期下单
+// ============================================================
+function saveScheduleOrder() {
+    showToast('✅ 投资计划创建成功！');
+    setTimeout(() => showPage('list'), 1200);
+}
+
+
+// ============================================================
+//  通用功能
+// ============================================================
+function showToast(msg) {
+    const existing = document.querySelector('.toast');
+    if (existing) existing.remove();
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => { t.style.opacity = '0'; t.style.transition = 'opacity 0.3s'; setTimeout(() => t.remove(), 300); }, 2000);
+}
+
+function filterSidebar(val) {}
+function filterSidebarDate(val) {}
+
+function editRecord() { showToast('编辑模式'); }
+function deleteRecord() { if(confirm('确定删除？')) showToast('已删除'); }
+function batchModifyStatus() { showBatchStatusMenu(event); }
+function batchSchedule() { openModal('batchCreatePlanModal'); }
+
+
+// ============================================================
+//  批量修改状态下拉菜单
+// ============================================================
+let activeDropdown = null;
+document.addEventListener('click', function(e) {
+    if (activeDropdown && !e.target.closest('.dropdown-menu') && !e.target.closest('.batch-btn')) {
+        activeDropdown.style.display = 'none';
+        activeDropdown = null;
+    }
+});
+
+function showBatchStatusMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('batchStatusDropdown');
+    if (menu === activeDropdown) { menu.style.display = 'none'; activeDropdown = null; return; }
+    closeAllDropdowns();
+    const btn = event.target;
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.left = rect.left + 'px';
+    menu.style.display = 'block';
+    activeDropdown = menu;
+}
+
+// 批量豁免下拉
+function showBatchExemptMenu(event) {
+    event.stopPropagation();
+    const menu = document.getElementById('batchExemptDropdown');
+    if (menu === activeDropdown) { menu.style.display = 'none'; activeDropdown = null; return; }
+    closeAllDropdowns();
+    const btn = event.target;
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 4) + 'px';
+    menu.style.left = rect.left + 'px';
+    menu.style.display = 'block';
+    activeDropdown = menu;
+}
+
+function closeAllDropdowns() {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.style.display = 'none');
+    activeDropdown = null;
+}
+
+document.addEventListener('click', function(e) {
+    if (activeDropdown && !e.target.closest('.dropdown-menu') && !e.target.closest('.batch-btn')) {
+        closeAllDropdowns();
+    }
+});
+
+function applyBatchStatus(status) {
+    closeAllDropdowns();
+    showToast(`✅ 已批量修改状态为：${status}`);
+}
+function applyBatchExempt(status) {
+    closeAllDropdowns();
+    // 弹确认框：只能点"确认"
+    if (confirm('豁免上会需要通过流程审批，是否跳转并发起？')) {
+        openExemptionApprovalPage();
+    }
+}
+
+
+// ============================================================
+//  模态弹窗通用
+// ============================================================
+function openModal(id) {
+    document.getElementById(id).classList.add('show');
+}
+function closeModal(id) {
+    document.getElementById(id).classList.remove('show');
+}
+// 点击遮罩关闭弹窗
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+    });
+});
+
+
+// ============================================================
+//  批量创建投资计划
+// ============================================================
+function applyBatchFill() {
+    const tradeType = document.getElementById('bcpTradeType').value;
+    const tradeDate = document.getElementById('bcpTradeDate').value;
+    const material = document.getElementById('bcpMaterial').value;
+
+    if (!tradeType && !tradeDate && !material) {
+        showToast('请先填写要填充的字段');
+        return;
+    }
+
+    const rows = document.querySelectorAll('#bcpDetailBody tr');
+    rows.forEach(row => {
+        const selects = row.querySelectorAll('select');
+        const dates = row.querySelectorAll('input[type="date"]');
+        if (tradeType && selects[0]) selects[0].value = tradeType;
+        if (tradeDate && dates[0]) dates[0].value = tradeDate;
+        if (material && selects[1]) selects[1].value = material;
+    });
+    showToast('✅ 已应用到所有行');
+}
+
+function submitBatchPlan() {
+    closeModal('batchCreatePlanModal');
+    showToast('✅ 投资计划创建成功！');
+    setTimeout(() => openModal('scheduledPlansModal'), 800);
+}
+
+// 排期下单（单行）- 自动填充（从表格视图）
+function openScheduleOrder(rowId) {
+    const row = mainTableData.find(r => r.id === rowId);
+    if (!row) { openModal('scheduleOrderModal'); return; }
+    document.getElementById('soParentFund').value = row.parentFund.split(' ')[0] || '';
+    document.getElementById('soSubFund').value = `${row.subCode} ${row.subName}`;
+    document.getElementById('soStrategy').value = row.strategy;
+    document.getElementById('soAmount').value = row.amount !== '-' ? row.amount : '';
+    const infoLine = document.querySelector('#scheduleOrderModal .modal-body > div:nth-child(2)');
+    if (infoLine) infoLine.innerHTML = `最近交易日:<strong>2026-05-13</strong>(赎回); 最新持仓日:<strong>2026-05-10</strong>`;
+    openModal('scheduleOrderModal');
+}
+
+// 排期下单（单行）- 自动填充（从母基金视图详情）
+function openScheduleOrderFromDetail(subManager, subCode, subName, strategy, amount) {
+    document.getElementById('soParentFund').value = 'SKZX001 私客尊享FOF1号';
+    document.getElementById('soSubFund').value = `${subCode} ${subName}`;
+    document.getElementById('soStrategy').value = strategy;
+    document.getElementById('soAmount').value = amount || '';
+    const infoLine = document.querySelector('#scheduleOrderModal .modal-body > div:nth-child(2)');
+    if (infoLine) infoLine.innerHTML = `最近交易日:<strong>2026-05-13</strong>(赎回); 最新持仓日:<strong>2026-05-10</strong>`;
+    openModal('scheduleOrderModal');
+}
+
+function submitScheduleOrder() {
+    closeModal('scheduleOrderModal');
+    showToast('✅ 排期下单创建成功！');
+}
+
+// 豁免上会审批单
+function openExemptionApprovalPage() {
+    // 从表格中获取已勾选的行，填充到豁免表格
+    const checkedRows = [];
+    document.querySelectorAll('#mainTableBody tr').forEach((tr, idx) => {
+        const cb = tr.querySelector('input[type="checkbox"]');
+        if (cb && cb.checked && mainTableData[idx]) {
+            checkedRows.push(mainTableData[idx]);
+        }
+    });
+
+    if (checkedRows.length > 0) {
+        let html = '';
+        checkedRows.forEach(row => {
+            html += `
+                <tr>
+                    <td>${row.parentFund}</td>
+                    <td>${row.subCode}(${row.subName})</td>
+                    <td><input type="text" class="form-input" value="2026/05/01" style="width:120px;"></td>
+                    <td style="color:#999;">${(parseFloat(row.amount || 0) * 10000).toLocaleString('zh-CN', {minimumFractionDigits:2, maximumFractionDigits:2})}.00</td>
+                    <td><a class="action-link delete" onclick="this.closest('tr').remove()" style="margin-right:0;">删除</a></td>
+                </tr>`;
+        });
+        document.getElementById('exemptTableBody').innerHTML = html;
+    }
+
+    openModal('exemptionApprovalModal');
+}
+
+function submitExemptionApproval() {
+    closeModal('exemptionApprovalModal');
+    showToast('✅ 豁免上会审批单已提交！');
+}
+
+// ============================================================
+//  编辑建仓/调仓记录
+// ============================================================
+
+function openEditRecordModal(type, date, totalAmt, assistant) {
+    document.getElementById('erRecordType').textContent = type;
+    document.getElementById('erDate').textContent = date;
+    document.getElementById('erTotalAmount').value = totalAmt || '';
+    document.getElementById('erAssistant').value = assistant || '';
+    document.getElementById('erDateInput').value = date.replace(/-/g, '/');
+
+    // 调仓显示原因区域，建仓隐藏
+    const reasonSection = document.getElementById('erReasonSection');
+    const totalLabel = document.getElementById('erTotalLabel');
+    if (type === '调仓') {
+        reasonSection.style.display = '';
+        totalLabel.textContent = '本次调仓总金额';
+        document.getElementById('erReason').value = '根据市场环境调整策略配置';
+    } else {
+        reasonSection.style.display = 'none';
+        totalLabel.textContent = '本次建仓总金额';
+    }
+
+    // 填充示例明细数据
+    const tbody = document.getElementById('erDetailBody');
+    tbody.innerHTML = '';
+    const sampleData = type === '调仓' ? [
+        { parent: 'SKZX001 私客尊享FOF1号', sub: 'YF005 衍复量化增强1号', strategy: '量化指增', ratio: '6.46%', amount: 574, pool: '上分50池-核心池' },
+        { parent: 'SKZX001 私客尊享FOF1号', sub: 'JK001 九坤量化对冲1号', strategy: '量化对冲', ratio: '4.90%', amount: 435, pool: '上分50池-配置池' },
+        { parent: 'SKZX001 私客尊享FOF1号', sub: 'HF002 幻方量化中性3号', strategy: '量化中性', ratio: '7.46%', amount: 663, pool: '上分50池-核心池' },
+        { parent: 'SKZX001 私客尊享FOF1号', sub: 'HY007 黑翼对冲基金6号', strategy: '量化对冲', ratio: '7.02%', amount: 624, pool: '上分50池-配置池' }
+    ] : [
+        { parent: 'SKZX001 私客尊享FOF1号', sub: 'HF002 幻方量化中性3号', strategy: '量化中性', ratio: '19.98%', amount: 229, pool: '上分50池-核心池' },
+        { parent: 'SKZX001 私客尊享FOF1号', sub: 'NB008 宁波幻方混合1号', strategy: '混合策略', ratio: '20.16%', amount: 231, pool: '上分50池-配置池' },
+        { parent: 'SKZX001 私客尊享FOF1号', sub: 'JK001 九坤量化对冲1号', strategy: '量化对冲', ratio: '25.22%', amount: 289, pool: '上分50池-配置池' },
+        { parent: 'SKZX001 私客尊享FOF1号', sub: 'YF005 衍复量化增强1号', strategy: '量化指增', ratio: '17.36%', amount: 199, pool: '上分50池-核心池' }
+    ];
+    sampleData.forEach(d => addErDetailRow(d));
+
+    openModal('editRecordModal');
+}
+
+function addErDetailRow(data) {
+    const tbody = document.getElementById('erDetailBody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td><input type="text" class="form-input" value="${data ? data.parent : ''}" style="min-width:160px"></td>
+        <td><input type="text" class="form-input" value="${data ? data.sub : ''}" style="min-width:170px"></td>
+        <td><span style="color:#666;font-size:13px;">${data ? data.strategy : '-'}</span></td>
+        <td><input type="text" class="form-input er-ratio" style="width:80px" value="${data ? data.ratio.replace('%','') : ''}"></td>
+        <td><input type="text" class="form-input er-amount" style="width:90px" value="${data ? data.amount : ''}" readonly></td>
+        <td>${data ? data.pool : '上分50池'}</td>
+        <td style="white-space:nowrap;">
+            <button class="exempt-btn" onclick="toggleExempt(this)">豁免</button>
+            <button class="icon-btn" title="删除" onclick="this.closest('tr').remove()">🗑</button>
+        </td>
+    `;
+    tbody.appendChild(row);
+}
+
+function deleteRecord(btn, recordType) {
+    if (confirm(`确定要删除这条${recordType}记录吗？`)) {
+        // 找到该记录的容器（包含标题栏+表格）并移除
+        let container = btn.closest('div[style*="padding"]');
+        while (container && !container.previousElementSibling?.classList?.contains('table-wrapper') &&
+               !container.nextElementSibling?.classList?.contains('table-wrapper')) {
+            // 向上找到记录卡片的最外层div
+            if (container.parentElement?.closest('.record-body')) break;
+            container = container.parentElement;
+        }
+        // 直接移除整个记录块（标题+表格）
+        const recordBlock = btn.closest('div[style*="border-bottom"]') || btn.closest('div[style*="padding"]');
+        if (recordBlock) {
+            recordBlock.nextElementSibling?.remove(); // 移除表格
+            recordBlock.remove(); // 移除标题栏
+            showToast(`✅ 已删除该${recordType}记录`);
+        }
+    }
+}
+
+function saveEditRecord() {
+    closeModal('editRecordModal');
+    showToast('✅ 记录修改已保存！');
+}
+
+
+// ============================================================
+//  初始化
+// ============================================================
+renderMainTable();
+
+// 默认给建仓和调仓各加两行空明细
+for (let i = 0; i < 2; i++) addNpDetailRow();
+for (let i = 0; i < 2; i++) addNaDetailRow();
+</script>
+
+<!-- ===== 弹窗0：批量豁免下拉菜单 ===== -->
+<div class="dropdown-menu" id="batchExemptDropdown" style="display:none;">
+    <div class="dropdown-item-title">批量豁免</div>
+    <div class="dropdown-item" onclick="applyBatchExempt('豁免上会')">修改为：豁免上会</div>
+</div>
+
+<!-- ===== 弹窗1：批量修改状态下拉菜单（动态定位）===== -->
+<div class="dropdown-menu" id="batchStatusDropdown" style="display:none;">
+    <div class="dropdown-item-title">批量修改状态</div>
+    <div class="dropdown-item" onclick="applyBatchStatus('已上会')">修改为：已上会</div>
+    <div class="dropdown-item" onclick="applyBatchStatus('待上会')">修改为：待上会</div>
+    <div class="dropdown-item" onclick="applyBatchStatus('待定')">修改为：待定</div>
+</div>
+
+<!-- ===== 弹窗2：批量创建投资计划 ===== -->
+<div class="modal-overlay" id="batchCreatePlanModal">
+    <div class="modal-box">
+        <div class="modal-header">
+            <span><span class="modal-title">批量创建投资计划</span><span class="modal-subtitle">（3条）</span></span>
+            <button class="modal-close" onclick="closeModal('batchCreatePlanModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <!-- 批量填充区 -->
+            <div class="batch-fill-section">
+                <div class="batch-fill-hint">批量填充-填写后点击"应用到所有行"</div>
+                <div class="batch-fill-grid">
+                    <select class="form-select" id="bcpTradeType">
+                        <option value="">交易类型</option>
+                        <option value="申购">申购</option>
+                        <option value="赎回">赎回</option>
+                    </select>
+                    <input type="date" class="form-input" id="bcpTradeDate">
+                    <select class="form-select" id="bcpMaterial">
+                        <option value="">材料形式</option>
+                        <option value="直销-妥妥递">直销-妥妥递</option>
+                        <option value="纸质">纸质</option>
+                    </select>
+                    <select class="form-select" id="bcpReason">
+                        <option value="">投资理由</option>
+                        <option value="新发产品">新发产品</option>
+                        <option value="业绩优秀">业绩优秀</option>
+                    </select>
+                </div>
+                <div style="display:flex;gap:12px;margin-bottom:0;">
+                    <input type="text" class="form-input" id="bcpUrgentReason" placeholder="加急理由" style="flex:1;">
+                    <label class="checkbox-option"><input type="checkbox" id="bcpUrgent"> 加急</label>
+                    <label class="checkbox-option"><input type="checkbox" id="bcpConvert"> 转换</label>
+                    <input type="text" class="form-input" id="bcpRemark" placeholder="投资备注" style="flex:1;">
+                </div>
+                <div style="margin-top:12px;">
+                    <button class="apply-all-btn" onclick="applyBatchFill()">应用到所有行</button>
+                </div>
+            </div>
+
+            <!-- 明细表格 -->
+            <div style="font-size:13px;color:#666;margin-bottom:8px;">编辑每条投资计划（可单独修改）</div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>母基金</th>
+                            <th>子基金</th>
+                            <th>投资策略</th>
+                            <th>计划金额(万)</th>
+                            <th>交易类型</th>
+                            <th>拟交易日期</th>
+                            <th>材料形式</th>
+                            <th>最近交易</th>
+                            <th>最近持仓</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bcpDetailBody">
+                        <tr>
+                            <td>私募尊享FOF1号</td>
+                            <td>宁波幻方混合1号</td>
+                            <td>混合策略</td>
+                            <td>100</td>
+                            <td><select class="form-select"><option value=""></option><option>申购</option><option>赎回</option></select></td>
+                            <td><input type="date" class="form-input"></td>
+                            <td><select class="form-select"><option value=""></option><option>直销-妥妥递</option><option>纸质</option></select></td>
+                            <td style="font-size:12px;">2026-05-19<br>(申购)</td>
+                            <td style="color:#999;font-size:12px;">无</td>
+                            <td><a class="action-link delete" onclick="this.closest('tr').remove()" style="margin-right:0;">🗑</a></td>
+                        </tr>
+                        <tr>
+                            <td>私募尊享FOF2号</td>
+                            <td>宁波幻方混合1号</td>
+                            <td>混合策略</td>
+                            <td>200</td>
+                            <td><select class="form-select"><option value=""></option><option>申购</option><option>赎回</option></select></td>
+                            <td><input type="date" class="form-input" value="2026-05-11"></td>
+                            <td><select class="form-select"><option value=""></option><option>直销-妥妥递</option><option>纸质</option></select></td>
+                            <td style="font-size:12px;">2026-05-11</td>
+                            <td style="font-size:12px;">2026-05-19</td>
+                            <td><a class="action-link delete" onclick="this.closest('tr').remove()" style="margin-right:0;">🗑</a></td>
+                        </tr>
+                        <tr>
+                            <td>私募尊享FOF3号</td>
+                            <td>宁波幻方混合1号</td>
+                            <td>混合策略</td>
+                            <td>300</td>
+                            <td><select class="form-select"><option value=""></option><option>申购</option><option>赎回</option></select></td>
+                            <td><input type="date" class="form-input"></td>
+                            <td><select class="form-select"><option value=""></option><option>直销-妥妥递</option><option>纸质</option></select></td>
+                            <td style="color:#999;font-size:12px;">无</td>
+                            <td style="color:#999;font-size:12px;">无</td>
+                            <td><a class="action-link delete" onclick="this.closest('tr').remove()" style="margin-right:0;">🗑</a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeModal('batchCreatePlanModal')">取消</button>
+            <button class="btn btn-primary" onclick="submitBatchPlan()">创建投资计划</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 弹窗3：查看已排期投资计划 ===== -->
+<div class="modal-overlay" id="scheduledPlansModal">
+    <div class="modal-box" style="max-width:1200px;">
+        <div class="modal-header">
+            <span><span class="modal-title">查看已排期投资计划</span><br><span style="font-size:13px;color:#999;font-weight:normal;">3条，总金额:<strong style="color:#1890ff">573.00万</strong></span></span>
+            <button class="modal-close" onclick="closeModal('scheduledPlansModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>投资计划编号</th>
+                            <th>来源</th>
+                            <th>母基金</th>
+                            <th>子基金</th>
+                            <th>投资策略</th>
+                            <th>交易类型</th>
+                            <th>拟交易日期</th>
+                            <th>计划金额(万)</th>
+                            <th>材料形式</th>
+                            <th>计划状态</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>260101001</td><td>A</td><td>私募尊享FOF1号</td><td>宁波幻方混合1号</td>
+                            <td>混合策略</td><td>追加</td><td>2026-05-18</td><td>100</td>
+                            <td>直销-妥妥递</td><td><span class="plan-status-tag plan-status-confirming">交易要素未确认</span></td>
+                        </tr>
+                        <tr>
+                            <td>260101002</td><td>A</td><td>私募尊享FOF1号</td><td>宁波幻方混合1号</td>
+                            <td>混合策略</td><td>追加</td><td>2026-05-16</td><td>200</td>
+                            <td>直销-妥妥递</td><td><span class="plan-status-tag plan-status-confirming">交易要素确认</span></td>
+                        </tr>
+                        <tr>
+                            <td>260101003</td><td>B</td><td>私募尊享FOF1号</td><td>宁波幻方混合1号</td>
+                            <td>混合策略</td><td>申购</td><td>2026-05-13</td><td>273</td>
+                            <td>直销-妥妥递</td><td><span class="plan-status-tag plan-status-executing">执行确认</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeModal('scheduledPlansModal')">关闭</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 弹窗4：排期下单（单行表单）===== -->
+<div class="modal-overlay" id="scheduleOrderModal">
+    <div class="modal-box" style="max-width:900px;">
+        <div class="modal-header">
+            <span class="modal-title">排期下单</span>
+            <button class="modal-close" onclick="closeModal('scheduleOrderModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <!-- 第一行：母基金 / 子基金 / 投资策略 -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+                <div class="form-group">
+                    <label class="form-label">母基金</label>
+                    <select class="form-select" id="soParentFund">
+                        <option value="" selected>SKZX001 私客尊享FOF1号</option>
+                        <option value="">SKZX002 私客尊享FOF2号</option>
+                        <option value="">SKZX003 私客尊享FOF3号</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">子基金</label>
+                    <select class="form-select" id="soSubFund">
+                        <option value="" selected>NB008 宁波幻方混合1号</option>
+                        <option value="">HF002 幻方量化中性3号</option>
+                        <option value="">YF005 衍复量化增强1号</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">投资策略</label>
+                    <select class="form-select" id="soStrategy">
+                        <option value="" selected>混合策略</option>
+                        <option value="">量化中性</option>
+                        <option value="">量化指增</option>
+                    </select>
+                </div>
+            </div>
+            <!-- 最近交易/持仓信息行 -->
+            <div style="font-size:13px;color:#666;margin-bottom:18px;padding-left:2px;">
+                最近交易日:<strong>2026-05-13</strong>(赎回); 最新持仓日:<strong>2026-05-10</strong>
+            </div>
+            <!-- 第二行：交易类型 / 计划金额 / 拟交易日期 -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
+                <div class="form-group">
+                    <label class="form-label">交易类型</label>
+                    <select class="form-select" id="soTradeType">
+                        <option value="">请选择</option>
+                        <option value="申购">申购</option>
+                        <option value="赎回">赎回</option>
+                        <option value="追加">追加</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">计划金额（万）</label>
+                    <input type="text" class="form-input" id="soAmount" placeholder="" value="295">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">拟交易日期</label>
+                    <input type="date" class="form-input" id="soTradeDate">
+                </div>
+            </div>
+            <!-- 第三行：材料形式 / 加急理由 / 加急转换 -->
+            <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:16px;align-items:flex-end;margin-bottom:20px;">
+                <div class="form-group">
+                    <label class="form-label">材料形式</label>
+                    <select class="form-select" id="soMaterial">
+                        <option value="">请选择</option>
+                        <option value="直销-妥妥递">直销-妥妥递</option>
+                        <option value="纸质">纸质</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">加急理由</label>
+                    <input type="text" class="form-input" id="soUrgentReason">
+                </div>
+                <div style="display:flex;align-items:center;gap:14px;padding-bottom:4px;">
+                    <label class="checkbox-option"><input type="checkbox" id="soUrgent"> 加急</label>
+                    <label class="checkbox-option"><input type="checkbox" id="soConvert"> 转换</label>
+                    <span style="font-size:12px;color:#999;">每个工作日开放</span>
+                </div>
+            </div>
+            <!-- 第四行：投资理由 / 投资备注 -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">投资理由</label>
+                    <select class="form-select" id="soReason">
+                        <option value="">请选择</option>
+                        <option value="新发产品">新发产品</option>
+                        <option value="业绩优秀">业绩优秀</option>
+                        <option value="策略调整">策略调整</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">投资备注</label>
+                    <input type="text" class="form-input" id="soRemark">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeModal('scheduleOrderModal')">取消</button>
+            <button class="btn btn-primary" onclick="submitScheduleOrder()">创建投资计划</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 弹窗5：豁免上会审批单 ===== -->
+<div class="modal-overlay" id="exemptionApprovalModal">
+    <div class="modal-box" style="max-width:1100px;">
+        <div class="modal-header" style="border-bottom:none;padding-bottom:8px;">
+            <!-- 顶部标签栏 -->
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+                <input type="text" placeholder="标签" style="padding:4px 10px;border:1px solid #d9d9d9;border-radius:4px;font-size:13px;width:160px;">
+                <span style="font-size:13px;color:#666;">优先级</span>
+                <div class="radio-group" style="gap:0;">
+                    <label class="radio-option"><input type="radio" name="exemptPriority" checked> 一般</label>
+                    <label class="radio-option"><input type="radio" name="exemptPriority"> 加急</label>
+                    <label class="radio-option"><input type="radio" name="exemptPriority"> 特急</label>
+                </div>
+            </div>
+            <h2 style="font-size:18px;font-weight:600;text-align:center;margin:0;">豁免上会审批单</h2>
+        </div>
+        <div class="modal-body">
+
+            <!-- 母基金级别豁免 -->
+            <div style="margin-bottom:24px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+                    <div style="width:3px;height:16px;background:#1890ff;border-radius:2px;"></div>
+                    <span style="font-weight:600;font-size:15px;">母基金级别豁免</span>
+                </div>
+                <div style="padding-left:16px;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <label style="width:50px;font-size:13px;font-weight:500;text-align:right;flex-shrink:0;">产品</label>
+                        <input type="text" class="form-input" value="SJH827(国泰君安期货君诚尊享进取1号FOF集合资产管理计划)" style="flex:1;" readonly>
+                        <span style="color:#1890ff;cursor:pointer;font-size:16px;" title="产品详情">ⓘ</span>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <label style="width:50px;font-size:13px;font-weight:500;text-align:right;flex-shrink:0;">产品</label>
+                        <input type="text" class="form-input" placeholder="" style="flex:1;">
+                        <span style="color:#1890ff;cursor:pointer;font-size:16px;" title="产品详情">ⓘ</span>
+                    </div>
+                    <div style="padding-left:50px;margin-bottom:6px;">
+                        <button class="apply-all-btn" style="background:#fff;color:#1890ff;border:1px solid #1890ff;padding:5px 20px;" onclick="showToast('已添加')">添加</button>
+                    </div>
+                    <div style="padding-left:50px;font-size:13px;color:#1890ff;margin-top:4px;">或（二选一）</div>
+                </div>
+            </div>
+
+            <!-- 母基金+子基金级别豁免 -->
+            <div style="margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div style="width:3px;height:16px;background:#1890ff;border-radius:2px;"></div>
+                        <span style="font-weight:600;font-size:15px;">母基金+子基金级别豁免</span>
+                    </div>
+                    <button class="apply-all-btn" style="background:#fff;color:#333;border:1px solid #d9d9d9;padding:5px 16px;" onclick="showToast('请先在表格中勾选条目')">选择豁免</button>
+                </div>
+
+                <!-- 表格 -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr>
+                            <th>母基金</th>
+                            <th>子基金</th>
+                            <th>上会/方案日期</th>
+                            <th>金额</th>
+                            <th>操作</th>
+                        </tr></thead>
+                        <tbody id="exemptTableBody">
+                            <tr>
+                                <td>SKZ001(私客尊享FOF1号)</td>
+                                <td>SSS001(衍复量化指增1号)</td>
+                                <td><input type="text" class="form-input" value="2026/05/01" style="width:120px;"></td>
+                                <td style="color:#999;">2,000,000.00</td>
+                                <td><a class="action-link delete" onclick="this.closest('tr').remove()" style="margin-right:0;">删除</a></td>
+                            </tr>
+                            <tr>
+                                <td>SKZ002(私客尊享FOF2号)</td>
+                                <td>SSS002(灵均CTA策略2号)</td>
+                                <td><input type="text" class="form-input" value="2026/05/01" style="width:120px;"></td>
+                                <td style="color:#999;">2,000,000.00</td>
+                                <td><a class="action-link delete" onclick="this.closest('tr').remove()" style="margin-right:0;">删除</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 底部提示 -->
+                <div style="display:flex;gap:30px;margin-top:12px;font-size:12px;color:#e74c3c;line-height:1.8;">
+                    <span>流程通过后，建仓/调仓自动打豁免标签</span>
+                    <span>自动带出最近日期的上会，可修改</span>
+                    <span>自动带出对应日期的金额，供核对，不可修改</span>
+                </div>
+            </div>
+
+            <!-- 备注 -->
+            <div style="margin-top:16px;">
+                <label style="font-size:13px;font-weight:500;display:block;margin-bottom:6px;">备注</label>
+                <textarea class="form-input" rows="3" style="resize:vertical;width:100%;" placeholder=""></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeModal('exemptionApprovalModal')">取消</button>
+            <button class="btn btn-primary" onclick="submitExemptionApproval()">确认提交</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 弹窗6：编辑建仓/调仓记录 ===== -->
+<div class="modal-overlay" id="editRecordModal">
+    <div class="modal-box" style="max-width:1100px;">
+        <div class="modal-header">
+            <span class="modal-title">编辑<span id="erRecordType">调仓</span> - <span id="erDate"></span></span>
+            <button class="modal-close" onclick="closeModal('editRecordModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <!-- 基本信息 -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px;">
+                <div class="form-group">
+                    <label class="form-label"><span id="erTotalLabel">本次调仓总金额</span></label>
+                    <input type="text" class="form-input" id="erTotalAmount">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">投资助理</label>
+                    <select class="form-select" id="erAssistant">
+                        <option value="刘芳">刘芳</option>
+                        <option value="张晓明">张晓明</option>
+                        <option value="王志强">王志强</option>
+                        <option value="李婷婷">李婷婷</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">上会/方案日期</label>
+                    <input type="date" class="form-input" id="erDateInput">
+                </div>
+            </div>
+
+            <!-- 调仓原因（仅调仓显示） -->
+            <div style="margin-bottom:16px;" id="erReasonSection">
+                <div class="form-group">
+                    <label class="form-label">调仓原因 <span class="required">*</span></label>
+                    <textarea class="form-textarea" id="erReason" placeholder=""></textarea>
+                </div>
+            </div>
+
+            <!-- 明细表格 -->
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr>
+                        <th>母基金</th>
+                        <th>子基金</th>
+                        <th>策略</th>
+                        <th>配置比例 <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="erRatioType" checked> 按比例</label></th>
+                        <th>金额(万) <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="erRatioType"> 按金额</label></th>
+                        <th>池子</th>
+                        <th>操作</th>
+                    </tr></thead>
+                    <tbody id="erDetailBody"></tbody>
+                </table>
+            </div>
+            <button class="add-detail-row" onclick="addErDetailRow()">＋ 添加明细</button>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-default" onclick="closeModal('editRecordModal')">取消</button>
+            <button class="btn btn-primary" onclick="saveEditRecord()">保存修改</button>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

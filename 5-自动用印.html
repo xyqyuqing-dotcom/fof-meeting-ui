@@ -99,6 +99,7 @@
             margin-left: 200px;
             display: flex;
             flex-direction: column;
+            overflow-x: auto;
         }
 
         /* 顶部栏 */
@@ -255,6 +256,9 @@
             gap: 12px;
         }
 
+        /* 批量用印按钮（暂时隐藏） */
+        .batch-btn.stamp { display: none; }
+
         .batch-btn {
             padding: 8px 20px;
             border-radius: 4px;
@@ -285,6 +289,46 @@
             background: #e6f7ff;
             border-color: #40a9ff;
             color: #40a9ff;
+        }
+
+        /* 企微消息下拉按钮 */
+        .wechat-dropdown-wrap {
+            position: relative;
+        }
+        .wechat-dropdown-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            background: transparent;
+            border: none;
+            color: inherit;
+            width: 100%;
+        }
+        .wechat-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            min-width: 180px;
+            background: #fff;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 100;
+            overflow: hidden;
+        }
+        .wechat-dropdown-item {
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.15s;
+        }
+        .wechat-dropdown-item:hover {
+            background: #e6f7ff;
+            color: #1890ff;
         }
 
         .batch-btn:disabled,
@@ -604,6 +648,29 @@
             border: 1px solid #91d5ff;
         }
 
+        /* 消息状态 - 一行双色点 */
+        .msg-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+        }
+        .msg-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .msg-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+        .msg-dot.gray { background: #d9d9d9; }
+        .msg-dot.green { background: #52c41a; }
+        .msg-dot.orange { background: #faad14; }
+
         .status-tag.orange {
             background: #fff7e6;
             color: #fa8c16;
@@ -780,6 +847,41 @@
             color: #333;
             margin-bottom: 8px;
             display: block;
+        }
+
+        /* 批量操作弹窗样式 */
+        .batch-edit-field {
+            margin-bottom: 20px;
+        }
+        .batch-edit-field label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .batch-edit-field select,
+        .batch-edit-field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff;
+        }
+        .batch-edit-field select:focus,
+        .batch-edit-field input:focus {
+            outline: none;
+            border-color: #722ed1;
+            box-shadow: 0 0 0 2px rgba(114,46,209,0.15);
+        }
+        .batch-edit-info {
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 6px;
+            margin-top: 16px;
         }
 
         /* 批量用印弹窗样式 */
@@ -1009,14 +1111,29 @@
                     <span class="batch-stats">已选择 <span id="selectedCount">0</span> 项</span>
                 </div>
                 <div class="batch-actions">
-                    <button class="batch-btn primary" onclick="batchStamp()">
+                    <button class="batch-btn primary stamp" onclick="batchStamp()">
                         <span>📝</span>
                         <span>批量用印</span>
                     </button>
-                    <button class="batch-btn wechat" onclick="openSendWechatModal()">
-                        <span>💬</span>
-                        <span>发送企微邀请</span>
+                    <button class="batch-btn primary" onclick="openBatchEditModal()" style="background: #722ed1; border-color: #722ed1;">
+                        <span>⚙️</span>
+                        <span>批量操作</span>
                     </button>
+                    <div class="batch-btn wechat wechat-dropdown-wrap">
+                        <button class="wechat-dropdown-btn" onclick="toggleWechatDropdown(event)">
+                            <span>💬</span>
+                            <span>发送企微消息</span>
+                            <span style="margin-left:4px;font-size:10px;">▾</span>
+                        </button>
+                        <div id="wechatDropdownMenu" class="wechat-dropdown-menu hidden">
+                            <div class="wechat-dropdown-item" onclick="openSendWechatModal('invite')">
+                                🔗 关联邀请/订单
+                            </div>
+                            <div class="wechat-dropdown-item" onclick="openSendWechatModal('email')">
+                                📧 净值邮箱设置
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1037,6 +1154,7 @@
                             <th style="width: 120px;">计划金额</th>
                             <th style="width: 120px;">妥妥递状态</th>
                             <th style="width: 110px;">金证状态</th>
+                            <th style="width: 130px;">消息状态</th>
                             <th style="width: 140px;">划款截止</th>
                             <th style="width: 100px;">交易</th>
                             <th style="width: 130px;">操作</th>
@@ -1190,16 +1308,68 @@
         </div>
     </div>
 
+    <!-- 批量操作弹窗 -->
+    <div id="batchEditModal" class="modal-overlay hidden">
+        <div class="modal" style="width: 520px;">
+            <div class="modal-header">
+                <div class="modal-title">批量操作</div>
+                <button class="modal-close" onclick="closeBatchEditModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- 完成情况 -->
+                <div class="batch-edit-field">
+                    <label>完成情况</label>
+                    <select id="batchEditProgress">
+                        <option value="">-- 不修改 --</option>
+                        <option value="待交易">待交易</option>
+                        <option value="交易中">交易中</option>
+                        <option value="交易已完成印">交易已完成印</option>
+                        <option value="交易要素确认中">交易要素确认中</option>
+                        <option value="待交易">待交易</option>
+                    </select>
+                </div>
+
+                <!-- 操作状态 -->
+                <div class="batch-edit-field">
+                    <label>操作状态</label>
+                    <select id="batchEditStatus">
+                        <option value="">-- 不修改 --</option>
+                        <option value="订单待签署">订单待签署</option>
+                        <option value="适当性提交异常">适当性提交异常</option>
+                        <option value="未关联">未关联</option>
+                        <option value="文件就绪">文件就绪</option>
+                    </select>
+                </div>
+
+                <!-- 跟进人 -->
+                <div class="batch-edit-field">
+                    <label>跟进人</label>
+                    <input type="text" id="batchEditFollower" placeholder="输入跟进人姓名（留空则不修改）">
+                </div>
+
+                <div class="batch-edit-info" id="batchEditInfo">
+                    将对已选择的 <span id="batchEditCount">0</span> 个订单进行批量修改
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeBatchEditModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmBatchEdit()" style="background:#722ed1;border-color:#722ed1;">确认修改</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 发送企微邀请弹窗 -->
     <div id="sendWechatModal" class="modal-overlay hidden">
         <div class="wechat-modal">
             <div class="modal-header">
-                <div class="modal-title">发送企微邀请预览</div>
+                <div class="modal-title">发送企微消息预览</div>
                 <button class="modal-close" onclick="closeSendWechatModal()">×</button>
             </div>
             <div class="modal-body">
                 <!-- 编辑视图 -->
                 <div id="wechatEditView">
+                    <!-- 关联邀请/订单 模式（默认显示） -->
+                    <div id="wechatInviteMode">
                     <!-- 订单选择 -->
                     <div class="wechat-section">
                         <label class="wechat-section-title">选择订单查看/编辑话术</label>
@@ -1239,11 +1409,35 @@
                     </div>
                 </div>
 
+                    <!-- 净值邮箱设置模式（默认隐藏） -->
+                    <div id="wechatEmailMode" class="hidden" style="margin-top: 16px;">
+                        <!-- 订单选择 -->
+                        <div class="wechat-section">
+                            <label class="wechat-section-title">选择订单查看/编辑话术</label>
+                            <div style="margin-top: 10px;">
+                                <select id="wechatEmailOrderSelect" class="wechat-order-select" onchange="onWechatEmailOrderChange()">
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="wechat-section">
+                            <div class="wechat-section-header">
+                                <span class="wechat-section-title">消息内容<span class="editable-hint">（固定模板）</span></span>
+                            </div>
+                            <textarea id="wechatEmailText" class="wechat-textarea" readonly style="background:#fafafa;color:#333;" rows="18"></textarea>
+                        </div>
+                        <div class="batch-edit-info" style="text-align:left;padding:12px;background:#fffbe6;border:1px solid #ffe58f;border-radius:6px;margin-top:12px;font-size:13px;color:#856404;">
+                            <strong>提示：</strong>切换上方订单可查看不同子基金的净值邮箱设置内容，日期将自动填充当前日期。
+                        </div>
+                    </div>
+
+                </div>
+
                 <!-- 发送进度视图 -->
                 <div id="wechatSendView" class="hidden">
                     <div class="wechat-send-progress">
                         <div class="wechat-send-icon" id="wechatSendIcon">⏳</div>
-                        <div class="wechat-send-title" id="wechatSendTitle">正在发送企微邀请...</div>
+                        <div class="wechat-send-title" id="wechatSendTitle">正在发送企微消息...</div>
                         <div class="wechat-send-desc" id="wechatSendDesc">请勿关闭页面</div>
 
                         <div style="max-width: 480px; margin: 0 auto 24px auto;">
@@ -1291,7 +1485,9 @@
                     { name: '备案函.pdf', desc: '产品备案证明文件' }
                 ],
                 goldCertDone: false,
-                transferDeadline: '2026-06-15 17:00'
+                transferDeadline: '2026-06-15 17:00',
+                inviteStatus: '未发送',
+                emailStatus: '排队中'
             },
             {
                 id: 2,
@@ -1340,7 +1536,9 @@
                     { name: '认申购单.pdf', desc: '认申购单' }
                 ],
                 goldCertDone: false,
-                transferDeadline: '2026-06-20 17:00'
+                transferDeadline: '2026-06-20 17:00',
+                inviteStatus: '未发送',
+                emailStatus: '未发送'
             },
             {
                 id: 4,
@@ -1364,7 +1562,9 @@
                     { name: '备案函.pdf', desc: '产品备案证明文件' }
                 ],
                 goldCertDone: true,
-                transferDeadline: '2026-06-10 17:00'
+                transferDeadline: '2026-06-10 17:00',
+                inviteStatus: '已发送',
+                emailStatus: '已发送'
             }
         ];
 
@@ -1400,6 +1600,7 @@
                     <td>${order.amount}</td>
                     <td><span class="status-tag ${order.statusType}">${order.status}</span></td>
                     <td><span class="gc-cell ${order.goldCertDone ? 'gc-done' : ''}">${order.goldCertDone ? '✓ 已调取' : '○ 未调取'}</span></td>
+                    <td>${renderMsgStatus(order.inviteStatus, order.emailStatus)}</td>
                     <td>${order.transferDeadline}</td>
                     <td>${order.platform}</td>
                     <td class="action-menu">
@@ -1409,6 +1610,19 @@
                 </tr>
             `).join('');
             updateSelectedCount();
+        }
+
+        // 渲染消息状态（一行双色点）
+        function renderMsgStatus(invite, email) {
+            const dot = (status) => {
+                if (status === '已发送') return 'green';
+                if (status === '排队中') return 'orange';
+                return 'gray';
+            };
+            return `<div class="msg-status">
+                <span class="msg-item"><span class="msg-dot ${dot(invite)}"></span>邀请</span>
+                <span class="msg-item"><span class="msg-dot ${dot(email)}"></span>邮箱</span>
+            </div>`;
         }
 
         // 切换订单选中状态
@@ -1660,36 +1874,152 @@
             window.location.href = `用印划款流程.html?orderId=${orderId}`;
         }
 
-        // ===== 发送企微邀请 =====
-        let wechatOrders = []; // 当前弹窗涉及的订单
-        let wechatCurrentIndex = 0; // 当前编辑的订单索引
+        // ===== 批量操作 =====
+        function openBatchEditModal() {
+            const selected = orders.filter(o => o.selected);
+            if (selected.length === 0) {
+                alert('请先选择要批量修改的订单！');
+                return;
+            }
+            // 重置表单
+            document.getElementById('batchEditProgress').value = '';
+            document.getElementById('batchEditStatus').value = '';
+            document.getElementById('batchEditFollower').value = '';
+            document.getElementById('batchEditCount').textContent = selected.length;
+            document.getElementById('batchEditModal').classList.remove('hidden');
+        }
 
-        // 打开发送企微邀请弹窗
-        function openSendWechatModal() {
+        function closeBatchEditModal() {
+            document.getElementById('batchEditModal').classList.add('hidden');
+        }
+
+        function confirmBatchEdit() {
+            const progressVal = document.getElementById('batchEditProgress').value;
+            const statusVal = document.getElementById('batchEditStatus').value;
+            const followerVal = document.getElementById('batchEditFollower').value.trim();
+
+            if (!progressVal && !statusVal && !followerVal) {
+                alert('请至少选择一项要修改的内容！');
+                return;
+            }
+
+            let changedCount = 0;
+            orders.forEach(order => {
+                if (!order.selected) return;
+                let changed = false;
+                if (progressVal) { order.progress = progressVal; changed = true; }
+                if (statusVal) { order.status = statusVal; changed = true; }
+                if (followerVal) { order.follower = followerVal; changed = true; }
+                if (changed) changedCount++;
+            });
+
+            alert(`已成功修改 ${changedCount} 个订单！`);
+            closeBatchEditModal();
+            renderTable(); // 刷新表格
+        }
+
+        // ===== 发送企微消息 =====
+        let wechatOrders = [];
+        let wechatCurrentIndex = 0;
+        let wechatEmailCurrentIndex = 0; // 净值邮箱模式当前选中订单索引
+        let currentWechatType = 'invite';
+
+        // 切换下拉菜单
+        function toggleWechatDropdown(e) {
+            e.stopPropagation();
+            const menu = document.getElementById('wechatDropdownMenu');
+            menu.classList.toggle('hidden');
+        }
+        // 点击其他地方关闭下拉
+        document.addEventListener('click', function() {
+            const menu = document.getElementById('wechatDropdownMenu');
+            if (menu) menu.classList.add('hidden');
+        });
+
+        // 打开发送企微消息弹窗（type: 'invite' | 'email'）
+        function openSendWechatModal(type) {
+            // 关闭下拉
+            document.getElementById('wechatDropdownMenu').classList.add('hidden');
+
+            currentWechatType = type || 'invite';
             wechatOrders = orders.filter(o => o.selected);
             if (wechatOrders.length === 0) {
-                alert('请先选择要发送企微邀请的订单！');
+                alert('请先选择要发送企微消息的订单！');
                 return;
             }
 
             wechatCurrentIndex = 0;
 
-            // 填充订单下拉
-            const select = document.getElementById('wechatOrderSelect');
-            select.innerHTML = wechatOrders.map((o, idx) =>
-                `<option value="${idx}">${idx + 1}. ${o.motherFund} → ${o.childFund}（${o.tradeDate}）</option>`
-            ).join('');
+            // 根据类型切换显示区域
+            if (currentWechatType === 'invite') {
+                document.getElementById('wechatInviteMode').classList.remove('hidden');
+                document.getElementById('wechatEmailMode').classList.add('hidden');
+
+                // 填充订单下拉
+                const select = document.getElementById('wechatOrderSelect');
+                select.innerHTML = wechatOrders.map((o, idx) =>
+                    `<option value="${idx}">${idx + 1}. ${o.motherFund} → ${o.childFund}（${o.tradeDate}）</option>`
+                ).join('');
+                loadWechatOrderContent(0);
+            } else {
+                document.getElementById('wechatInviteMode').classList.add('hidden');
+                document.getElementById('wechatEmailMode').classList.remove('hidden');
+
+                // 填充净值邮箱订单下拉
+                const emailSelect = document.getElementById('wechatEmailOrderSelect');
+                emailSelect.innerHTML = wechatOrders.map((o, idx) =>
+                    `<option value="${idx}">${idx + 1}. ${o.motherFund} → ${o.childFund}（${o.tradeDate}）</option>`
+                ).join('');
+                wechatEmailCurrentIndex = 0;
+                generateEmailTemplate();
+            }
 
             // 重置视图
             document.getElementById('wechatEditView').classList.remove('hidden');
             document.getElementById('wechatSendView').classList.add('hidden');
             document.getElementById('wechatModalFooter').style.display = 'flex';
 
-            // 加载当前订单内容
-            loadWechatOrderContent(0);
-
             // 显示弹窗
             document.getElementById('sendWechatModal').classList.remove('hidden');
+        }
+
+        // 生成净值邮箱设置模板
+        function generateEmailTemplate() {
+            const today = new Date();
+            const dateStr = today.getFullYear() + '-' +
+                String(today.getMonth() + 1).padStart(2, '0') + '-' +
+                String(today.getDate()).padStart(2, '0');
+
+            // 使用当前选中的订单的子基金名称
+            const order = wechatOrders[wechatEmailCurrentIndex];
+            const fundName = order ? order.childFund : '';
+
+            const template = `【${dateStr}】老师好，以下邮箱麻烦设置下
+
+1、【${fundName}】的日频虚拟净值接收邮箱麻烦设置:
+   *****@**.**;*****@**.**;*****@**.**;
+
+2、月末EXCEL版三级估值表麻烦设置:
+   *****@**.**;*****@**.**;*****@**.**;
+
+3、仅接收净值的邮箱麻烦设置并发送产品成立以来历史净值(如该产品已设置和发送过则不用重复设置):
+   *****@**.**
+
+4、交易确认单:
+   *****@**.**
+
+【${dateStr}】老师好，以下信息麻烦提供下:
+
+1、确认单一般T+几日可以给出
+2、交易录单后，烦请老师告知~`;
+
+            document.getElementById('wechatEmailText').value = template;
+        }
+
+        // 净值邮箱模式切换订单
+        function onWechatEmailOrderChange() {
+            wechatEmailCurrentIndex = parseInt(document.getElementById('wechatEmailOrderSelect').value);
+            generateEmailTemplate();
         }
 
         // 关闭发送企微邀请弹窗
@@ -1792,7 +2122,21 @@
 
         // 确认发送
         function confirmSendWechat() {
-            // 保存当前编辑
+            // 净值邮箱模式：直接发送，无需校验话术
+            if (currentWechatType === 'email') {
+                // 切换到发送进度视图
+                document.getElementById('wechatEditView').classList.add('hidden');
+                document.getElementById('wechatSendView').classList.remove('hidden');
+                document.getElementById('wechatModalFooter').style.display = 'none';
+                document.getElementById('wechatConfirmBtn').textContent = '确认发送';
+                document.getElementById('wechatSendIcon').textContent = '⏳';
+                document.getElementById('wechatSendTitle').textContent = '正在发送企微消息...';
+                document.getElementById('wechatSendDesc').textContent = `共 ${wechatOrders.length} 个订单，请勿关闭页面`;
+                simulateEmailSend();
+                return;
+            }
+
+            // 关联邀请模式：原有逻辑
             saveWechatCurrentEdit();
 
             // 校验：所有订单必须有话术
@@ -1811,7 +2155,7 @@
             document.getElementById('wechatModalFooter').style.display = 'none';
             document.getElementById('wechatConfirmBtn').textContent = '确认发送';
             document.getElementById('wechatSendIcon').textContent = '⏳';
-            document.getElementById('wechatSendTitle').textContent = '正在发送企微邀请...';
+            document.getElementById('wechatSendTitle').textContent = '正在发送企微消息...';
             document.getElementById('wechatSendDesc').textContent = `共 ${wechatOrders.length} 个订单，请勿关闭页面`;
 
             // 模拟发送进度
@@ -1836,7 +2180,7 @@
                     // 完成
                     document.getElementById('wechatSendIcon').textContent = '🎉';
                     document.getElementById('wechatSendTitle').textContent = '发送完成！';
-                    document.getElementById('wechatSendDesc').textContent = `已成功发送 ${wechatOrders.length} 个企微邀请`;
+                    document.getElementById('wechatSendDesc').textContent = `已成功发送 ${wechatOrders.length} 个企微消息`;
                     document.getElementById('wechatSendLogTitle').innerHTML = '✅ 发送结果';
 
                     log.innerHTML = wechatOrders.map((o, idx) => `
@@ -1863,6 +2207,45 @@
                     }).join('');
                 }
             }, 250);
+        }
+
+        // 净值邮箱模式发送模拟
+        function simulateEmailSend() {
+            let progress = 0;
+            const progressBar = document.getElementById('wechatSendProgress');
+            const log = document.getElementById('wechatSendLog');
+            log.innerHTML = '';
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 20 + 10;
+                if (progress > 100) progress = 100;
+                progressBar.style.width = progress + '%';
+
+                if (progress < 40) {
+                    document.getElementById('wechatSendDesc').textContent = '正在准备净值邮箱模板...';
+                } else if (progress < 80) {
+                    document.getElementById('wechatSendDesc').textContent = '正在调用企微接口发送...';
+                } else if (progress < 100) {
+                    document.getElementById('wechatSendDesc').textContent = '即将完成...';
+                } else {
+                    clearInterval(interval);
+                    document.getElementById('wechatSendIcon').textContent = '📧';
+                    document.getElementById('wechatSendTitle').textContent = '发送完成！';
+                    document.getElementById('wechatSendDesc').textContent = `已成功发送净值邮箱设置消息（${wechatOrders.length} 个订单）`;
+                    document.getElementById('wechatSendLogTitle').innerHTML = '✅ 发送结果';
+
+                    log.innerHTML = `
+                        <div>消息类型：净值邮箱设置</div>
+                        <div style="color:#52c41a;margin-left:16px;">✓ 已发送给 ${wechatOrders.length} 个子基金的对接人</div>
+                        <div style="margin-top:8px;color:#999;">完成时间：${new Date().toLocaleString()}</div>
+                    `;
+
+                    document.getElementById('wechatModalFooter').style.display = 'flex';
+                    const confirmBtn = document.getElementById('wechatConfirmBtn');
+                    confirmBtn.textContent = '完成';
+                    confirmBtn.onclick = closeSendWechatModal;
+                }
+            }, 200);
         }
 
         // 初始化

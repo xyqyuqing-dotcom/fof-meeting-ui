@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOF下投上会 - 系统导航</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, "Microsoft YaHei", sans-serif;
+            background: #f0f2f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部导航 */
+        .nav-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            padding: 0 32px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+
+        .nav-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .nav-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .nav-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-left: auto;
+        }
+
+        /* Tab 栏 */
+        .tab-bar {
+            background: #fff;
+            padding: 0 24px;
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid #e8e8e8;
+            flex-shrink: 0;
+        }
+
+        .tab-item {
+            padding: 14px 28px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .tab-item:hover { color: #1890ff; }
+        .tab-item.active {
+            color: #1890ff;
+            font-weight: 500;
+            border-bottom-color: #1890ff;
+        }
+
+        .tab-badge {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 0 6px;
+            font-size: 11px;
+            line-height: 16px;
+            border-radius: 8px;
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        /* iframe 容器 */
+        .page-frame {
+            flex: 1;
+            border: none;
+            width: 100%;
+        }
+
+        /* 页面说明区 */
+        .info-bar {
+            background: #fffbe6;
+            border-bottom: 1px solid #ffe58f;
+            padding: 8px 24px;
+            font-size: 13px;
+            color: #d48806;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 顶部 -->
+    <div class="nav-header">
+        <div class="nav-logo">F</div>
+        <div class="nav-title">FOF 下投上会系统</div>
+        <div class="nav-subtitle">v1.0 · 导航中心</div>
+    </div>
+
+    <!-- Tab 切换 -->
+    <div class="tab-bar" id="tabBar">
+        <div class="tab-item active" data-page="5-自动用印.html" onclick="switchTab(this)">
+            订单列表 <span class="tab-badge">主入口</span>
+        </div>
+        <div class="tab-item" data-page="订单详情页.html" onclick="switchTab(this)">
+            订单详情
+        </div>
+        <div class="tab-item" data-page="3-文件收集页面.html" onclick="switchTab(this)">
+            文件收集
+        </div>
+        <div class="tab-item" data-page="用印划款流程.html" onclick="switchTab(this)">
+            用印划款流程
+        </div>
+    </div>
+
+    <!-- 提示 -->
+    <div class="info-bar">
+        提示：点击上方 Tab 切换页面。各页面间可通过按钮互相跳转（新标签页打开）。
+    </div>
+
+    <!-- iframe -->
+    <iframe class="page-frame" id="pageFrame" src="5-自动用印.html"></iframe>
+
+    <script>
+        function switchTab(el) {
+            // 更新 tab 状态
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+
+            // 切换 iframe
+            const page = el.getAttribute('data-page');
+            document.getElementById('pageFrame').src = page;
+        }
+    </script>
+
+</body>
+</html>

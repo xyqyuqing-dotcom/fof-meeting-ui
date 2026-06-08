@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>妥妥递 - 订单管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* 侧边栏 */
+        .sidebar {
+            width: 200px;
+            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b35 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+            color: #1a1a2e;
+        }
+
+        .brand-name {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .sidebar-menu {
+            padding: 16px 0;
+        }
+
+        .menu-title {
+            padding: 12px 20px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            text-transform: uppercase;
+        }
+
+        .menu-item {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            color: rgba(255,255,255,0.7);
+            transition: all 0.2s;
+        }
+
+        .menu-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .menu-item.active {
+            background: rgba(255,215,0,0.2);
+            color: #ffd700;
+            border-left: 3px solid #ffd700;
+        }
+
+        .menu-icon {
+            font-size: 16px;
+        }
+
+        /* 主内容区 */
+        .main-content {
+            flex: 1;
+            margin-left: 200px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 顶部栏 */
+        .top-bar {
+            background: #fff;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            max-width: 500px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 8px 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-input::placeholder {
+            color: #999;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .top-bar-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: #1890ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 500;
+        }
+
+        /* 内容区 */
+        .content {
+            padding: 24px;
+        }
+
+        /* 筛选栏 */
+        .filter-bar {
+            background: #fff;
+            padding: 16px 20px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-tab {
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .filter-tab:hover {
+            background: #f0f0f0;
+        }
+
+        .filter-tab.active {
+            background: #1890ff;
+            color: #fff;
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 6px 16px;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            background: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 批量操作栏 */
+        .batch-bar {
+            background: #fff;
+            padding: 12px 20px;
+            margin-bottom: 12px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .batch-info {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .select-all {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .batch-stats {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .batch-stats span {
+            color: #1890ff;
+            font-weight: 500;
+        }
+
+        .batch-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .batch-btn {
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .batch-btn.primary {
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+            color: #fff;
+        }
+
+        .batch-btn.primary:hover {
+            background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+        }
+
+        .batch-btn.wechat {
+            background: #fff;
+            color: #1890ff;
+            border: 1px solid #1890ff;
+        }
+
+        .batch-btn.wechat:hover {
+            background: #e6f7ff;
+            border-color: #40a9ff;
+            color: #40a9ff;
+        }
+
+        .batch-btn:disabled,
+        .batch-btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 发送企微邀请弹窗 */
+        .wechat-modal {
+            background: #fff;
+            border-radius: 8px;
+            width: 780px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .wechat-section {
+            margin-bottom: 20px;
+        }
+
+        .wechat-section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .wechat-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .wechat-section-title .editable-hint {
+            font-size: 12px;
+            color: #999;
+            font-weight: normal;
+            margin-left: 4px;
+        }
+
+        .wechat-order-select {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff;
+            cursor: pointer;
+        }
+
+        .wechat-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 14px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+            resize: vertical;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+
+        .wechat-textarea:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 3px rgba(24,144,255,0.1);
+        }
+
+        .wechat-reset-btn {
+            padding: 4px 12px;
+            font-size: 14px;
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wechat-reset-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .wechat-files {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .wechat-file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 14px;
+            background: #fafafa;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .wechat-file-icon {
+            font-size: 20px;
+        }
+
+        .wechat-file-info {
+            flex: 1;
+        }
+
+        .wechat-file-name {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .wechat-file-desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .wechat-file-remove {
+            background: #f5222d;
+            color: #fff;
+            border: none;
+            padding: 4px 12px;
+            font-size: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .wechat-file-remove:hover {
+            background: #ff4d4f;
+        }
+
+        .wechat-add-file {
+            border: 2px dashed #d9d9d9;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .wechat-add-file:hover {
+            border-color: #1890ff;
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .wechat-link-box {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .wechat-link-icon {
+            font-size: 20px;
+        }
+
+        .wechat-link-text {
+            flex: 1;
+            font-size: 14px;
+            color: #1890ff;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+
+        .wechat-link-text a {
+            color: #1890ff;
+            text-decoration: none;
+        }
+
+        .wechat-link-text a:hover {
+            text-decoration: underline;
+        }
+
+        .wechat-send-progress {
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .wechat-send-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .wechat-send-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .wechat-send-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .wechat-send-detail {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: left;
+            max-width: 480px;
+            margin: 0 auto;
+            font-size: 14px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        .wechat-send-detail .title {
+            font-weight: 600;
+            color: #52c41a;
+            margin-bottom: 8px;
+        }
+
+        /* 表格 */
+        .table-container {
+            background: #fff;
+            border-radius: 4px;
+            overflow-x: auto;
+            position: relative;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1400px;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 14px;
+            border-bottom: 1px solid #f0f0f0;
+            white-space: nowrap;
+        }
+
+        /* 固定首列（多选）- 完全不透明 */
+        th:nth-child(1), td:nth-child(1) {
+            position: sticky;
+            left: 0;
+            z-index: 10;
+            background: #fff !important;
+            box-shadow: 2px 0 6px rgba(0,0,0,0.08);
+        }
+        th:nth-child(1) { background: #fafafa !important; }
+
+        /* 固定第二列（星标）*/
+        th:nth-child(2), td:nth-child(2) {
+            position: sticky;
+            left: 50px;
+            z-index: 10;
+            background: #fff !important;
+            box-shadow: 2px 0 6px rgba(0,0,0,0.08);
+        }
+        th:nth-child(2) { background: #fafafa !important; }
+
+        /* 固定末列（操作）*/
+        th:last-child, td:last-child {
+            position: sticky;
+            right: 0;
+            z-index: 10;
+            background: #fff !important;
+            box-shadow: -2px 0 6px rgba(0,0,0,0.08);
+        }
+        th:last-child { background: #fafafa !important; }
+
+        th {
+            background: #fafafa;
+            color: #666;
+            font-weight: 500;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        /* hover 时固定列保持实心背景，不透出任何东西 */
+        tr:hover td:nth-child(1),
+        tr:hover td:nth-child(2) {
+            background: #f8f9fa !important;
+        }
+        tr:hover td:last-child {
+            background: #f8f9fa !important;
+        }
+
+        .status-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-tag.green {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .status-tag.blue {
+            background: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        .status-tag.orange {
+            background: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+
+        .status-tag.gray {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #d9d9d9;
+        }
+
+        .action-menu {
+            position: relative;
+        }
+
+        .action-menu .action-btn {
+            display: block;
+            margin-bottom: 6px;
+        }
+        .action-menu .action-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        /* 金证状态单元格 */
+        .gc-cell {
+            font-size: 13px;
+            color: #999;
+        }
+        .gc-cell.gc-done {
+            color: #52c41a;
+            font-weight: 500;
+        }
+
+        .action-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #666;
+            padding: 4px;
+        }
+
+        /* 复选框样式 */
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 8px;
+            width: 850px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            color: #333;
+        }
+
+        .btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+            border: none;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .btn-success {
+            background: #52c41a;
+            border-color: #52c41a;
+            color: #fff;
+        }
+
+        .btn-danger {
+            background: #f5222d;
+            border-color: #f5222d;
+            color: #fff;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* 订单选择器 */
+        .order-selector {
+            margin-bottom: 20px;
+        }
+
+        .order-select {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .order-select-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        /* 批量用印弹窗样式 */
+        .file-type-card {
+            flex: 1;
+            background: #fff;
+            border: 2px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 20px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-type-card:hover {
+            border-color: #1890ff;
+            box-shadow: 0 2px 8px rgba(24,144,255,0.15);
+        }
+
+        .file-type-card.active {
+            border-color: #1890ff;
+            background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+        }
+
+        .batch-stamp-step {
+            transition: all 0.3s;
+        }
+
+        /* 预览内容 */
+        .preview-section {
+            margin-bottom: 24px;
+        }
+
+        .preview-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .message-preview {
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            padding: 16px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: #333;
+            font-family: "Microsoft YaHei", sans-serif;
+            white-space: pre-line;
+            min-height: 200px;
+            width: 100%;
+            resize: vertical;
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .file-icon {
+            font-size: 24px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name-input {
+            border: none;
+            background: transparent;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            width: 100%;
+            padding: 4px 0;
+        }
+
+        .file-name-input:focus {
+            outline: none;
+            border-bottom: 1px solid #1890ff;
+        }
+
+        .file-desc {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .add-file-area {
+            border: 2px dashed #d9d9d9;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-file-area:hover {
+            border-color: #1890ff;
+            background: #e6f7ff;
+        }
+
+        .link-preview {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 6px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .link-icon {
+            font-size: 20px;
+        }
+
+        .link-text {
+            flex: 1;
+            font-size: 14px;
+            color: #1890ff;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">妥</div>
+            <div class="brand-name">妥妥递</div>
+        </div>
+        <div class="sidebar-menu">
+            <div class="menu-title">基础数据</div>
+            <div class="menu-item">
+                <span class="menu-icon">🏢</span>
+                <span>私募营销</span>
+            </div>
+            <div class="menu-item">
+                <span class="menu-icon">👥</span>
+                <span>投资主体</span>
+            </div>
+            <div class="menu-item">
+                <span class="menu-icon">🏦</span>
+                <span>业务管理</span>
+            </div>
+            <div class="menu-item">
+                <span class="menu-icon">📁</span>
+                <span>准入管理</span>
+            </div>
+            <div class="menu-item active">
+                <span class="menu-icon">📋</span>
+                <span>订单管理</span>
+            </div>
+            <div class="menu-item">
+                <span class="menu-icon">⚙️</span>
+                <span>系统设置</span>
+            </div>
+            <div class="menu-item">
+                <span class="menu-icon">🔌</span>
+                <span>模拟器</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="main-content">
+        <!-- 顶部栏 -->
+        <div class="top-bar">
+            <div class="search-bar">
+                <span style="color: #999;">🔍</span>
+                <input type="text" class="search-input" placeholder="搜索母基金/子基金/投资经理...">
+            </div>
+            <div class="top-bar-actions">
+                <button class="top-bar-btn">🔔</button>
+                <button class="top-bar-btn">📤</button>
+                <button class="top-bar-btn">🔧</button>
+                <div class="user-avatar">用</div>
+            </div>
+        </div>
+
+        <!-- 内容区 -->
+        <div class="content">
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-tabs">
+                    <div class="filter-tab">全部</div>
+                    <div class="filter-tab active">订单执行中</div>
+                    <div class="filter-tab">未关联</div>
+                    <div class="filter-tab">已归档</div>
+                    <div class="filter-tab">订单异常</div>
+                    <span style="color: #666;">📅</span>
+                </div>
+                <div class="filter-actions">
+                    <button class="filter-btn">列配置  ⋮⋮⋮</button>
+                    <button class="filter-btn">🔄</button>
+                    <button class="filter-btn">⬇️</button>
+                </div>
+            </div>
+
+            <!-- 批量操作栏 -->
+            <div class="batch-bar" id="batchBar">
+                <div class="batch-info">
+                    <label class="select-all">
+                        <input type="checkbox" id="selectAll" onchange="toggleSelectAll()">
+                        <span>全选</span>
+                    </label>
+                    <span class="batch-stats">已选择 <span id="selectedCount">0</span> 项</span>
+                </div>
+                <div class="batch-actions">
+                    <button class="batch-btn primary" onclick="batchStamp()">
+                        <span>📝</span>
+                        <span>批量用印</span>
+                    </button>
+                    <button class="batch-btn wechat" onclick="openSendWechatModal()">
+                        <span>💬</span>
+                        <span>发送企微邀请</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 表格 -->
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="width: 50px;">
+                                <span style="color: #666;">★</span>
+                            </th>
+                            <th style="width: 60px;"></th>
+                            <th style="width: 180px;">母基金</th>
+                            <th style="width: 120px;">拟交易日期</th>
+                            <th style="width: 180px;">子基金</th>
+                            <th style="width: 100px;">交易类型</th>
+                            <th style="width: 120px;">完成情况</th>
+                            <th style="width: 120px;">计划金额</th>
+                            <th style="width: 120px;">妥妥递状态</th>
+                            <th style="width: 110px;">金证状态</th>
+                            <th style="width: 140px;">划款截止</th>
+                            <th style="width: 100px;">交易</th>
+                            <th style="width: 130px;">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orderTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量用印弹窗 -->
+    <div id="batchStampModal" class="modal-overlay hidden">
+        <div class="modal" style="width: 600px;">
+            <div class="modal-header">
+                <div class="modal-title">批量用印</div>
+                <button class="modal-close" onclick="closeBatchStampModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- 步骤1：选择文件类型 -->
+                <div id="step1Select" class="batch-stamp-step">
+                    <div style="margin-bottom: 20px;">
+                        <label class="order-select-label">请选择要批量用印的文件类型：</label>
+                    </div>
+                    
+                    <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+                        <div class="file-type-card active" onclick="selectFileType('all', this)">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📁</div>
+                            <div style="font-weight: 600; font-size: 15px; color: #333; margin-bottom: 4px;">全部文件</div>
+                            <div style="font-size: 14px; color: #999;">适当性文件 + 订单文件</div>
+                        </div>
+                        
+                        <div class="file-type-card" onclick="selectFileType('suitability', this)">
+                            <div style="font-size: 32px; margin-bottom: 8px;">✅</div>
+                            <div style="font-weight: 600; font-size: 15px; color: #333; margin-bottom: 4px;">适当性文件</div>
+                            <div style="font-size: 14px; color: #999;">投资者信息表、风测问卷等</div>
+                        </div>
+                        
+                        <div class="file-type-card" onclick="selectFileType('order', this)">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
+                            <div style="font-weight: 600; font-size: 15px; color: #333; margin-bottom: 4px;">订单文件</div>
+                            <div style="font-size: 14px; color: #999;">认申购单、合同、风揭书</div>
+                        </div>
+                    </div>
+
+                    <!-- 已选订单预览 -->
+                    <div style="background: #fafafa; border: 1px solid #e8e8e8; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+                        <div style="font-weight: 600; font-size: 14px; color: #333; margin-bottom: 12px;">
+                            已选择 <span id="selectedOrderCount" style="color: #1890ff;">0</span> 个订单
+                        </div>
+                        <div id="selectedOrdersList" style="font-size: 14px; color: #666; line-height: 1.8;"></div>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <button class="btn btn-primary" onclick="confirmBatchStamp()" style="padding: 12px 48px; font-size: 15px;">
+                            开始批量用印
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 步骤2：执行中 -->
+                <div id="step2Processing" class="batch-stamp-step hidden">
+                    <div style="text-align: center; padding: 20px 0;">
+                        <div style="font-size: 16px; font-weight: 600; color: #333; margin-bottom: 8px;">
+                            正在执行批量用印...
+                        </div>
+                        <div style="font-size: 14px; color: #999; margin-bottom: 32px;">
+                            请勿关闭页面，等待操作完成
+                        </div>
+
+                        <!-- 进度条区域 -->
+                        <div style="max-width: 480px; margin: 0 auto;">
+                            <!-- 步骤1：用印 -->
+                            <div style="margin-bottom: 32px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 14px; font-weight: 500; color: #333;">
+                                        <span id="step1Icon">⏳</span> 步骤1：调接口进行用印
+                                    </span>
+                                    <span id="step1Status" style="font-size: 14px; color: #1890ff;">进行中...</span>
+                                </div>
+                                <div style="background: #f0f0f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                    <div id="progressStep1" style="background: linear-gradient(90deg, #1890ff, #40a9ff); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 8px;"></div>
+                                </div>
+                                <div id="step1Desc" style="font-size: 12px; color: #999; margin-top: 6px; text-align: left;">
+                                    正在调用用印接口...
+                                </div>
+                            </div>
+
+                            <!-- 连接箭头 -->
+                            <div style="text-align: center; margin: -8px 0 8px 0;">
+                                <span style="color: #d9d9d9; font-size: 20px;">↓</span>
+                            </div>
+
+                            <!-- 步骤2：传输妥妥递 -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                    <span style="font-size: 14px; font-weight: 500; color: #999;">
+                                        <span id="step2Icon">⏳</span> 步骤2：将用印文件传输妥妥递
+                                    </span>
+                                    <span id="step2Status" style="font-size: 14px; color: #999;">等待中</span>
+                                </div>
+                                <div style="background: #f0f0f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                    <div id="progressStep2" style="background: #d9d9d9; height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 8px;"></div>
+                                </div>
+                                <div id="step2Desc" style="font-size: 12px; color: #999; margin-top: 6px; text-align: left;">
+                                    等待步骤1完成...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 详情日志 -->
+                        <div style="margin-top: 32px; text-align: left;">
+                            <div style="font-size: 14px; font-weight: 600; color: #333; margin-bottom: 12px;">
+                                执行详情
+                            </div>
+                            <div id="processLog" style="background: #262626; color: #52c41a; font-family: 'Consolas', monospace; font-size: 14px; padding: 16px; border-radius: 6px; max-height: 200px; overflow-y: auto; line-height: 1.8;">
+                                <div>[等待开始] 准备执行批量用印操作...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 步骤3：完成 -->
+                <div id="step3Complete" class="batch-stamp-step hidden">
+                    <div style="text-align: center; padding: 20px 0;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🎉</div>
+                        <div style="font-size: 20px; font-weight: 600; color: #333; margin-bottom: 8px;">
+                            批量用印完成！
+                        </div>
+                        <div id="completeSummary" style="font-size: 14px; color: #666; margin-bottom: 32px;">
+                            已完成 0 个订单的用印
+                        </div>
+
+                        <div style="background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; padding: 16px; text-align: left; max-width: 480px; margin: 0 auto;">
+                            <div style="font-weight: 600; font-size: 14px; color: #52c41a; margin-bottom: 8px;">
+                                ✅ 执行结果
+                            </div>
+                            <div id="completeDetails" style="font-size: 14px; color: #666; line-height: 1.8;">
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 24px;">
+                            <button class="btn btn-primary" onclick="closeBatchStampModal()" style="padding: 12px 48px; font-size: 15px;">
+                                确定
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 发送企微邀请弹窗 -->
+    <div id="sendWechatModal" class="modal-overlay hidden">
+        <div class="wechat-modal">
+            <div class="modal-header">
+                <div class="modal-title">发送企微邀请预览</div>
+                <button class="modal-close" onclick="closeSendWechatModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <!-- 编辑视图 -->
+                <div id="wechatEditView">
+                    <!-- 订单选择 -->
+                    <div class="wechat-section">
+                        <label class="wechat-section-title">选择订单查看/编辑话术</label>
+                        <div style="margin-top: 10px;">
+                            <select id="wechatOrderSelect" class="wechat-order-select" onchange="onWechatOrderChange()">
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 企微话术 -->
+                    <div class="wechat-section">
+                        <div class="wechat-section-header">
+                            <span class="wechat-section-title">企微话术<span class="editable-hint">（可编辑）</span></span>
+                            <button class="wechat-reset-btn" onclick="resetWechatMessage()">↻ 恢复默认</button>
+                        </div>
+                        <textarea id="wechatMessageText" class="wechat-textarea"></textarea>
+                    </div>
+
+                    <!-- 附件文件 -->
+                    <div class="wechat-section">
+                        <div class="wechat-section-header">
+                            <span class="wechat-section-title">附件文件<span class="editable-hint">（可编辑）</span></span>
+                            <button class="wechat-reset-btn" onclick="addWechatFile()" style="background: #52c41a; color: #fff; border-color: #52c41a;">+ 添加文件</button>
+                        </div>
+                        <div id="wechatFileList" class="wechat-files"></div>
+                    </div>
+
+                    <!-- 文件收集链接 -->
+                    <div class="wechat-section">
+                        <label class="wechat-section-title">文件收集链接</label>
+                        <div style="margin-top: 10px;">
+                            <div class="wechat-link-box">
+                                <span class="wechat-link-icon">🔗</span>
+                                <div class="wechat-link-text" id="wechatLinkText"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 发送进度视图 -->
+                <div id="wechatSendView" class="hidden">
+                    <div class="wechat-send-progress">
+                        <div class="wechat-send-icon" id="wechatSendIcon">⏳</div>
+                        <div class="wechat-send-title" id="wechatSendTitle">正在发送企微邀请...</div>
+                        <div class="wechat-send-desc" id="wechatSendDesc">请勿关闭页面</div>
+
+                        <div style="max-width: 480px; margin: 0 auto 24px auto;">
+                            <div style="background: #f0f0f0; border-radius: 8px; height: 8px; overflow: hidden;">
+                                <div id="wechatSendProgress" style="background: linear-gradient(90deg, #1890ff, #40a9ff); height: 100%; width: 0%; transition: width 0.3s ease; border-radius: 8px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="wechat-send-detail">
+                            <div class="title" id="wechatSendLogTitle">📋 发送详情</div>
+                            <div id="wechatSendLog"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" id="wechatModalFooter">
+                <button class="btn" onclick="closeSendWechatModal()">取消</button>
+                <button class="btn btn-primary" id="wechatConfirmBtn" onclick="confirmSendWechat()">确认发送</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟订单数据
+        const orders = [
+            {
+                id: 1,
+                starred: true,
+                selected: false,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-05-29',
+                childFund: '某某量化对冲A2号',
+                tradeType: '追加',
+                progress: '交易已完成印',
+                amount: '1,500万',
+                status: '订单待签署',
+                statusType: 'orange',
+                platform: 'TTD',
+                canStamp: true,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '【国联FOF1号 - 某某量化对冲A2号】\n\n尊敬的客户，您好：\n\n本次追加（1,500万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。\n\n(4) 补充协议（如有）\n----------------------------------------------------------\n\n原始话术看咱们申购时有无【特殊事项】，例如：\n(1) 其他材料（妥妥递系统上要求上传以外的）\n(2) 划款到账时间（早于交易日期17点前的）',
+                wechatFiles: [
+                    { name: '托管函.pdf', desc: '产品托管账户证明文件' },
+                    { name: '备案函.pdf', desc: '产品备案证明文件' }
+                ],
+                goldCertDone: false,
+                transferDeadline: '2026-06-15 17:00'
+            },
+            {
+                id: 2,
+                starred: false,
+                selected: false,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-05-29',
+                childFund: '某某全天候A号',
+                tradeType: '赎回',
+                progress: '交易已完成印',
+                amount: '500万',
+                status: '适当性提交异常',
+                statusType: 'red',
+                platform: 'TTD',
+                canStamp: false,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '【国联FOF1号 - 某某全天候A号】\n\n尊敬的客户，您好：\n\n本次赎回（500万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。',
+                wechatFiles: [
+                    { name: '托管函.pdf', desc: '产品托管账户证明文件' },
+                    { name: '赎回申请表.pdf', desc: '赎回业务申请表' }
+                ],
+                goldCertDone: false,
+                transferDeadline: '2026-06-15 17:00'
+            },
+            {
+                id: 3,
+                starred: false,
+                selected: false,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-01-20',
+                childFund: '珠海宽德金刚钻16号',
+                tradeType: '申购',
+                progress: '交易要素确认中',
+                amount: '100.0万',
+                status: '订单待签署',
+                statusType: 'orange',
+                platform: 'TTD',
+                canStamp: true,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '【国联FOF1号 - 珠海宽德金刚钻16号】\n\n尊敬的客户，您好：\n\n本次申购（100万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。',
+                wechatFiles: [
+                    { name: '托管函.pdf', desc: '产品托管账户证明文件' },
+                    { name: '备案函.pdf', desc: '产品备案证明文件' },
+                    { name: '认申购单.pdf', desc: '认申购单' }
+                ],
+                goldCertDone: false,
+                transferDeadline: '2026-06-20 17:00'
+            },
+            {
+                id: 4,
+                starred: false,
+                selected: false,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-01',
+                childFund: '上海幻方指数增强5号',
+                tradeType: '申购',
+                progress: '待交易',
+                amount: '200.0万',
+                status: '订单用印异常',
+                statusType: 'red',
+                platform: 'TTD',
+                canStamp: false,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '【国联FOF1号 - 上海幻方指数增强5号】\n\n尊敬的客户，您好：\n\n本次申购（200万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。',
+                wechatFiles: [
+                    { name: '托管函.pdf', desc: '产品托管账户证明文件' },
+                    { name: '备案函.pdf', desc: '产品备案证明文件' }
+                ],
+                goldCertDone: true,
+                transferDeadline: '2026-06-10 17:00'
+            }
+        ];
+
+        // 当前选中的订单
+        let currentSelectedOrders = [];
+        let currentEditingOrderIndex = 0;
+
+        // 默认文件列表
+        function getDefaultFiles() {
+            return [
+                { id: 1, name: '托管函.pdf', desc: '产品托管账户证明文件' },
+                { id: 2, name: '备案函.pdf', desc: '产品备案证明文件' }
+            ];
+        }
+
+        // 渲染订单表格
+        function renderOrderTable() {
+            const tbody = document.getElementById('orderTableBody');
+            tbody.innerHTML = orders.map(order => `
+                <tr>
+                    <td><span style="color: ${order.starred ? '#ffd700' : '#ddd'};">★</span></td>
+                    <td>
+                        <input type="checkbox" 
+                               ${!order.canStamp ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}
+                               ${order.selected ? 'checked' : ''} 
+                               onchange="toggleOrder(${order.id})">
+                    </td>
+                    <td>${order.motherFund}</td>
+                    <td>${order.tradeDate}</td>
+                    <td>${order.childFund}</td>
+                    <td>${order.tradeType}</td>
+                    <td>${order.progress}</td>
+                    <td>${order.amount}</td>
+                    <td><span class="status-tag ${order.statusType}">${order.status}</span></td>
+                    <td><span class="gc-cell ${order.goldCertDone ? 'gc-done' : ''}">${order.goldCertDone ? '✓ 已调取' : '○ 未调取'}</span></td>
+                    <td>${order.transferDeadline}</td>
+                    <td>${order.platform}</td>
+                    <td class="action-menu">
+                        <button class="action-btn" onclick="openTransferWorkflow(${order.id})">用印划款</button>
+                        <button class="action-btn" onclick="openOrderDetail(${order.id})">详情</button>
+                    </td>
+                </tr>
+            `).join('');
+            updateSelectedCount();
+        }
+
+        // 切换订单选中状态
+        function toggleOrder(id) {
+            const order = orders.find(o => o.id === id);
+            if (order && order.canStamp) {
+                order.selected = !order.selected;
+                renderOrderTable();
+            }
+        }
+
+        // 全选/取消全选
+        function toggleSelectAll() {
+            const selectAll = document.getElementById('selectAll');
+            orders.forEach(order => {
+                if (order.canStamp) {
+                    order.selected = selectAll.checked;
+                }
+            });
+            renderOrderTable();
+        }
+
+        // 更新选中数量
+        function updateSelectedCount() {
+            const selectedOrders = orders.filter(o => o.selected);
+            document.getElementById('selectedCount').textContent = selectedOrders.length;
+        }
+
+        // 批量用印
+        let selectedFileType = 'all';
+        
+        function batchStamp() {
+            currentSelectedOrders = orders.filter(o => o.selected);
+            if (currentSelectedOrders.length === 0) {
+                alert('请先选择要批量用印的订单！');
+                return;
+            }
+
+            // 打开批量用印弹窗
+            openBatchStampModal();
+        }
+
+        // 打开批量用印弹窗
+        function openBatchStampModal() {
+            // 重置状态
+            selectedFileType = 'all';
+            
+            // 更新已选订单列表
+            document.getElementById('selectedOrderCount').textContent = currentSelectedOrders.length;
+            const ordersList = document.getElementById('selectedOrdersList');
+            ordersList.innerHTML = currentSelectedOrders.map(order => 
+                `<div>• ${order.motherFund} - ${order.childFund} (${order.amount})</div>`
+            ).join('');
+
+            // 显示第一步
+            showBatchStampStep(1);
+            
+            // 显示弹窗
+            document.getElementById('batchStampModal').classList.remove('hidden');
+        }
+
+        // 关闭批量用印弹窗
+        function closeBatchStampModal() {
+            document.getElementById('batchStampModal').classList.add('hidden');
+        }
+
+        // 显示批量用印步骤
+        function showBatchStampStep(step) {
+            // 隐藏所有步骤
+            document.getElementById('step1Select').classList.add('hidden');
+            document.getElementById('step2Processing').classList.add('hidden');
+            document.getElementById('step3Complete').classList.add('hidden');
+
+            // 显示指定步骤
+            if (step === 1) {
+                document.getElementById('step1Select').classList.remove('hidden');
+            } else if (step === 2) {
+                document.getElementById('step2Processing').classList.remove('hidden');
+            } else if (step === 3) {
+                document.getElementById('step3Complete').classList.remove('hidden');
+            }
+        }
+
+        // 选择文件类型
+        function selectFileType(type, element) {
+            selectedFileType = type;
+            
+            // 更新UI
+            document.querySelectorAll('.file-type-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            element.classList.add('active');
+        }
+
+        // 确认批量用印
+        function confirmBatchStamp() {
+            if (currentSelectedOrders.length === 0) {
+                alert('请先选择要批量用印的订单！');
+                return;
+            }
+
+            // 显示执行中步骤
+            showBatchStampStep(2);
+            
+            // 开始执行流程
+            executeBatchStamp();
+        }
+
+        // 执行批量用印流程
+        function executeBatchStamp() {
+            const logContainer = document.getElementById('processLog');
+            logContainer.innerHTML = '';
+
+            // 步骤1：调接口进行用印
+            executeStep1(logContainer);
+        }
+
+        // 步骤1：调接口进行用印
+        function executeStep1(logContainer) {
+            const typeNames = {
+                'all': '全部文件',
+                'suitability': '适当性文件',
+                'order': '订单文件'
+            };
+
+            let progress = 0;
+            const progressBar = document.getElementById('progressStep1');
+            const statusText = document.getElementById('step1Status');
+            const descText = document.getElementById('step1Desc');
+            const iconText = document.getElementById('step1Icon');
+
+            logContainer.innerHTML += '<div>[开始] 步骤1：调用用印接口...</div>';
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 100) progress = 100;
+
+                progressBar.style.width = progress + '%';
+
+                if (progress < 30) {
+                    descText.textContent = '正在调用用印接口...';
+                    statusText.textContent = '进行中...';
+                    statusText.style.color = '#1890ff';
+                } else if (progress < 70) {
+                    descText.textContent = `正在处理 ${currentSelectedOrders.length} 个订单的用印...`;
+                    statusText.textContent = '进行中...';
+                    logContainer.innerHTML += `<div>[处理中] 正在为订单 ${currentSelectedOrders.length} 个进行用印...</div>`;
+                } else if (progress < 100) {
+                    descText.textContent = '用印完成，准备进入下一步...';
+                } else {
+                    clearInterval(interval);
+
+                    // 步骤1完成
+                    progressBar.style.width = '100%';
+                    statusText.textContent = '✅ 完成';
+                    statusText.style.color = '#52c41a';
+                    descText.textContent = '用印接口调用成功！';
+                    iconText.textContent = '✅';
+                    logContainer.innerHTML += `<div>[成功] ✅ 步骤1完成：已为 ${currentSelectedOrders.length} 个订单完成用印</div>`;
+                    logContainer.innerHTML += '<div></div>';
+                    logContainer.innerHTML += '<div>[开始] 步骤2：将用印文件传输至妥妥递系统...</div>';
+
+                    // 延迟执行步骤2
+                    setTimeout(() => {
+                        executeStep2(logContainer);
+                    }, 500);
+                }
+            }, 200);
+        }
+
+        // 步骤2：将用印文件传输妥妥递
+        function executeStep2(logContainer) {
+            const progressBar = document.getElementById('progressStep2');
+            const statusText = document.getElementById('step2Status');
+            const descText = document.getElementById('step2Desc');
+            const iconText = document.getElementById('step2Icon');
+            const labelText = statusText.parentElement.querySelector('span');
+
+            // 激活步骤2样式
+            labelText.style.color = '#333';
+            progressBar.style.background = 'linear-gradient(90deg, #52c41a, #73d13d)';
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 12;
+                if (progress > 100) progress = 100;
+
+                progressBar.style.width = progress + '%';
+
+                if (progress < 40) {
+                    descText.textContent = '正在连接妥妥递系统...';
+                    statusText.textContent = '进行中...';
+                    statusText.style.color = '#1890ff';
+                } else if (progress < 80) {
+                    descText.textContent = '正在上传用印后的文件...';
+                    logContainer.innerHTML += `<div>[上传] 正在传输用印文件至妥妥递...</div>`;
+                } else if (progress < 100) {
+                    descText.textContent = '文件传输即将完成...';
+                } else {
+                    clearInterval(interval);
+
+                    // 步骤2完成
+                    progressBar.style.width = '100%';
+                    statusText.textContent = '✅ 完成';
+                    statusText.style.color = '#52c41a';
+                    descText.textContent = '文件已成功传输至妥妥递！';
+                    iconText.textContent = '✅';
+                    logContainer.innerHTML += `<div>[成功] ✅ 步骤2完成：用印文件已传输至妥妥递系统</div>`;
+                    logContainer.innerHTML += '<div></div>';
+                    logContainer.innerHTML += '<div>[完成] 🎉 所有操作已完成！</div>';
+
+                    // 显示完成步骤
+                    setTimeout(() => {
+                        showBatchStampStep(3);
+                        showCompleteResults();
+                    }, 500);
+                }
+            }, 250);
+        }
+
+        // 显示完成结果
+        function showCompleteResults() {
+            const typeNames = {
+                'all': '全部文件',
+                'suitability': '适当性文件',
+                'order': '订单文件'
+            };
+
+            document.getElementById('completeSummary').textContent = 
+                `已完成 ${currentSelectedOrders.length} 个订单的批量用印`;
+
+            const details = document.getElementById('completeDetails');
+            details.innerHTML = `
+                <div>• 文件类型：${typeNames[selectedFileType]}</div>
+                <div>• 处理订单数：${currentSelectedOrders.length} 个</div>
+                <div>• 用印状态：✅ 全部成功</div>
+                <div>• 传输状态：✅ 已传输至妥妥递</div>
+                <div>• 完成时间：${new Date().toLocaleString()}</div>
+            `;
+        }
+
+        // 打开订单详情
+        function openOrderDetail(id) {
+            window.location.href = `订单详情页.html?orderId=${id}`;
+        }
+
+        // 打开用印划款流程
+        function openTransferWorkflow(orderId) {
+            window.location.href = `用印划款流程.html?orderId=${orderId}`;
+        }
+
+        // ===== 发送企微邀请 =====
+        let wechatOrders = []; // 当前弹窗涉及的订单
+        let wechatCurrentIndex = 0; // 当前编辑的订单索引
+
+        // 打开发送企微邀请弹窗
+        function openSendWechatModal() {
+            wechatOrders = orders.filter(o => o.selected);
+            if (wechatOrders.length === 0) {
+                alert('请先选择要发送企微邀请的订单！');
+                return;
+            }
+
+            wechatCurrentIndex = 0;
+
+            // 填充订单下拉
+            const select = document.getElementById('wechatOrderSelect');
+            select.innerHTML = wechatOrders.map((o, idx) =>
+                `<option value="${idx}">${idx + 1}. ${o.motherFund} → ${o.childFund}（${o.tradeDate}）</option>`
+            ).join('');
+
+            // 重置视图
+            document.getElementById('wechatEditView').classList.remove('hidden');
+            document.getElementById('wechatSendView').classList.add('hidden');
+            document.getElementById('wechatModalFooter').style.display = 'flex';
+
+            // 加载当前订单内容
+            loadWechatOrderContent(0);
+
+            // 显示弹窗
+            document.getElementById('sendWechatModal').classList.remove('hidden');
+        }
+
+        // 关闭发送企微邀请弹窗
+        function closeSendWechatModal() {
+            document.getElementById('sendWechatModal').classList.add('hidden');
+        }
+
+        // 切换订单
+        function onWechatOrderChange() {
+            // 保存当前订单的编辑内容
+            saveWechatCurrentEdit();
+            wechatCurrentIndex = parseInt(document.getElementById('wechatOrderSelect').value);
+            loadWechatOrderContent(wechatCurrentIndex);
+        }
+
+        // 保存当前订单的编辑
+        function saveWechatCurrentEdit() {
+            if (wechatOrders.length === 0) return;
+            const order = wechatOrders[wechatCurrentIndex];
+            const textarea = document.getElementById('wechatMessageText');
+            order.customMessage = textarea.value;
+            // 附件文件在添加/删除时已经直接修改了源数据
+        }
+
+        // 加载订单内容到弹窗
+        function loadWechatOrderContent(index) {
+            const order = wechatOrders[index];
+            if (!order) return;
+
+            // 话术：优先使用 customMessage，否则用默认 wechatMessage
+            const message = order.customMessage !== null ? order.customMessage : order.wechatMessage;
+            document.getElementById('wechatMessageText').value = message;
+
+            // 附件文件
+            renderWechatFileList();
+
+            // 文件收集链接（每个订单独立）
+            const linkUrl = `3-文件收集页面.html?orders=${order.id}`;
+            const linkText = document.getElementById('wechatLinkText');
+            linkText.innerHTML = `<a href="${linkUrl}" target="_blank">${linkUrl}</a>`;
+        }
+
+        // 渲染附件文件列表
+        function renderWechatFileList() {
+            const order = wechatOrders[wechatCurrentIndex];
+            if (!order) return;
+
+            const list = document.getElementById('wechatFileList');
+            const files = order.wechatFiles || [];
+
+            if (files.length === 0) {
+                list.innerHTML = '<div style="text-align:center;color:#999;font-size:13px;padding:12px;">暂无附件</div>';
+                return;
+            }
+
+            list.innerHTML = files.map((file, idx) => `
+                <div class="wechat-file-item">
+                    <span class="wechat-file-icon">📄</span>
+                    <div class="wechat-file-info">
+                        <div class="wechat-file-name">${file.name}</div>
+                        <div class="wechat-file-desc">${file.desc || ''}</div>
+                    </div>
+                    <button class="wechat-file-remove" onclick="removeWechatFile(${idx})">删除</button>
+                </div>
+            `).join('');
+        }
+
+        // 删除附件
+        function removeWechatFile(idx) {
+            const order = wechatOrders[wechatCurrentIndex];
+            if (order && order.wechatFiles) {
+                order.wechatFiles.splice(idx, 1);
+                renderWechatFileList();
+            }
+        }
+
+        // 添加附件
+        function addWechatFile() {
+            const order = wechatOrders[wechatCurrentIndex];
+            if (!order) return;
+
+            const fileName = prompt('请输入文件名（如：合同.pdf）：', '新文件.pdf');
+            if (!fileName) return;
+            const fileDesc = prompt('请输入文件说明：', '') || '';
+
+            if (!order.wechatFiles) order.wechatFiles = [];
+            order.wechatFiles.push({ name: fileName, desc: fileDesc });
+            renderWechatFileList();
+        }
+
+        // 恢复默认话术
+        function resetWechatMessage() {
+            const order = wechatOrders[wechatCurrentIndex];
+            if (!order) return;
+            if (confirm('确定要恢复为默认话术吗？当前编辑将丢失。')) {
+                order.customMessage = null;
+                document.getElementById('wechatMessageText').value = order.wechatMessage;
+            }
+        }
+
+        // 确认发送
+        function confirmSendWechat() {
+            // 保存当前编辑
+            saveWechatCurrentEdit();
+
+            // 校验：所有订单必须有话术
+            const emptyOrders = wechatOrders.filter(o => {
+                const msg = o.customMessage !== null ? o.customMessage : o.wechatMessage;
+                return !msg || !msg.trim();
+            });
+            if (emptyOrders.length > 0) {
+                alert(`订单 "${emptyOrders[0].childFund}" 话术为空，请补充后再发送！`);
+                return;
+            }
+
+            // 切换到发送进度视图
+            document.getElementById('wechatEditView').classList.add('hidden');
+            document.getElementById('wechatSendView').classList.remove('hidden');
+            document.getElementById('wechatModalFooter').style.display = 'none';
+            document.getElementById('wechatConfirmBtn').textContent = '确认发送';
+            document.getElementById('wechatSendIcon').textContent = '⏳';
+            document.getElementById('wechatSendTitle').textContent = '正在发送企微邀请...';
+            document.getElementById('wechatSendDesc').textContent = `共 ${wechatOrders.length} 个订单，请勿关闭页面`;
+
+            // 模拟发送进度
+            let progress = 0;
+            const progressBar = document.getElementById('wechatSendProgress');
+            const log = document.getElementById('wechatSendLog');
+            log.innerHTML = '';
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 18 + 7;
+                if (progress > 100) progress = 100;
+                progressBar.style.width = progress + '%';
+
+                if (progress < 30) {
+                    document.getElementById('wechatSendDesc').textContent = '正在准备发送内容...';
+                } else if (progress < 70) {
+                    document.getElementById('wechatSendDesc').textContent = '正在调用企微接口...';
+                } else if (progress < 100) {
+                    document.getElementById('wechatSendDesc').textContent = '即将完成...';
+                } else {
+                    clearInterval(interval);
+                    // 完成
+                    document.getElementById('wechatSendIcon').textContent = '🎉';
+                    document.getElementById('wechatSendTitle').textContent = '发送完成！';
+                    document.getElementById('wechatSendDesc').textContent = `已成功发送 ${wechatOrders.length} 个企微邀请`;
+                    document.getElementById('wechatSendLogTitle').innerHTML = '✅ 发送结果';
+
+                    log.innerHTML = wechatOrders.map((o, idx) => `
+                        <div>${idx + 1}. ${o.motherFund} → ${o.childFund}</div>
+                        <div style="color:#52c41a;margin-left:16px;">✓ 已发送给客户（${o.platform}）</div>
+                    `).join('') + `
+                        <div style="margin-top:8px;color:#999;">完成时间：${new Date().toLocaleString()}</div>
+                    `;
+
+                    // 改底部按钮为"完成"
+                    document.getElementById('wechatModalFooter').style.display = 'flex';
+                    const confirmBtn = document.getElementById('wechatConfirmBtn');
+                    confirmBtn.textContent = '完成';
+                    confirmBtn.onclick = closeSendWechatModal;
+                }
+
+                // 实时日志
+                if (progress < 100) {
+                    log.innerHTML = wechatOrders.map((o, idx) => {
+                        const sent = progress > (idx + 1) * (100 / wechatOrders.length);
+                        return `
+                            <div>${idx + 1}. ${o.childFund} ${sent ? '<span style="color:#52c41a;">✓ 已发送</span>' : '<span style="color:#1890ff;">发送中...</span>'}</div>
+                        `;
+                    }).join('');
+                }
+            }, 250);
+        }
+
+        // 初始化
+        renderOrderTable();
+    </script>
+</body>
+</html>

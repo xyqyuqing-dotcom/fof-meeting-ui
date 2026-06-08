@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FOF用印划款流程</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1890ff;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .priority-selector {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .priority-selector label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .priority-btn {
+            padding: 4px 12px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .priority-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .priority-btn.active {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        .action-btn {
+            padding: 6px 16px;
+            border: 1px solid #d9d9d9;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .action-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .action-btn.primary {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        .action-btn.primary:hover {
+            background: #40a9ff;
+        }
+
+        .form-section {
+            background: white;
+            padding: 24px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-row {
+            display: flex;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .form-label {
+            width: 120px;
+            text-align: right;
+            padding-right: 12px;
+            color: #666;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .form-value {
+            flex: 1;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 6px 11px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .form-input.disabled {
+            background-color: #f5f5f5;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .form-input.disabled:focus {
+            border-color: #d9d9d9;
+            box-shadow: none;
+        }
+
+        .collapsible-section {
+            background: white;
+            padding: 24px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .collapse-icon {
+            font-size: 12px;
+            color: #999;
+            transition: transform 0.3s;
+        }
+
+        .collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding-top: 16px;
+        }
+
+        .collapsed .section-content {
+            display: none;
+        }
+
+        textarea.form-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 8px 11px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+            font-family: inherit;
+        }
+
+        textarea.form-textarea:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th {
+            background: #fafafa;
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 500;
+            color: #666;
+            border-bottom: 1px solid #e8e8e8;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e8e8e8;
+            color: #333;
+        }
+
+        tr:hover td {
+            background: #fafafa;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+
+        .upload-btn {
+            padding: 6px 16px;
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .upload-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .required-mark {
+            color: #ff4d4f;
+            margin-right: 4px;
+        }
+
+        .info-table {
+            width: 100%;
+        }
+
+        .info-table td:first-child {
+            width: 120px;
+            text-align: right;
+            padding-right: 12px;
+            color: #666;
+            background: #fafafa;
+            font-weight: 500;
+        }
+
+        .attachment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .attachment-title {
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .batch-download-btn {
+            padding: 4px 12px;
+            background: #fff;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+
+        .batch-download-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .file-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        .file-icon.pdf {
+            color: #ff4d4f;
+        }
+
+        .file-icon.docx {
+            color: #1890ff;
+        }
+
+        .file-icon.rar {
+            color: #faad14;
+        }
+
+        .action-link {
+            color: #1890ff;
+            cursor: pointer;
+            text-decoration: none;
+            margin-left: 12px;
+            font-size: 13px;
+        }
+
+        .action-link:hover {
+            color: #40a9ff;
+        }
+
+        .file-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #ff4d4f;
+            color: white;
+            font-size: 10px;
+            padding: 1px 5px;
+            border-radius: 8px;
+            line-height: 1.2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">FOF用印划款流程 dev1</div>
+            <div class="header-actions">
+                <div class="priority-selector">
+                    <label>优先级</label>
+                    <button class="priority-btn" onclick="setPriority('low', this)">低</button>
+                    <button class="priority-btn active" onclick="setPriority('medium', this)">中</button>
+                    <button class="priority-btn" onclick="setPriority('high', this)">高</button>
+                </div>
+                <button class="action-btn">试算</button>
+                <button class="action-btn primary">保存</button>
+                <button class="action-btn">转存</button>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-row">
+                <div class="form-label"><span class="required-mark">*</span>标题</div>
+                <div class="form-value">
+                    <input type="text" class="form-input" value="私募基金备案/私募基金管理人登记/私募基金产品材料补正">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">母基金</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="私募基金宝安号" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">产品类型</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="债券（S1B）" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">产品风险等级</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="R1" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">国家代码/地区</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="86" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">规模/份额</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="每份人民币1元" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">管理费率</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="固定值" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">托管人名称</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="招商银行（总行）托管部某某支行" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">交易日期</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="默认" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">对方机构</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="2024-06-17" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">投资经理</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="YIYIYIYI" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">已交易额</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="每份募集金额或投资额的计价单位" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">认购/申购</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="需要提供相关资料等" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">风险等级</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="评级" readonly>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-label">初始投资人</div>
+                <div class="form-value">
+                    <input type="text" class="form-input disabled" value="曹雪芹" readonly>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="collapse-icon">▼</span>
+                    主要内容
+                </div>
+                <span style="color: #999; font-size: 12px;">60</span>
+            </div>
+            <div class="section-content">
+                <textarea class="form-textarea">【说明】私募基金备案/私募基金管理人登记/私募基金产品材料补正11111.15万元，包括基金、基金规模、申请日期。</textarea>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="collapse-icon">▼</span>
+                    备注
+                </div>
+                <span style="color: #999; font-size: 12px;">81</span>
+            </div>
+            <div class="section-content">
+                <textarea class="form-textarea">1、私交文日期以私募基金开户成功为准。
+2、私募基金备案/私募基金管理人登记的产品，我司111.13万元（11111.17元为上期金额，根据提交文件下调）。</textarea>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="collapse-icon">▼</span>
+                    用印前附件
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="attachment-header">
+                    <div class="attachment-title">
+                        <span>☐ 附件 (5)</span>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="upload-btn" onclick="event.stopPropagation()">⬆ 上传</button>
+                        <button class="batch-download-btn">⬇ 批量下载</button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <tbody>
+                            <tr>
+                                <td style="width: 30px;"><input type="checkbox"></td>
+                                <td style="width: 30px;">1</td>
+                                <td style="display: flex; align-items: center;">
+                                    <svg class="file-icon pdf" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12.9,14.5L15.8,19H14L12,15.6L10,19H8.2L11.1,14.5L8.2,10H10L12,13.4L14,10H15.8L12.9,14.5Z"/>
+                                    </svg>
+                                    SAZM91_九木CTA2号私募证券投资基金_资产估值表_20260407....pdf
+                                </td>
+                                <td style="width: 150px; color: #999;">2026/04/21 11:32</td>
+                                <td style="width: 80px; color: #999;">1.3M</td>
+                                <td style="width: 120px;">
+                                    <a href="#" class="action-link">预览</a>
+                                    <a href="#" class="action-link">下载</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>2</td>
+                                <td style="display: flex; align-items: center;">
+                                    <svg class="file-icon pdf" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M12.9,14.5L15.8,19H14L12,15.6L10,19H8.2L11.1,14.5L8.2,10H10L12,13.4L14,10H15.8L12.9,14.5Z"/>
+                                    </svg>
+                                    10、附件四 承诺函（国泰君安期货）.pdf
+                                </td>
+                                <td style="color: #999;">2026/04/21 11:32</td>
+                                <td style="color: #999;">446.1K</td>
+                                <td>
+                                    <a href="#" class="action-link">预览</a>
+                                    <a href="#" class="action-link">下载</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>3</td>
+                                <td style="display: flex; align-items: center;">
+                                    <svg class="file-icon docx" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,12V16H8V12H10M14,12V16H12V12H14M17,11V17H7V11H17Z"/>
+                                    </svg>
+                                    【供参考】SAZM91九木CTA2号私募证券投资基金风险揭示书(2).docx
+                                </td>
+                                <td style="color: #999;">2026/04/21 11:32</td>
+                                <td style="color: #999;">48.4K</td>
+                                <td>
+                                    <a href="#" class="action-link">预览</a>
+                                    <a href="#" class="action-link">下载</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>4</td>
+                                <td style="display: flex; align-items: center;">
+                                    <svg class="file-icon docx" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20M10,12V16H8V12H10M14,12V16H12V12H14M17,11V17H7V11H17Z"/>
+                                    </svg>
+                                    【份额分类】SAZM91九木CTA2号私募证券投资基金私募基金合....docx
+                                </td>
+                                <td style="color: #999;">2026/04/21 11:32</td>
+                                <td style="color: #999;">191.7K</td>
+                                <td>
+                                    <a href="#" class="action-link">预览</a>
+                                    <a href="#" class="action-link">下载</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td style="position: relative;">5<span class="file-badge">2</span></td>
+                                <td style="display: flex; align-items: center;">
+                                    <svg class="file-icon rar" viewBox="0 0 24 24" fill="currentColor">
+                                        <path d="M20.54,14.73L20.54,14.73L20.53,14.72C20.43,14.62 20.33,14.53 20.23,14.44C19.74,14 19.25,13.57 18.76,13.13C18.27,12.69 17.78,12.26 17.29,11.82C16.8,11.38 16.31,10.95 15.82,10.51C15.33,10.07 14.84,9.64 14.35,9.2C13.86,8.76 13.37,8.33 12.88,7.89C12.39,7.45 11.9,7.02 11.41,6.58C10.92,6.14 10.43,5.71 9.94,5.27C9.45,4.83 8.96,4.4 8.47,3.96C7.98,3.52 7.49,3.09 7,2.65C6.51,2.21 6.02,1.78 5.53,1.34C5.04,0.9 4.55,0.47 4.06,0.03C3.57,-0.41 3.08,-0.84 2.59,-1.28C2.1,-1.72 1.61,-2.15 1.12,-2.59C0.63,-3.03 0.14,-3.46 -0.35,-3.9C-0.84,-4.34 -1.33,-4.77 -1.82,-5.21C-2.31,-5.65 -2.8,-6.08 -3.29,-6.52C-3.78,-6.96 -4.27,-7.39 -4.76,-7.83C-5.25,-8.27 -5.74,-8.7 -6.23,-9.14C-6.72,-9.58 -7.21,-10.01 -7.7,-10.45C-8.19,-10.89 -8.68,-11.32 -9.17,-11.76C-9.66,-12.2 -10.15,-12.63 -10.64,-13.07C-11.13,-13.51 -11.62,-13.94 -12.11,-14.38C-12.6,-14.82 -13.09,-15.25 -13.58,-15.69C-14.07,-16.13 -14.56,-16.56 -15.05,-17C-15.54,-17.44 -16.03,-17.87 -16.52,-18.31C-17.01,-18.75 -17.5,-19.18 -17.99,-19.62C-18.48,-20.06 -18.97,-20.49 -19.46,-20.93C-19.95,-21.37 -20.44,-21.8 -20.93,-22.24C-21.42,-22.68 -21.91,-23.11 -22.4,-23.55C-22.89,-23.99 -23.38,-24.42 -23.87,-24.86C-24.36,-25.3 -24.85,-25.73 -25.34,-26.17C-25.83,-26.61 -26.32,-27.04 -26.81,-27.48C-27.3,-27.92 -27.79,-28.35 -28.28,-28.79C-28.77,-29.23 -29.26,-29.66 -29.75,-30.1C-30.24,-30.54 -30.73,-30.97 -31.22,-31.41C-31.71,-31.85 -32.2,-32.28 -32.69,-32.72C-33.18,-33.16 -33.67,-33.59 -34.16,-34.03C-34.65,-34.47 -35.14,-34.9 -35.63,-35.34C-36.12,-35.78 -36.61,-36.21 -37.1,-36.65C-37.59,-37.09 -38.08,-37.52 -38.57,-37.96C-39.06,-38.4 -39.55,-38.83 -40.04,-39.27C-40.53,-39.71 -41.02,-40.14 -41.51,-40.58C-42,-41.02 -42.49,-41.45 -42.98,-41.89C-43.47,-42.33 -43.96,-42.76 -44.45,-43.2C-44.94,-43.64 -45.43,-44.07 -45.92,-44.51C-46.41,-44.95 -46.9,-45.38 -47.39,-45.82C-47.88,-46.26 -48.37,-46.69 -48.86,-47.13C-49.35,-47.57 -49.84,-48 -50.33,-48.44C-50.82,-48.88 -51.31,-49.31 -51.8,-49.75C-52.29,-50.19 -52.78,-50.62 -53.27,-51.06C-53.76,-51.5 -54.25,-51.93 -54.74,-52.37C-55.23,-52.81 -55.72,-53.24 -56.21,-53.68C-56.7,-54.12 -57.19,-54.55 -57.68,-54.99C-58.17,-55.43 -58.66,-55.86 -59.15,-56.3C-59.64,-56.74 -60.13,-57.17 -60.62,-57.61C-61.11,-58.05 -61.6,-58.48 -62.09,-58.92C-62.58,-59.36 -63.07,-59.79 -63.56,-60.23C-64.05,-60.67 -64.54,-61.1 -65.03,-61.54C-65.52,-61.98 -66.01,-62.41 -66.5,-62.85C-66.99,-63.29 -67.48,-63.72 -67.97,-64.16C-68.46,-64.6 -68.95,-65.03 -69.44,-65.47C-69.93,-65.91 -70.42,-66.34 -70.91,-66.78C-71.4,-67.22 -71.89,-67.65 -72.38,-68.09C-72.87,-68.53 -73.36,-68.96 -73.85,-69.4C-74.34,-69.84 -74.83,-70.27 -75.32,-70.71C-75.81,-71.15 -76.3,-71.58 -76.79,-72.02C-77.28,-72.46 -77.77,-72.89 -78.26,-73.33C-78.75,-73.77 -79.24,-74.2 -79.73,-74.64C-80.22,-75.08 -80.71,-75.51 -81.2,-75.95C-81.69,-76.39 -82.18,-76.82 -82.67,-77.26C-83.16,-77.7 -83.65,-78.13 -84.14,-78.57C-84.63,-79.01 -85.12,-79.44 -85.61,-79.88C-86.1,-80.32 -86.59,-80.75 -87.08,-81.19C-87.57,-81.63 -88.06,-82.06 -88.55,-82.5C-89.04,-82.94 -89.53,-83.37 -90.02,-83.81C-90.51,-84.25 -91,-84.68 -91.49,-85.12C-91.98,-85.56 -92.47,-85.99 -92.96,-86.43C-93.45,-86.87 -93.94,-87.3 -94.43,-87.74C-94.92,-88.18 -95.41,-88.61 -95.9,-89.05C-96.39,-89.49 -96.88,-89.92 -97.37,-90.36C-97.86,-90.8 -98.35,-91.23 -98.84,-91.67C-99.33,-92.11 -99.82,-92.54 -100.31,-92.98C-100.8,-93.42 -101.29,-93.85 -101.78,-94.29C-102.27,-94.73 -102.76,-95.16 -103.25,-95.6C-103.74,-96.04 -104.23,-96.47 -104.72,-96.91C-105.21,-97.35 -105.7,-97.78 -106.19,-98.22C-106.68,-98.66 -107.17,-99.09 -107.66,-99.53C-108.15,-99.97 -108.64,-100.4 -109.13,-100.84C-109.62,-101.28 -110.11,-101.71 -110.6,-102.15C-111.09,-102.59 -111.58,-103.02 -112.07,-103.46C-112.56,-103.9 -113.05,-104.33 -113.54,-104.77C-114.03,-105.21 -114.52,-105.64 -115.01,-106.08C-115.5,-106.52 -115.99,-106.95 -116.48,-107.39C-116.97,-107.83 -117.46,-108.26 -117.95,-108.7C-118.44,-109.14 -118.93,-109.57 -119.42,-110.01C-119.91,-110.45 -120.4,-110.88 -120.89,-111.32C-121.38,-111.76 -121.87,-112.19 -122.36,-112.63C-122.85,-113.07 -123.34,-113.5 -123.83,-113.94C-124.32,-114.38 -124.81,-114.81 -125.3,-115.25C-125.79,-115.69 -126.28,-116.12 -126.77,-116.56C-127.26,-117 -127.75,-117.43 -128.24,-117.87C-128.73,-118.31 -129.22,-118.74 -129.71,-119.18C-130.2,-119.62 -130.69,-120.05 -131.18,-120.49C-131.67,-120.93 -132.16,-121.36 -132.65,-121.8C-133.14,-122.24 -133.63,-122.67 -134.12,-123.11C-134.61,-123.55 -135.1,-123.98 -135.59,-124.42C-136.08,-124.86 -136.57,-125.29 -137.06,-125.73C-137.55,-126.17 -138.04,-126.6 -138.53,-127.04C-139.02,-127.48 -139.51,-127.91 -140,-128.35C-140.49,-128.79 -140.98,-129.22 -141.47,-129.66C-141.96,-130.1 -142.45,-130.53 -142.94,-130.97C-143.43,-131.41 -143.92,-131.84 -144.41,-132.28C-144.9,-132.72 -145.39,-133.15 -145.88,-133.59C-146.37,-134.03 -146.86,-134.46 -147.35,-134.9C-147.84,-135.34 -148.33,-135.77 -148.82,-136.21C-149.31,-136.65 -149.8,-137.08 -150.29,-137.52C-150.78,-137.96 -151.27,-138.39 -151.76,-138.83C-152.25,-139.27 -152.74,-139.7 -153.23,-140.14C-153.72,-140.58 -154.21,-141.01 -154.7,-141.45C-155.19,-141.89 -155.68,-142.32 -156.17,-142.76C-156.66,-143.2 -157.15,-143.63 -157.64,-144.07C-158.13,-144.51 -158.62,-144.94 -159.11,-145.38C-159.6,-145.82 -160.09,-146.25 -160.58,-146.69C-161.07,-147.13 -161.56,-147.56 -162.05,-148C-162.54,-148.44 -163.03,-148.87 -163.52,-149.31C-164.01,-149.75 -164.5,-150.18 -164.99,-150.62C-165.48,-151.06 -165.97,-151.49 -166.46,-151.93C-166.95,-152.37 -167.44,-152.8 -167.93,-153.24C-168.42,-153.68 -168.91,-154.11 -169.4,-154.55C-169.89,-154.99 -170.38,-155.42 -170.87,-155.86C-171.36,-156.3 -171.85,-156.73 -172.34,-157.17C-172.83,-157.61 -173.32,-158.04 -173.81,-158.48C-174.3,-158.92 -174.79,-159.35 -175.28,-159.79C-175.77,-160.23 -176.26,-160.66 -176.75,-161.1C-177.24,-161.54 -177.73,-161.97 -178.22,-162.41C-178.71,-162.85 -179.2,-163.28 -179.69,-163.72C-180.18,-164.16 -180.67,-164.59 -181.16,-165.03C-181.65,-165.47 -182.14,-165.9 -182.63,-166.34C-183.12,-166.78 -183.61,-167.21 -184.1,-167.65C-184.59,-168.09 -185.08,-168.52 -185.57,-168.96C-186.06,-169.4 -186.55,-169.83 -187.04,-170.27C-187.53,-170.71 -188.02,-171.14 -188.51,-171.58C-189,-172.02 -189.49,-172.45 -189.98,-172.89C-190.47,-173.33 -190.96,-173.76 -191.45,-174.2C-191.94,-174.64 -192.43,-175.07 -192.92,-175.51C-193.41,-175.95 -193.9,-176.38 -194.39,-176.82C-194.88,-177.26 -195.37,-177.69 -195.86,-178.13C-196.35,-178.57 -196.84,-179 -197.33,-179.44C-197.82,-179.88 -198.31,-180.31 -198.8,-180.75C-199.29,-181.19 -199.78,-181.62 -200.27,-182.06C-200.76,-182.5 -201.25,-182.93 -201.74,-183.37C-202.23,-183.81 -202.72,-184.24 -203.21,-184.68C-203.7,-185.12 -204.19,-185.55 -204.68,-185.99C-205.17,-186.43 -205.66,-186.86 -206.15,-187.3C-206.64,-187.74 -207.13,-188.17 -207.62,-188.61C-208.11,-189.05 -208.6,-189.48 -209.09,-189.92C-209.58,-190.36 -210.07,-190.79 -210.56,-191.23C-211.05,-191.67 -211.54,-192.1 -212.03,-192.54C-212.52,-192.98 -213.01,-193.41 -213.5,-193.85C-213.99,-194.29 -214.48,-194.72 -214.97,-195.16C-215.46,-195.6 -215.95,-196.03 -216.44,-196.47C-216.93,-196.91 -217.42,-197.34 -217.91,-197.78C-218.4,-198.22 -218.89,-198.65 -219.38,-199.09C-219.87,-199.53 -220.36,-199.96 -220.85,-200.4C-221.34,-200.84 -221.83,-201.27 -222.32,-201.71C-222.81,-202.15 -223.3,-202.58 -223.79,-203.02C-224.28,-203.46 -224.77,-203.89 -225.26,-204.33C-225.75,-204.77 -226.24,-205.2 -226.73,-205.64C-227.22,-206.08 -227.71,-206.51 -228.2,-206.95C-228.69,-207.39 -229.18,-207.82 -229.67,-208.26C-230.16,-208.7 -230.65,-209.13 -231.14,-209.57C-231.63,-210.01 -232.12,-210.44 -232.61,-210.88C-233.1,-211.32 -233.59,-211.75 -234.08,-212.19C-234.57,-212.63 -235.06,-213.06 -235.55,-213.5C-236.04,-213.94 -236.53,-214.37 -237.02,-214.81C-237.51,-215.25 -238,-215.68 -238.49,-216.12C-238.98,-216.56 -239.47,-216.99 -239.96,-217.43C-240.45,-217.87 -240.94,-218.3 -241.43,-218.74C-241.92,-219.18 -242.41,-219.61 -242.9,-220.05C-243.39,-220.49 -243.88,-220.92 -244.37,-221.36C-244.86,-221.8 -245.35,-222.23 -245.84,-222.67C-246.33,-223.11 -246.82,-223.54 -247.31,-223.98C-247.8,-224.42 -248.29,-224.85 -248.78,-225.29C-249.27,-225.73 -249.76,-226.16 -250.25,-226.6C-250.74,-227.04 -251.23,-227.47 -251.72,-227.91C-252.21,-228.35 -252.7,-228.78 -253.19,-229.22C-253.68,-229.66 -254.17,-230.09 -254.66,-230.53C-255.15,-230.97 -255.64,-231.4 -256.13,-231.84C-256.62,-232.28 -257.11,-232.71 -257.6,-233.15C-258.09,-233.59 -258.58,-234.02 -259.07,-234.46C-259.56,-234.9 -260.05,-235.33 -260.54,-235.77C-261.03,-236.21 -261.52,-236.64 -262.01,-237.08C-262.5,-237.52 -262.99,-237.95 -263.48,-238.39C-263.97,-238.83 -264.46,-239.26 -264.95,-239.7C-265.44,-240.14 -265.93,-240.57 -266.42,-241.01C-266.91,-241.45 -267.4,-241.88 -267.89,-242.32C-268.38,-242.76 -268.87,-243.19 -269.36,-243.63C-269.85,-244.07 -270.34,-244.5 -270.83,-244.94C-271.32,-245.38 -271.81,-245.81 -272.3,-246.25C-272.79,-246.69 -273.28,-247.12 -273.77,-247.56C-274.26,-248 -274.75,-248.43 -275.24,-248.87C-275.73,-249.31 -276.22,-249.74 -276.71,-250.18C-277.2,-250.62 -277.69,-251.05 -278.18,-251.49C-278.67,-251.93 -279.16,-252.36 -279.65,-252.8C-280.14,-253.24 -280.63,-253.67 -281.12,-254.11C-281.61,-254.55 -282.1,-254.98 -282.59,-255.42C-283.08,-255.86 -283.57,-256.29 -284.06,-256.73C-284.55,-257.17 -285.04,-257.6 -285.53,-258.04C-286.02,-258.48 -286.51,-258.91 -287,-259.35C-287.49,-259.79 -287.98,-260.22 -288.47,-260.66C-288.96,-261.1 -289.45,-261.53 -289.94,-261.97C-290.43,-262.41 -290.92,-262.84 -291.41,-263.28C-291.9,-263.72 -292.39,-264.15 -292.88,-264.59C-293.37,-265.03 -293.86,-265.46 -294.35,-265.9C-294.84,-266.34 -295.33,-266.77 -295.82,-267.21C-296.31,-267.65 -296.8,-268.08 -297.29,-268.52C-297.78,-268.96 -298.27,-269.39 -298.76,-269.83C-299.25,-270.27 -299.74,-270.7 -300.23,-271.14C-300.72,-271.58 -301.21,-272.01 -301.7,-272.45C-302.19,-272.89 -302.68,-273.32 -303.17,-273.76C-303.66,-274.2 -304.15,-274.63 -304.64,-275.07C-305.13,-275.51 -305.62,-275.94 -306.11,-276.38C-306.6,-276.82 -307.09,-277.25 -307.58,-277.69C-308.07,-278.13 -308.56,-278.56 -309.05,-279C-309.54,-279.44 -310.03,-279.87 -310.52,-280.31C-311.01,-280.75 -311.5,-281.18 -311.99,-281.62C-312.48,-282.06 -312.97,-282.49 -313.46,-282.93C-313.95,-283.37 -314.44,-283.8 -314.93,-284.24C-315.42,-284.68 -315.91,-285.11 -316.4,-285.55C-316.89,-285.99 -317.38,-286.42 -317.87,-286.86C-318.36,-287.3 -318.85,-287.73 -319.34,-288.17C-319.83,-288.61 -320.32,-289.04 -320.81,-289.48C-321.3,-289.92 -321.79,-290.35 -322.28,-290.79C-322.77,-291.23 -323.26,-291.66 -323.75,-292.1C-324.24,-292.54 -324.73,-292.97 -325.22,-293.41C-325.71,-293.85 -326.2,-294.28 -326.69,-294.72C-327.18,-295.16 -327.67,-295.59 -328.16,-296.03C-328.65,-296.47 -329.14,-296.9 -329.63,-297.34C-330.12,-297.78 -330.61,-298.21 -331.1,-298.65C-331.59,-299.09 -332.08,-299.52 -332.57,-299.96C-333.06,-300.4 -333.55,-300.83 -334.04,-301.27C-334.53,-301.71 -335.02,-302.14 -335.51,-302.58C-336,-303.02 -336.49,-303.45 -336.98,-303.89C-337.47,-304.33 -337.96,-304.76 -338.45,-305.2C-338.94,-305.64 -339.43,-306.07 -339.92,-306.51C-340.41,-306.95 -340.9,-307.38 -341.39,-307.82C-341.88,-308.26 -342.37,-308.69 -342.86,-309.13C-343.35,-309.57 -343.84,-310 -344.33,-310.44C-344.82,-310.88 -345.31,-311.31 -345.8,-311.75C-346.29,-312.19 -346.78,-312.62 -347.27,-313.06C-347.76,-313.5 -348.25,-313.93 -348.74,-314.37C-349.23,-314.81 -349.72,-315.24 -350.21,-315.68C-350.7,-316.12 -351.19,-316.55 -351.68,-316.99C-352.17,-317.43 -352.66,-317.86 -353.15,-318.3C-353.64,-318.74 -354.13,-319.17 -354.62,-319.61C-355.11,-320.05 -355.6,-320.48 -356.09,-320.92C-356.58,-321.36 -357.07,-321.79 -357.56,-322.23C-358.05,-322.67 -358.54,-323.1 -359.03,-323.54C-359.52,-323.98 -360.01,-324.41 -360.5,-324.85C-360.99,-325.29 -361.48,-325.72 -361.97,-326.16C-362.46,-326.6 -362.95,-327.03 -363.44,-327.47C-363.93,-327.91 -364.42,-328.34 -364.91,-328.78C-365.4,-329.22 -365.89,-329.65 -366.38,-330.09C-366.87,-330.53 -367.36,-330.96 -367.85,-331.4C-368.34,-331.84 -368.83,-332.27 -369.32,-332.71C-369.81,-333.15 -370.3,-333.58 -370.79,-334.02C-371.28,-334.46 -371.77,-334.89 -372.26,-335.33C-372.75,-335.77 -373.24,-336.2 -373.73,-336.64C-374.22,-337.08 -374.71,-337.51 -375.2,-337.95C-375.69,-338.39 -376.18,-338.82 -376.67,-339.26C-377.16,-339.7 -377.65,-340.13 -378.14,-340.57C-378.63,-341.01 -379.12,-341.44 -379.61,-341.88C-380.1,-342.32 -380.59,-342.75 -381.08,-343.19C-381.57,-343.63 -382.06,-344.06 -382.55,-344.5C-383.04,-344.94 -383.53,-345.37 -384.02,-345.81C-384.51,-346.25 -385,-346.68 -385.49,-347.12C-385.98,-347.56 -386.47,-347.99 -386.96,-348.43C-387.45,-348.87 -387.94,-349.3 -388.43,-349.74C-388.92,-350.18 -389.41,-350.61 -389.9,-351.05C-390.39,-351.49 -390.88,-351.92 -391.37,-352.36C-391.86,-352.8 -392.35,-353.23 -392.84,-353.67C-393.33,-354.11 -393.82,-354.54 -394.31,-354.98C-394.8,-355.42 -395.29,-355.85 -395.78,-356.29C-396.27,-356.73 -396.76,-357.16 -397.25,-357.6C-397.74,-358.04 -398.23,-358.47 -398.72,-358.91C-399.21,-359.35 -399.7,-359.78 -400.19,-360.22C-400.68,-360.66 -401.17,-361.09 -401.66,-361.53C-402.15,-361.97 -402.64,-362.4 -403.13,-362.84C-403.62,-363.28 -404.11,-363.71 -404.6,-364.15C-405.09,-364.59 -405.58,-365.02 -406.07,-365.46C-406.56,-365.9 -407.05,-366.33 -407.54,-366.77C-408.03,-367.21 -408.52,-367.64 -409.01,-368.08C-409.5,-368.52 -409.99,-368.95 -410.48,-369.39C-410.97,-369.83 -411.46,-370.26 -411.95,-370.7C-412.44,-371.14 -412.93,-371.57 -413.42,-372.01C-413.91,-372.45 -414.4,-372.88 -414.89,-373.32C-415.38,-373.76 -415.87,-374.19 -416.36,-374.63C-416.85,-375.07 -417.34,-375.5 -417.83,-375.94C-418.32,-376.38 -418.81,-376.81 -419.3,-377.25C-419.79,-377.69 -420.28,-378.12 -420.77,-378.56C-421.26,-379 -421.75,-379.43 -422.24,-379.87C-422.73,-380.31 -423.22,-380.74 -423.71,-381.18C-424.2,-381.62 -424.69,-382.05 -425.18,-382.49C-425.67,-382.93 -426.16,-383.36 -426.65,-383.8C-427.14,-384.24 -427.63,-384.67 -428.12,-385.11C-428.61,-385.55 -429.1,-385.98 -429.59,-386.42C-430.08,-386.86 -430.57,-387.29 -431.06,-387.73C-431.55,-388.17 -432.04,-388.6 -432.53,-389.04C-433.02,-389.48 -433.51,-389.91 -434,-390.35C-434.49,-390.79 -434.98,-391.22 -435.47,-391.66C-435.96,-392.1 -436.45,-392.53 -436.94,-392.97C-437.43,-393.41 -437.92,-393.84 -438.41,-394.28C-438.9,-394.72 -439.39,-395.15 -439.88,-395.59C-440.37,-396.03 -440.86,-396.46 -441.35,-396.9C-441.84,-397.34 -442.33,-397.77 -442.82,-398.21C-443.31,-398.65 -443.8,-399.08 -444.29,-399.52C-444.78,-399.96 -445.27,-400.39 -445.76,-400.83C-446.25,-401.27 -446.74,-401.7 -447.23,-402.14C-447.72,-402.58 -448.21,-403.01 -448.7,-403.45C-449.19,-403.89 -449.68,-404.32 -450.17,-404.76C-450.66,-405.2 -451.15,-405.63 -451.64,-406.07C-452.13,-406.51 -452.62,-406.94 -453.11,-407.38C-453.6,-407.82 -454.09,-408.25 -454.58,-408.69C-455.07,-409.13 -455.56,-409.56 -456.05,-41"/>
+                                    </svg>
+                                    20260429_私募尊享FOF769号单一申购_九木CTA2号_SAZM91_....rar
+                                </td>
+                                <td style="color: #999;">2026/04/21 11:32</td>
+                                <td style="color: #999;">20.1M</td>
+                                <td>
+                                    <a href="#" class="action-link">预览</a>
+                                    <a href="#" class="action-link">下载</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="collapse-icon">▼</span>
+                    附加信息
+                </div>
+                <span style="color: #ff4d4f; font-size: 12px;">新增行</span>
+            </div>
+            <div class="section-content">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px; color: #333;">关联交易审批流程</h3>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <span style="color: #999; font-size: 13px;">没有可选的流程</span>
+                        <button style="padding: 6px 16px; background: #fff; border: 1px solid #ff4d4f; border-radius: 4px; cursor: pointer; font-size: 13px; color: #ff4d4f;" onmouseover="this.style.background='#fff1f0'" onmouseout="this.style.background='#fff'">发起流程</button>
+                    </div>
+                    
+                    <table style="width: 100%; margin-bottom: 20px;">
+                        <thead>
+                            <tr style="background: #fafafa;">
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">是否重大投资</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">是否重大关联交易</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">管理人关联方</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">托管人关联方</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">估值标准</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8; color: #333;">否</td>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8; color: #333;">否</td>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8; color: #1890ff;">光融七号（天津）航空租赁有限公司</td>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8; color: #333;">无</td>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8; color: #333;">估值表日期：无，净资产：无元</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <table style="width: 100%; margin-bottom: 24px;">
+                        <thead>
+                            <tr style="background: #fafafa;">
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">托管户余额</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">最新估值日期</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">母产品净资产</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">子基金持仓市值</th>
+                                <th style="padding: 12px; text-align: left; font-weight: 500; color: #666; border: 1px solid #e8e8e8;">市值占净值</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8;"></td>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8;"></td>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8;"></td>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8;"></td>
+                                <td style="padding: 12px; border: 1px solid #e8e8e8;"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div>
+                    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 16px; color: #333;">申购/追加划款</h3>
+                    <div class="form-row" style="margin-bottom: 12px;">
+                        <div class="form-label" style="width: 100px;">划款指令编号</div>
+                        <div class="form-value">
+                            <input type="text" class="form-input" value="YYHK20260529152134677-70">
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-bottom: 12px;">
+                        <div class="form-label" style="width: 100px;">划款指令类型</div>
+                        <div class="form-value">
+                            <input type="text" class="form-input" value="子基金申购">
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-bottom: 12px;">
+                        <div class="form-label" style="width: 100px;">划款金额</div>
+                        <div class="form-value">
+                            <input type="text" class="form-input" value="11111100">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="collapsible-section">
+            <div class="section-header" onclick="toggleSection(this)">
+                <div class="section-title">
+                    <span class="collapse-icon">▼</span>
+                    收款账户
+                </div>
+            </div>
+            <div class="section-content">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>银行户名</th>
+                                <th>账号</th>
+                                <th>开户行</th>
+                                <th>客户名称</th>
+                                <th>备注</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">📄</div>
+                                        <div>暂无数据</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function setPriority(level, btn) {
+            document.querySelectorAll('.priority-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function toggleSection(header) {
+            const section = header.parentElement;
+            section.classList.toggle('collapsed');
+        }
+    </script>
+</body>
+</html>

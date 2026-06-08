@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投资计划材料收集</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title span {
+            color: #1890ff;
+        }
+
+        .order-info {
+            background: linear-gradient(135deg, #e6f7ff 0%, #f0f8ff 100%);
+            border: 1px solid #91d5ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .child-fund-header {
+            background: linear-gradient(135deg, #e6f7ff 0%, #bae7ff 100%);
+            border: 1px solid #91d5ff;
+            border-radius: 8px;
+            padding: 24px;
+            text-align: center;
+        }
+
+        .child-fund-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .child-fund-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1890ff;
+            letter-spacing: 1px;
+        }
+
+        .order-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .order-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .order-label {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+        }
+
+        .order-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .form-label .required {
+            color: #f5222d;
+            margin-left: 4px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 3px rgba(24,144,255,0.1);
+        }
+
+        .form-input:disabled,
+        .form-select:disabled {
+            background: #f5f5f5;
+            color: #666;
+            cursor: not-allowed;
+        }
+
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fff;
+        }
+
+        .form-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px 16px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            resize: vertical;
+        }
+
+        .info-display {
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .confirmation-box {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .confirmation-box input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .confirmation-text {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .download-section {
+            background: #fafafa;
+            border: 1px dashed #d9d9d9;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .download-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .download-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .download-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #fff;
+            border-radius: 6px;
+            border: 1px solid #f0f0f0;
+            transition: all 0.2s;
+        }
+
+        .download-item:hover {
+            border-color: #1890ff;
+            background: #f0f8ff;
+        }
+
+        .download-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .download-icon {
+            font-size: 24px;
+        }
+
+        .download-name {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .download-btn {
+            padding: 8px 20px;
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .download-btn:hover {
+            background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+        }
+
+        .upload-section {
+            margin-bottom: 16px;
+        }
+
+        .upload-area {
+            border: 2px dashed #d9d9d9;
+            border-radius: 8px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+
+        .upload-area:hover {
+            border-color: #1890ff;
+            background: #f0f8ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #1890ff;
+            background: #e6f7ff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            color: #666;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .uploaded-file {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 16px;
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+
+        .uploaded-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .uploaded-icon {
+            font-size: 20px;
+        }
+
+        .uploaded-name {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .uploaded-status {
+            font-size: 12px;
+            color: #52c41a;
+            margin-left: 8px;
+        }
+
+        .uploaded-remove {
+            background: none;
+            border: none;
+            color: #f5222d;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .special-section {
+            background: #fff7e6;
+            border: 1px solid #ffd591;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .special-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fa8c16;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .check-item input[type="checkbox"] {
+            margin-top: 4px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .check-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 32px;
+        }
+
+        .btn {
+            padding: 14px 40px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
+        }
+
+        .btn-primary:disabled {
+            background: #d9d9d9;
+            cursor: not-allowed;
+        }
+
+        .progress-section {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 24px;
+            display: none;
+        }
+
+        .progress-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1890ff 0%, #52c41a 100%);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .progress-text {
+            font-size: 14px;
+            color: #666;
+            text-align: center;
+        }
+
+        .success-section {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+
+        .success-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #52c41a;
+            margin-bottom: 12px;
+        }
+
+        .success-text {
+            font-size: 15px;
+            color: #666;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 768px) {
+            .order-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📋</div>
+            <h1 class="title">投资计划材料收集</h1>
+            <p class="subtitle">请确认信息并上传所需材料</p>
+        </div>
+
+        <div id="mainContent">
+            <!-- 子基金名称 -->
+            <div class="card">
+                <div class="section-title">
+                    <span>📄</span>
+                    投资计划
+                </div>
+                <div class="child-fund-header" id="childFundHeader">
+                </div>
+            </div>
+
+            <!-- 文件上传 -->
+            <div class="card">
+                <div class="section-title">
+                    <span>📤</span>
+                    材料上传 <span style="font-size: 13px; color: #f5222d; font-weight: normal;">（标*为必填）</span>
+                </div>
+                
+                <div class="upload-section" id="uploadSection1">
+                    <label class="form-label">
+                        (1) 合同（电子清洁版） <span class="required">*</span>
+                    </label>
+                    <div class="upload-area" onclick="document.getElementById('file1').click()" id="uploadArea1">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">点击或拖拽文件到此处上传</div>
+                        <div class="upload-hint">支持 PDF、Word 格式</div>
+                    </div>
+                    <input type="file" id="file1" accept=".pdf,.doc,.docx" class="hidden" onchange="handleFileUpload(event, 1)">
+                </div>
+
+                <div class="upload-section" id="uploadSection2">
+                    <label class="form-label">
+                        (2) 风险揭示书（电子清洁版） <span class="required">*</span>
+                    </label>
+                    <div class="upload-area" onclick="document.getElementById('file2').click()" id="uploadArea2">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">点击或拖拽文件到此处上传</div>
+                        <div class="upload-hint">支持 PDF 格式</div>
+                    </div>
+                    <input type="file" id="file2" accept=".pdf" class="hidden" onchange="handleFileUpload(event, 2)">
+                </div>
+
+                <div class="upload-section" id="uploadSection3">
+                    <label class="form-label">
+                        (3) 三级估值表（最新用印版） <span class="required">*</span>
+                    </label>
+                    <div class="upload-area" onclick="document.getElementById('file3').click()" id="uploadArea3">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">点击或拖拽文件到此处上传</div>
+                        <div class="upload-hint">支持 PDF、Excel 格式</div>
+                    </div>
+                    <input type="file" id="file3" accept=".pdf,.xls,.xlsx" class="hidden" onchange="handleFileUpload(event, 3)">
+                </div>
+
+                <div class="upload-section" id="uploadSection4">
+                    <label class="form-label">
+                        (4) 补充协议（如有）
+                    </label>
+                    <div class="upload-area" onclick="document.getElementById('file4').click()" id="uploadArea4">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">点击或拖拽文件到此处上传（可选）</div>
+                        <div class="upload-hint">支持 PDF、Word 格式</div>
+                    </div>
+                    <input type="file" id="file4" accept=".pdf,.doc,.docx" class="hidden" onchange="handleFileUpload(event, 4)">
+                </div>
+            </div>
+
+            <!-- 特殊事项 -->
+            <div class="card">
+                <div class="section-title">
+                    <span>⚡</span>
+                    特殊事项确认
+                </div>
+                <div class="special-section">
+                    <div class="special-title">⚠️ 请确认以下事项</div>
+                    
+                    <div class="check-item">
+                        <input type="checkbox" id="check1">
+                        <label class="check-label" for="check1">
+                            有其他材料（妥妥递系统上要求上传以外的），已在下方说明
+                        </label>
+                    </div>
+                    
+                    <div class="check-item">
+                        <input type="checkbox" id="check2">
+                        <label class="check-label" for="check2">
+                            划款到账时间要求早于交易日期17点前，已在下方说明
+                        </label>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label class="form-label">特殊事项说明（如有）</label>
+                        <textarea class="form-textarea" id="specialNote" placeholder="请详细说明特殊事项..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="saveDraft()">
+                    💾 保存草稿
+                </button>
+                <button class="btn btn-primary" onclick="submitForm()">
+                    ✅ 提交材料
+                </button>
+            </div>
+        </div>
+
+        <!-- 进度显示 -->
+        <div class="card progress-section" id="progressSection">
+            <div class="progress-title">⏳ 正在提交...</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">正在上传文件...</div>
+        </div>
+
+        <!-- 成功页面 -->
+        <div class="card success-section" id="successSection">
+            <div class="success-icon">🎉</div>
+            <div class="success-title">提交成功！</div>
+            <div class="success-text">
+                您的材料已成功提交，我们会尽快审核。<br>
+                如有问题，我们会及时与您联系。
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟订单数据
+        const ordersData = {
+            '1': {
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-05-29',
+                childFund: '某某量化对冲A2号',
+                tradeType: '追加',
+                amount: '1,500万',
+                signChannel: '直销-妥妥递'
+            },
+            '2': {
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-05-29',
+                childFund: '某某全天候A号',
+                tradeType: '赎回',
+                amount: '500万',
+                signChannel: '直销-妥妥递'
+            },
+            '3': {
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-01-20',
+                childFund: '珠海宽德金刚钻16号',
+                tradeType: '申购',
+                amount: '100.0万',
+                signChannel: '直销-妥妥递'
+            },
+            '4': {
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-01',
+                childFund: '上海幻方指数增强5号',
+                tradeType: '申购',
+                amount: '200.0万',
+                signChannel: '直销-妥妥递'
+            }
+        };
+
+        let uploadedFiles = {};
+
+        // 获取URL参数
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('orders') || '3';
+        }
+
+        // 初始化页面
+        function initPage() {
+            const orderIds = getUrlParams().split(',');
+            const orderId = orderIds[0];
+            const order = ordersData[orderId] || ordersData['3'];
+
+            // 渲染子基金名称（仅显示子基金名）
+            document.getElementById('childFundHeader').innerHTML = `
+                <div class="child-fund-label">子基金名称</div>
+                <div class="child-fund-name">${order.childFund}</div>
+            `;
+        }
+
+        // 文件上传处理
+        function handleFileUpload(event, index) {
+            const file = event.target.files[0];
+            if (file) {
+                uploadedFiles[index] = file;
+                showUploadedFile(index, file.name);
+            }
+        }
+
+        // 显示已上传文件
+        function showUploadedFile(index, fileName) {
+            const sectionId = `uploadSection${index}`;
+            const section = document.getElementById(sectionId);
+            
+            const existing = section.querySelector('.uploaded-file');
+            if (existing) existing.remove();
+
+            const uploadedDiv = document.createElement('div');
+            uploadedDiv.className = 'uploaded-file';
+            uploadedDiv.innerHTML = `
+                <div class="uploaded-info">
+                    <span class="uploaded-icon">✅</span>
+                    <span class="uploaded-name">${fileName}</span>
+                    <span class="uploaded-status">已上传</span>
+                </div>
+                <button class="uploaded-remove" onclick="removeFile(${index})">×</button>
+            `;
+            section.appendChild(uploadedDiv);
+        }
+
+        // 移除文件
+        function removeFile(index) {
+            delete uploadedFiles[index];
+            const sectionId = `uploadSection${index}`;
+            const section = document.getElementById(sectionId);
+            const uploaded = section.querySelector('.uploaded-file');
+            if (uploaded) uploaded.remove();
+            document.getElementById(`file${index}`).value = '';
+        }
+
+        // 下载文件
+        function downloadFile(fileName) {
+            alert(`正在下载：${fileName}\n\n（这是模拟下载，实际项目中会链接到真实文件）`);
+        }
+
+        // 保存草稿
+        function saveDraft() {
+            alert('💾 草稿已保存！');
+        }
+
+        // 提交表单
+        function submitForm() {
+            // 验证文件
+            if (!uploadedFiles[1] || !uploadedFiles[2] || !uploadedFiles[3]) {
+                alert('请上传必填文件！（合同、风险揭示书、估值表）');
+                return;
+            }
+
+            // 显示进度
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'block';
+
+            // 模拟上传进度
+            let progress = 0;
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+
+            const steps = [
+                '正在验证文件...',
+                '正在上传合同...',
+                '正在上传风险揭示书...',
+                '正在上传估值表...',
+                '正在保存信息...',
+                '提交完成！'
+            ];
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 15 + 5;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    setTimeout(() => {
+                        document.getElementById('progressSection').style.display = 'none';
+                        document.getElementById('successSection').style.display = 'block';
+                    }, 500);
+                }
+                
+                progressFill.style.width = progress + '%';
+                const stepIndex = Math.min(Math.floor(progress / 20), steps.length - 1);
+                progressText.textContent = steps[stepIndex];
+            }, 200);
+        }
+
+        // 拖拽上传支持
+        ['uploadArea1', 'uploadArea2', 'uploadArea3', 'uploadArea4'].forEach((id, index) => {
+            const area = document.getElementById(id);
+            const fileInput = document.getElementById(`file${index + 1}`);
+
+            area.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                area.classList.add('dragover');
+            });
+
+            area.addEventListener('dragleave', () => {
+                area.classList.remove('dragover');
+            });
+
+            area.addEventListener('drop', (e) => {
+                e.preventDefault();
+                area.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileUpload({ target: fileInput }, index + 1);
+                }
+            });
+        });
+
+        // 初始化
+        initPage();
+    </script>
+</body>
+</html>

@@ -1,0 +1,2658 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>订单详情</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        /* 顶部栏 */
+        .top-bar {
+            background: #1890ff;
+            color: #fff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .top-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* 主内容 */
+        .main-content {
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* 订单信息卡片 */
+        .info-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .info-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .status-badge.blue {
+            background: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        .status-badge.orange {
+            background: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+
+        .status-badge.red {
+            background: #fff1f0;
+            color: #f5222d;
+            border: 1px solid #ffa39e;
+        }
+
+        .status-badge.green {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        /* 批量操作栏 */
+        .batch-bar {
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .batch-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .select-all-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .select-all-group input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-tab {
+            padding: 6px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            background: #f5f5f5;
+            border: 1px solid #d9d9d9;
+            transition: all 0.2s;
+        }
+
+        .filter-tab:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .filter-tab.active {
+            background: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        .batch-right {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            color: #333;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            border-color: #1890ff;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+            border-color: #40a9ff;
+            color: #fff;
+        }
+
+        .btn-success {
+            background: #52c41a;
+            border-color: #52c41a;
+            color: #fff;
+        }
+
+        .btn-success:hover {
+            background: #73d13d;
+            border-color: #73d13d;
+            color: #fff;
+        }
+
+        .btn:disabled {
+            background: #d9d9d9;
+            border-color: #d9d9d9;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        /* 母包文件管理卡片 */
+        .flow-status-bar {
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            padding: 14px 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .flow-label {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .flow-nodes {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .flow-node {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            color: #999;
+            transition: all 0.2s;
+        }
+
+        .flow-node:hover { color: #1890ff; }
+        .flow-node.active { color: #52c41a; }
+
+        .flow-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d9d9d9;
+            transition: background 0.3s;
+        }
+
+        .flow-dot.done { background: #52c41a; }
+
+        .flow-text {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .flow-line {
+            width: 48px;
+            height: 2px;
+            background: #e8e8e8;
+            margin: 0 6px;
+        }
+
+        /* 发起按钮 */
+        .flow-launch-btn {
+            padding: 6px 18px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .flow-link-btn {
+            padding: 6px 16px;
+            font-size: 13px;
+            color: #1890ff;
+            text-decoration: none;
+            border: 1px solid #91d5ff;
+            border-radius: 6px;
+            background: #e6f7ff;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .flow-link-btn:hover {
+            background: #bae7ff;
+        }
+        .mother-package-card {
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .mp-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mp-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mp-link {
+            font-size: 14px;
+            color: #1890ff;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .mp-link:hover {
+            color: #40a9ff;
+            text-decoration: underline;
+        }
+
+        .mp-link.disabled {
+            color: #d9d9d9;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .mp-body {
+            display: flex;
+            min-height: 320px;
+        }
+
+        /* 左侧分类树 */
+        .mp-sidebar {
+            width: 220px;
+            border-right: 1px solid #f0f0f0;
+            padding: 12px 0;
+            background: #fafafa;
+            flex-shrink: 0;
+        }
+
+        .mp-category-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .mp-category-item:hover {
+            background: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .mp-category-item.active {
+            background: #e6f7ff;
+            color: #1890ff;
+            border-left-color: #1890ff;
+            font-weight: 500;
+        }
+
+        .mp-category-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            white-space: nowrap;
+        }
+
+        .mp-category-status.collected {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .mp-category-status.pending {
+            background: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+
+        /* 右侧详情区 */
+        .mp-detail {
+            flex: 1;
+            padding: 20px 24px;
+            overflow-y: auto;
+        }
+
+        .mp-detail-header {
+            margin-bottom: 16px;
+        }
+
+        .mp-detail-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .mp-detail-desc {
+            font-size: 13px;
+            color: #999;
+        }
+
+        .mp-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        .mp-toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            appearance: none;
+            background: #d9d9d9;
+            border-radius: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .mp-toggle-switch:checked {
+            background: #52c41a;
+        }
+
+        .mp-toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: #fff;
+            border-radius: 50%;
+            transition: all 0.3s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+        }
+
+        .mp-toggle-switch:checked::after {
+            left: 20px;
+        }
+
+        .mp-toggle-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .mp-toggle-label.on {
+            color: #52c41a;
+            font-weight: 500;
+        }
+
+        /* 材料列表 */
+        .mp-material-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mp-material-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            transition: all 0.15s;
+        }
+
+        .mp-material-item:hover {
+            border-color: #d9d9d9;
+            background: #fafafa;
+        }
+
+        .mp-material-icon {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .mp-material-info {
+            flex: 1;
+        }
+
+        .mp-material-name {
+            font-size: 14px;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .mp-material-meta {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .mp-material-tag {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .mp-material-tag.exists {
+            background: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        .mp-material-tag.missing {
+            background: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+
+        .mp-upload-btn {
+            padding: 4px 12px;
+            font-size: 13px;
+            background: #fff;
+            border: 1px dashed #d9d9d9;
+            border-radius: 4px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mp-upload-btn:hover {
+            border-color: #1890ff;
+            color: #1890ff;
+            background: #e6f7ff;
+        }
+
+        /* 右上角分类专属操作按钮 */
+        .mp-action-btn {
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .mp-action-btn:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        /* 行内删除图标 */
+        .mp-delete-icon {
+            font-size: 18px;
+            color: #ccc;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            line-height: 1;
+        }
+
+        .mp-delete-icon:hover {
+            color: #ff4d4f;
+            background: #fff1f0;
+        }
+
+        /* 上传弹窗 */
+        .mp-upload-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mp-upload-modal {
+            background: #fff;
+            border-radius: 10px;
+            width: 420px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+
+        .mp-upload-modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .mp-upload-close {
+            font-size: 22px;
+            color: #999;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .mp-upload-close:hover { color: #333; }
+
+        .mp-upload-modal-body {
+            padding: 20px;
+        }
+
+        .mp-upload-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        .mp-upload-field span {
+            font-size: 13px;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .mp-upload-field select,
+        .mp-upload-field input {
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .mp-upload-field select:focus,
+        .mp-upload-field input:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+        }
+
+        .mp-upload-modal-footer {
+            padding: 12px 20px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* 金证划款信息卡片 */
+        .gold-cert-card {
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .gc-header {
+            padding: 14px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .gc-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .gc-body {
+            padding: 20px 24px;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        .gc-info { background: #f0f5ff; border-color: #adc6ff; }
+        .gc-info .gc-tag-icon { color: #1890ff; }
+        .gc-info .gc-tag-value { color: #0958d9; }
+
+        .gc-dual-value {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .gc-dual-value span {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .gc-dual-value small {
+            font-size: 11px;
+            color: #999;
+            font-weight: normal;
+        }
+
+        /* 金证接口调取按钮 */
+        .gc-fetch-btn {
+            display: block;
+            width: 100%;
+            margin-top: 6px;
+            padding: 4px 0;
+            font-size: 12px;
+            color: #1890ff;
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .gc-fetch-btn:hover {
+            background: #bae7ff;
+            border-color: #69c0ff;
+        }
+
+        .gc-api-time {
+            display: none;
+            font-size: 11px;
+            color: #52c41a;
+            margin-top: 4px;
+            text-align: center;
+        }
+
+        .gc-tag {
+            background: #fafafa;
+            border: 1px solid #f0f0f0;
+            border-radius: 8px;
+            padding: 14px 16px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .gc-tag:hover { border-color: #d9d9d9; }
+
+        .gc-tag-icon {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .gc-tag-label {
+            font-size: 12px;
+            color: #999;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .gc-tag-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .gc-success .gc-tag-icon { color: #52c41a; }
+        .gc-success { background: #f6ffed; border-color: #b7eb8f; }
+        .gc-success .gc-tag-value { color: #389e0d; }
+
+        .gc-warning .gc-tag-icon { color: #fa8c16; }
+        .gc-warning { background: #fff7e6; border-color: #ffd591; }
+        .gc-warning .gc-tag-value { color: #d46b08; }
+
+        .mp-footer-bar {
+            padding: 12px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafafa;
+        }
+
+        .mp-summary {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .mp-summary strong {
+            color: #52c41a;
+        }
+
+        /* 文件卡片 */
+        .file-card {
+            background: #fff;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        .file-card-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .file-type-tabs {
+            display: flex;
+            gap: 8px;
+        }
+
+        .file-type-tab {
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .file-type-tab:hover {
+            color: #1890ff;
+        }
+
+        .file-type-tab.active {
+            color: #1890ff;
+            border-bottom-color: #1890ff;
+            font-weight: 500;
+        }
+
+        .file-card-body {
+            padding: 0;
+        }
+
+        /* 子标签页 */
+        .sub-tabs {
+            display: flex;
+            border-bottom: 1px solid #f0f0f0;
+            padding: 0 24px;
+        }
+
+        .sub-tab {
+            padding: 12px 0;
+            margin-right: 32px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .sub-tab:hover {
+            color: #1890ff;
+        }
+
+        .sub-tab.active {
+            color: #1890ff;
+            border-bottom-color: #1890ff;
+            font-weight: 500;
+        }
+
+        /* 文件列表 */
+        .file-list {
+            padding: 24px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #f0f0f0;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .file-item:hover {
+            border-color: #1890ff;
+            background: #f0f8ff;
+        }
+
+        .file-checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 16px;
+            cursor: pointer;
+        }
+
+        .file-icon {
+            font-size: 32px;
+            margin-right: 16px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-size: 15px;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .file-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .file-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .file-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* 状态提示区 */
+        .alert-box {
+            background: #fff7e6;
+            border: 1px solid #ffd591;
+            border-radius: 8px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .alert-box.show {
+            display: block;
+        }
+
+        .alert-box.error {
+            background: #fff1f0;
+            border-color: #ffa39e;
+        }
+
+        .alert-box.success {
+            background: #f6ffed;
+            border-color: #b7eb8f;
+        }
+
+        .alert-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fa8c16;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert-box.error .alert-title {
+            color: #f5222d;
+        }
+
+        .alert-box.success .alert-title {
+            color: #52c41a;
+        }
+
+        .alert-list {
+            margin-left: 28px;
+        }
+
+        .alert-list li {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* 进度条 */
+        .progress-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: none;
+        }
+
+        .progress-container.show {
+            display: block;
+        }
+
+        .progress-title {
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: #f0f0f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #1890ff;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f0f0f0;
+            border-top-color: #1890ff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 8px;
+            width: 560px;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 4px;
+        }
+
+        .modal-body {
+            padding: 24px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .modal-section {
+            margin-bottom: 20px;
+        }
+
+        .modal-section-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .modal-list {
+            margin-left: 20px;
+        }
+
+        .modal-list li {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .modal-list li.warning {
+            color: #fa8c16;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 24px;
+            color: #666;
+        }
+
+        .empty-icon {
+            font-size: 64px;
+            margin-bottom: 16px;
+        }
+
+        .empty-text {
+            font-size: 15px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 用印弹窗样式 */
+        .stamp-modal {
+            width: 800px;
+            max-width: 90%;
+        }
+
+        .pdf-preview-container {
+            padding: 0;
+            background: #f5f5f5;
+            min-height: 500px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .pdf-content {
+            background: #fff;
+            margin: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .pdf-page {
+            padding: 40px;
+            min-height: 600px;
+            position: relative;
+        }
+
+        .pdf-header h3 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .pdf-header p {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .pdf-body {
+            margin: 30px 0;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .pdf-stamp-area {
+            position: absolute;
+            bottom: 60px;
+            right: 80px;
+            width: 120px;
+            height: 120px;
+            border: 2px dashed #d9d9d9;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .pdf-stamp-area:hover {
+            border-color: #1890ff;
+            background: #e6f7ff;
+        }
+
+        .stamp-placeholder {
+            font-size: 14px;
+            color: #999;
+            text-align: center;
+        }
+
+        .stamp-applied {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #ff4d4f 0%, #cf1322 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(255, 77, 79, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部栏 -->
+    <div class="top-bar">
+        <button class="back-btn" onclick="goBack()">←</button>
+        <span class="top-title">订单详情</span>
+    </div>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 订单信息 -->
+        <div class="info-card">
+            <div class="info-header">
+                <span class="info-title" id="orderTitle">订单信息</span>
+                <span class="status-badge blue" id="orderStatus">订单待签署</span>
+            </div>
+            <div class="info-grid" id="orderInfoGrid">
+            </div>
+        </div>
+
+        <!-- 状态提示区 -->
+        <div class="alert-box" id="alertBox">
+            <div class="alert-title" id="alertTitle">
+                <span>⚠️</span>
+                <span>提示信息</span>
+            </div>
+            <ul class="alert-list" id="alertList">
+            </ul>
+        </div>
+
+        <!-- 进度条 -->
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-title" id="progressTitle">
+                <span class="spinner"></span>
+                <span>正在处理...</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- 用印划款流程状态 -->
+        <div class="flow-status-bar">
+            <span class="flow-label">用印划款流程</span>
+            <div class="flow-nodes">
+                <a class="flow-node active" href="用印划款流程.html?orderId=3" target="_blank" id="flowNode0">
+                    <span class="flow-dot done"></span>
+                    <span class="flow-text">已发起</span>
+                </a>
+                <span class="flow-line"></span>
+                <a class="flow-node" href="用印划款流程.html?orderId=3" target="_blank" id="flowNode1">
+                    <span class="flow-dot"></span>
+                    <span class="flow-text">可用印</span>
+                </a>
+                <span class="flow-line"></span>
+                <a class="flow-node" href="用印划款流程.html?orderId=3" target="_blank" id="flowNode2">
+                    <span class="flow-dot"></span>
+                    <span class="flow-text">可划款</span>
+                </a>
+            </div>
+            <button class="btn btn-primary flow-launch-btn" id="flowLaunchBtn" onclick="launchTransferFlow()">
+                + 一键发起用印划款
+            </button>
+            <a class="flow-link-btn" id="flowViewBtn" style="display:none;" href="用印划款流程.html?orderId=3" target="_blank">
+                查看流程 →
+            </a>
+        </div>
+
+        <!-- 母包文件管理 -->
+        <div class="mother-package-card">
+            <div class="mp-header">
+                <span class="mp-title">📦 母包文件管理</span>
+            </div>
+            <div class="mp-body">
+                <!-- 左侧分类树 -->
+                <div class="mp-sidebar" id="mpSidebar"></div>
+                <!-- 右侧详情区 -->
+                <div class="mp-detail" id="mpDetail"></div>
+            </div>
+            <div class="mp-footer-bar">
+                <span class="mp-summary" id="mpSummary">母包状态：0/4 分类已完成收集</span>
+            </div>
+        </div>
+
+        <!-- 批量操作栏 -->
+        <div class="batch-bar">
+            <div class="batch-left">
+                <label class="select-all-group">
+                    <input type="checkbox" id="selectAllFiles" onchange="toggleSelectAllFiles()">
+                    <span>全选文件</span>
+                </label>
+                <div class="filter-tabs">
+                    <span class="filter-tab active" onclick="setFileFilter('all')">全部文件</span>
+                    <span class="filter-tab" onclick="setFileFilter('order')">仅订单文件</span>
+                    <span class="filter-tab" onclick="setFileFilter('suitability')">仅适当性文件</span>
+                </div>
+            </div>
+            <div class="batch-right">
+                <button class="btn" onclick="refreshFiles()">🔄 刷新</button>
+                <button class="btn btn-primary" onclick="startStampProcess()">📝 批量用印</button>
+                <button class="btn btn-success" onclick="transferToTTD()">📤 批量传输</button>
+            </div>
+        </div>
+
+        <!-- 适当性签约文件卡片 -->
+        <div class="file-card">
+            <div class="file-card-header">
+                <span class="info-title">适当性签约文件</span>
+            </div>
+            <div class="file-card-body">
+                <!-- 子标签页 -->
+                <div class="sub-tabs">
+                    <span class="sub-tab active" onclick="switchSubTab('suitability', 'latest')">最新文件</span>
+                    <span class="sub-tab" onclick="switchSubTab('suitability', 'history')">历史记录</span>
+                </div>
+
+                <!-- 文件列表 -->
+                <div class="file-list" id="suitabilityFileList">
+                </div>
+            </div>
+        </div>
+
+        <!-- 订单签约文件卡片 -->
+        <div class="file-card">
+            <div class="file-card-header">
+                <span class="info-title">订单签约文件</span>
+            </div>
+            <div class="file-card-body">
+                <!-- 子标签页 -->
+                <div class="sub-tabs">
+                    <span class="sub-tab active" onclick="switchSubTab('order', 'latest')">最新文件</span>
+                    <span class="sub-tab" onclick="switchSubTab('order', 'history')">历史记录</span>
+                </div>
+
+                <!-- 文件列表 -->
+                <div class="file-list" id="orderFileList">
+                </div>
+            </div>
+        </div>
+
+        <!-- 金证划款信息 -->
+        <div class="gold-cert-card" id="goldCertCard">
+            <div class="gc-header">
+                <span class="gc-title">💰 金证划款信息</span>
+            </div>
+            <div class="gc-body">
+                <div class="gc-tag gc-success">
+                    <span class="gc-tag-icon">✓</span>
+                    <span class="gc-tag-label">金额校验</span>
+                    <span class="gc-tag-value">金额一致</span>
+                </div>
+                <div class="gc-tag gc-default">
+                    <span class="gc-tag-icon">○</span>
+                    <span class="gc-tag-label">个性化需求</span>
+                    <span class="gc-tag-value">无特殊需求</span>
+                </div>
+                <div class="gc-tag gc-warning">
+                    <span class="gc-tag-icon">🕐</span>
+                    <span class="gc-tag-label">划款截止</span>
+                    <span class="gc-tag-value">2026-06-15 17:00</span>
+                </div>
+                <div class="gc-tag gc-info">
+                    <span class="gc-tag-icon">📅</span>
+                    <span class="gc-tag-label">拟交易 / 划款</span>
+                    <div class="gc-dual-value">
+                        <span>2026-06-16</span>
+                        <small>T-1 → 2026-06-15</small>
+                    </div>
+                </div>
+                <div class="gc-tag gc-default" id="gcApiTag">
+                    <span class="gc-tag-icon" id="gcApiIcon">○</span>
+                    <span class="gc-tag-label">金证接口</span>
+                    <span class="gc-tag-value" id="gcApiValue">未调取</span>
+                    <button class="gc-fetch-btn" id="gcFetchBtn" onclick="fetchGoldCertAPI()">🔗 手动调取</button>
+                    <span class="gc-api-time" id="gcApiTime"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用印确认弹窗 -->
+    <div class="modal-overlay" id="stampModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">用印确认</span>
+                <button class="modal-close" onclick="closeStampModal()">×</button>
+            </div>
+            <div class="modal-body" id="stampModalBody">
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeStampModal()">取消</button>
+                <button class="btn btn-primary" id="confirmStampBtn" onclick="confirmStamp()">确认用印</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 异常提示弹窗 -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">异常提示</span>
+                <button class="modal-close" onclick="closeErrorModal()">×</button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeErrorModal()">知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 用印查看弹窗 -->
+    <div class="modal-overlay" id="stampViewModal">
+        <div class="modal stamp-modal">
+            <div class="modal-header">
+                <span class="modal-title" id="stampViewTitle">文件预览</span>
+                <button class="modal-close" onclick="closeStampViewModal()">×</button>
+            </div>
+            <div class="modal-body pdf-preview-container">
+                <div class="pdf-content" id="pdfContent">
+                    <div class="pdf-page">
+                        <div class="pdf-header">
+                            <h3>文件名称</h3>
+                            <p id="stampFileName">补充协议.pdf</p>
+                        </div>
+                        <div class="pdf-body">
+                            <p>这是PDF文件的模拟内容区域</p>
+                            <p>实际使用时会显示真实的PDF文档</p>
+                        </div>
+                        <div class="pdf-stamp-area" id="stampArea">
+                            <div class="stamp-placeholder" id="stampPlaceholder">点击盖章</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeStampViewModal()">取消</button>
+                <button class="btn btn-primary" id="stampBtn" onclick="applyStamp()">📝 盖章</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 传输确认弹窗 -->
+    <div class="modal-overlay" id="transferConfirmModal">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">传输确认</span>
+                <button class="modal-close" onclick="closeTransferConfirmModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📤</div>
+                    <p style="font-size: 16px; color: #333; margin-bottom: 12px;">所有文件已完成用印</p>
+                    <p style="font-size: 14px; color: #666;">是否将文件传输给妥妥递？</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeTransferConfirmModal()">暂不传输</button>
+                <button class="btn btn-primary" onclick="confirmTransferToTTD()">确认传输</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟订单数据
+        const ordersData = {
+            '1': {
+                id: 1,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-05-29',
+                childFund: '某某量化对冲A2号',
+                tradeType: '追加',
+                amount: '1,500万',
+                progress: '交易已完成印',
+                ttdStatus: '关联已失效',
+                status: 'completed'
+            },
+            '2': {
+                id: 2,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-05-29',
+                childFund: '某某全天候A号',
+                tradeType: '赎回',
+                amount: '500万',
+                progress: '交易已完成印',
+                ttdStatus: '订单待签署',
+                status: 'pending'
+            },
+            '3': {
+                id: 3,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-01-20',
+                childFund: '珠海宽德金刚钻16号',
+                tradeType: '申购',
+                amount: '100.0万',
+                progress: '交易要素确认中',
+                ttdStatus: '订单待签署',
+                status: 'pending'
+            },
+            '4': {
+                id: 4,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-01',
+                childFund: '上海幻方指数增强5号',
+                tradeType: '申购',
+                amount: '200.0万',
+                progress: '待交易',
+                ttdStatus: '未关联',
+                status: 'new'
+            }
+        };
+
+        // 模拟文件数据
+        const orderFilesData = {
+            '3': {
+                orderFiles: [
+                    { id: 'o1', name: '认申购单.pdf', type: 'order', status: 'stamped', isRegular: true, checked: false },
+                    { id: 'o2', name: '风险揭示书.pdf', type: 'order', status: 'stamped', isRegular: true, checked: false },
+                    { id: 'o3', name: '合同.pdf', type: 'order', status: 'stamped', isRegular: true, checked: false },
+                    { id: 'o4', name: '补充协议.pdf', type: 'order', status: 'pending', isRegular: true, checked: false }
+                ],
+                suitabilityFiles: [
+                    { id: 's1', name: '风险测评文件.pdf', type: 'suitability', status: 'stamped', isRegular: true, checked: false },
+                    { id: 's2', name: '投资者信息表.pdf', type: 'suitability', status: 'stamped', isRegular: true, checked: false },
+                    { id: 's3', name: '税收证明文件.pdf', type: 'suitability', status: 'stamped', isRegular: true, checked: false }
+                ]
+            }
+        };
+
+        let currentOrderId = null;
+        let currentOrder = null;
+        let currentSubTabs = {
+            suitability: 'latest',
+            order: 'latest'
+        };
+        let currentFilter = 'all'; // 'all', 'order', 'suitability'
+        let allFiles = [];
+
+        // ===== 母包文件管理 =====
+        let mpCurrentCategory = 0;
+        const mpCategories = [
+            {
+                key: 'orgFiles',
+                name: '📁 机构文件',
+                desc: '除"交易申请书"之外的机构材料（法人身份证、经办人身份证、税收证明等），归档时直接放根目录',
+                collected: false,
+                actionType: 'fetchInternal',   // 右上角主操作：抓取最新
+                fileTypes: ['法人身份证', '经办人身份证', '税收证明文件', '营业执照', '授权委托书'],
+                materials: [
+                    { name: '法人身份证', exists: false, source: '另外维护' },
+                    { name: '经办人身份证', exists: false, source: '另外维护' },
+                    { name: '税收证明文件', exists: false, source: '另外维护' }
+                ]
+            },
+            {
+                key: 'motherFund',
+                name: '📁 母基金资料',
+                desc: '归档时放入"母基金资料"文件夹，支持从内部系统抓取最新版',
+                collected: false,
+                actionType: 'fetchInternal',
+                fileTypes: ['受益人身份证', '备案函', '托管函', '份额持有人明细汇总'],
+                materials: [
+                    { name: '受益人身份证', exists: true, source: '内部系统（未用印版）' },
+                    { name: '备案函', exists: true, source: '内部系统（未用印版）' },
+                    { name: '托管函', exists: true, source: '内部系统（未用印版）' },
+                    { name: '份额持有人明细汇总', exists: false, source: 'TA取值（待确认托管章）' }
+                ]
+            },
+            {
+                key: 'product',
+                name: '📁 产品资料（子基金）',
+                desc: '子基金相关材料，支持从资产池/内部系统抓取最新版，归档时放入"产品资料"文件夹',
+                collected: false,
+                actionType: 'fetchInternal',
+                fileTypes: ['风险揭示书', '估值表', '基金合同', '投资承诺函', '补充协议'],
+                materials: [
+                    { name: '风险揭示书', exists: true, source: '资产池（来源群内收集）' },
+                    { name: '估值表', exists: true, source: '资产池（需一周内最新）' },
+                    { name: '基金合同', exists: true, source: '资产池（来源群内收集）' },
+                    { name: '投资承诺函', exists: true, source: '资产池' },
+                    { name: '补充协议', exists: true, source: '资产池 or 群内收集' }
+                ]
+            },
+            {
+                key: 'tradeForm',
+                name: '📁 交易申请书',
+                desc: '认申购单/赎回单等交易申请文件，支持根据投资计划自动生成，归档时直接放根目录',
+                collected: false,
+                actionType: 'generate',
+                fileTypes: ['认申购单/赎回单'],
+                materials: [
+                    { name: '认申购单/赎回单', exists: false, source: '待生成' }
+                ]
+            },
+            {
+                key: 'suitability',
+                name: '📁 受妥递适当性材料',
+                desc: '合投承诺、风险测评、投资者信息表等，支持从妥妥递外部系统同步，归档时放入"受妥递适当性"文件夹',
+                collected: false,
+                actionType: 'syncExternal',
+                fileTypes: ['合投承诺', '风险测评', '投资者信息表'],
+                materials: [
+                    { name: '合投承诺', exists: false, source: '妥妥递（待同步）' },
+                    { name: '风险测评', exists: false, source: '妥妥递（待同步）' },
+                    { name: '投资者信息表', exists: false, source: '妥妥递（待同步）' }
+                ]
+            }
+        ];
+
+        // 各分类的右上角按钮配置
+        const mpActionConfig = {
+            fetchInternal: { text: '抓取最新', icon: '🔄', color: '#722ed1' },
+            generate:    { text: '系统生成', icon: '⚙️', color: '#13c2c2' },
+            syncExternal: { text: '从妥妥递同步', icon: '🔗', color: '#fa8c16' }
+        };
+
+        // 渲染左侧分类树
+        function renderMPSidebar() {
+            const sidebar = document.getElementById('mpSidebar');
+            sidebar.innerHTML = mpCategories.map((cat, idx) => `
+                <div class="mp-category-item ${idx === mpCurrentCategory ? 'active' : ''}" onclick="switchMPCategory(${idx})">
+                    <span>${cat.name}</span>
+                    <span class="mp-category-status ${cat.collected ? 'collected' : 'pending'}">${cat.collected ? '已收集' : '待收集'}</span>
+                </div>
+            `).join('');
+        }
+
+        // 切换分类
+        function switchMPCategory(idx) {
+            mpCurrentCategory = idx;
+            renderMPSidebar();
+            renderMPDetail();
+        }
+
+        // 渲染右侧详情区
+        function renderMPDetail() {
+            const cat = mpCategories[mpCurrentCategory];
+            if (!cat) return;
+
+            const action = mpActionConfig[cat.actionType] || mpActionConfig.fetchInternal;
+            const detail = document.getElementById('mpDetail');
+            detail.innerHTML = `
+                <div class="mp-detail-header">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;width:100%;">
+                        <div>
+                            <div class="mp-detail-title">${cat.name.replace('📁 ', '')}</div>
+                            <div class="mp-detail-desc">${cat.desc}</div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <button class="mp-action-btn" style="background:${action.color}20;color:${action.color};border-color:${action.color}40;"
+                                onclick="execMPAction('${cat.actionType}')">
+                                ${action.icon} ${action.text}
+                            </button>
+                            <button class="mp-action-btn" style="background:#1890ff15;color:#1890ff;border-color:#91d5ff80;"
+                                onclick="openUploadModal()">
+                                📤 上传文件
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="mp-toggle-row">
+                    <input type="checkbox" class="mp-toggle-switch" id="mpToggle${mpCurrentCategory}"
+                        ${cat.collected ? 'checked' : ''} onchange="toggleMPCategory(${mpCurrentCategory})">
+                    <span class="mp-toggle-label ${cat.collected ? 'on' : ''}" id="mpLabel${mpCurrentCategory}">
+                        ${cat.collected ? '✓ 已完成收集' : '○ 待收集'}
+                    </span>
+                </div>
+                <div class="mp-material-list">
+                    ${cat.materials.map((m, mi) => `
+                        <div class="mp-material-item">
+                            <span class="mp-material-icon">${m.exists ? '📄' : '📋'}</span>
+                            <div class="mp-material-info">
+                                <div class="mp-material-name">${m.name}</div>
+                                <div class="mp-material-meta">来源：${m.source}</div>
+                            </div>
+                            <span class="mp-material-tag ${m.exists ? 'exists' : 'missing'}">${m.exists ? '已存在' : '待补充'}</span>
+                            ${m.exists ? `<span class="mp-delete-icon" onclick="deleteMPMaterial(${mi})" title="删除此文件">×</span>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // 打开上传弹窗
+        function openUploadModal() {
+            const cat = mpCategories[mpCurrentCategory];
+            const typeOptions = cat.fileTypes.map(t =>
+                `<option value="${t}">${t}</option>`
+            ).join('');
+
+            const html = `
+                <div class="mp-upload-modal-overlay" id="mpUploadModal" onclick="closeUploadModal(event)">
+                    <div class="mp-upload-modal" onclick="event.stopPropagation()">
+                        <div class="mp-upload-modal-header">
+                            <span>上传文件 - ${cat.name.replace('📁 ', '')}</span>
+                            <span class="mp-upload-close" onclick="document.getElementById('mpUploadModal').remove()">×</span>
+                        </div>
+                        <div class="mp-upload-modal-body">
+                            <label class="mp-upload-field">
+                                <span>文件类型</span>
+                                <select id="mpUploadType">${typeOptions}</select>
+                            </label>
+                            <label class="mp-upload-field">
+                                <span>文件名</span>
+                                <input type="text" id="mpUploadName" placeholder="请输入上传的文件名">
+                            </label>
+                        </div>
+                        <div class="mp-upload-modal-footer">
+                            <button class="btn btn-secondary" onclick="document.getElementById('mpUploadModal').remove()">取消</button>
+                            <button class="btn btn-primary" onclick="confirmUploadFile()">确认上传</button>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function closeUploadModal(e) {
+            if (e.target.classList.contains('mp-upload-modal-overlay')) {
+                e.target.remove();
+            }
+        }
+
+        // 确认上传
+        function confirmUploadFile() {
+            const fileType = document.getElementById('mpUploadType').value;
+            const fileName = document.getElementById('mpUploadName').value.trim();
+            if (!fileName) { alert('请输入文件名'); return; }
+
+            const cat = mpCategories[mpCurrentCategory];
+            cat.materials.push({
+                name: fileName + '（' + fileType + '）',
+                exists: true,
+                source: '手工上传 · 类型：' + fileType,
+                fileType: fileType
+            });
+
+            document.getElementById('mpUploadModal').remove();
+            renderMPDetail();
+        }
+
+        // 删除已存在文件
+        function deleteMPMaterial(mi) {
+            if (!confirm('确认删除此文件？')) return;
+            const cat = mpCategories[mpCurrentCategory];
+            cat.materials.splice(mi, 1);
+            renderMPDetail();
+        }
+
+        // 执行分类专属操作
+        function execMPAction(actionType) {
+            switch (actionType) {
+                case 'fetchInternal':
+                    fetchFromInternal(); break;
+                case 'generate':
+                    generateTradeForm(); break;
+                case 'syncExternal':
+                    syncFromSuitability(); break;
+                default:
+                    fetchFromInternal();
+            }
+        }
+
+        // 从内部系统抓取（机构文件 / 母基金资料 / 产品资料）
+        function fetchFromInternal() {
+            if (!confirm('确认从内部系统抓取该分类的最新材料？')) return;
+            const cat = mpCategories[mpCurrentCategory];
+            cat.materials.forEach(m => m.exists = true);
+            cat.materials.forEach(m => {
+                if (m.source.includes('待') || m.source.includes('另外'))
+                    m.source = '内部系统（已抓取）';
+            });
+            alert(`已从内部系统抓取 ${cat.materials.length} 份材料的最新版本`);
+            renderMPDetail();
+        }
+
+        // 系统生成（交易申请书）
+        function generateTradeForm() {
+            if (!confirm('确认根据投资计划自动生成交易申请书？')) return;
+            const cat = mpCategories[mpCurrentCategory];
+            cat.materials[0].exists = true;
+            cat.materials[0].source = '系统已生成';
+            cat.materials[0].name = '认申购单_国联FOF1号_' + new Date().toLocaleDateString();
+            alert('交易申请书已生成');
+            renderMPDetail();
+        }
+
+        // 从妥妥递同步（受妥递适当性材料）
+        function syncFromSuitability() {
+            if (!confirm('确认从妥妥递外部系统同步适当性材料？')) return;
+            const cat = mpCategories[mpCurrentCategory];
+            cat.materials.forEach(m => { m.exists = true; m.source = '妥妥递（已同步）'; });
+            alert('已从妥妥递同步 3 份适当性材料');
+            renderMPDetail();
+        }
+
+        // 切换分类收集状态
+        function toggleMPCategory(idx) {
+            const cat = mpCategories[idx];
+            cat.collected = !cat.collected;
+            renderMPSidebar();
+            renderMPDetail();
+            updateMPSummary();
+        }
+
+        // 更新底部统计
+        function updateMPSummary() {
+            const done = mpCategories.filter(c => c.collected).length;
+            document.getElementById('mpSummary').innerHTML =
+                `母包状态：<strong>${done}/5</strong> 分类已完成收集`;
+            updateFlowStatus(done);
+        }
+
+        // ===== 用印划款流程 =====
+        let flowLaunched = false;
+        let flowCompleted = false;
+
+        // 根据母包收集状态更新流程条按钮
+        function updateFlowStatus(collectedCount) {
+            const launchBtn = document.getElementById('flowLaunchBtn');
+            const viewBtn = document.getElementById('flowViewBtn');
+
+            if (flowLaunched) {
+                launchBtn.style.display = 'none';
+                viewBtn.style.display = 'inline-block';
+
+                // 模拟：发起后自动点亮全部节点
+                for (let i = 0; i < 3; i++) {
+                    const node = document.getElementById('flowNode' + i);
+                    node.classList.add('active');
+                    node.querySelector('.flow-dot').classList.add('done');
+                }
+            }
+
+            // 流程完成后更新金证卡片状态（demo：固定显示）
+            if (flowCompleted) {
+                document.getElementById('goldCertCard').classList.add('gc-completed');
+            }
+        }
+
+        // 一键发起用印划款
+        function launchTransferFlow() {
+            const done = mpCategories.filter(c => c.collected).length;
+            if (done < 5) {
+                alert(`请先完成母包材料收集（当前 ${done}/5 分类已完成）`);
+                return;
+            }
+
+            flowLaunched = true;
+
+            // demo: 发起后直接跳转流程页
+            setTimeout(() => {
+                flowCompleted = true;
+                updateFlowStatus(5);
+                window.open('用印划款流程.html?orderId=' + currentOrderId + '&motherPackage=1', '_blank');
+            }, 300);
+
+            updateFlowStatus(5);
+        }
+
+        // 初始化母包
+        function initMotherPackage() {
+            renderMPSidebar();
+            renderMPDetail();
+            updateMPSummary();
+        }
+
+        // 获取URL参数
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('orderId') || '3';
+        }
+
+        // 初始化页面
+        function initPage() {
+            currentOrderId = getUrlParams();
+            currentOrder = ordersData[currentOrderId] || ordersData['3'];
+
+            renderOrderInfo();
+            loadFiles();
+            initMotherPackage();
+        }
+
+        // 渲染订单信息
+        function renderOrderInfo() {
+            document.getElementById('orderTitle').textContent = `${currentOrder.motherFund} → ${currentOrder.childFund}`;
+            
+            const statusBadge = document.getElementById('orderStatus');
+            statusBadge.textContent = currentOrder.ttdStatus;
+            statusBadge.className = 'status-badge';
+            
+            if (currentOrder.ttdStatus.includes('待')) {
+                statusBadge.classList.add('orange');
+            } else if (currentOrder.ttdStatus.includes('异常')) {
+                statusBadge.classList.add('red');
+            } else if (currentOrder.ttdStatus.includes('完成') || currentOrder.ttdStatus.includes('已')) {
+                statusBadge.classList.add('green');
+            } else {
+                statusBadge.classList.add('blue');
+            }
+
+            document.getElementById('orderInfoGrid').innerHTML = `
+                <div class="info-item">
+                    <span class="info-label">母基金</span>
+                    <span class="info-value">${currentOrder.motherFund}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">子基金</span>
+                    <span class="info-value">${currentOrder.childFund}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">交易类型</span>
+                    <span class="info-value">${currentOrder.tradeType}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">交易日期</span>
+                    <span class="info-value">${currentOrder.tradeDate}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">计划金额</span>
+                    <span class="info-value">${currentOrder.amount}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">完成情况</span>
+                    <span class="info-value">${currentOrder.progress}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">妥妥递状态</span>
+                    <span class="info-value">${currentOrder.ttdStatus}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">平台</span>
+                    <span class="info-value">妥妥递</span>
+                </div>
+            `;
+        }
+
+        // 加载文件
+        function loadFiles() {
+            const data = orderFilesData[currentOrderId] || orderFilesData['3'];
+            allFiles = [...data.orderFiles, ...data.suitabilityFiles];
+            renderAllFileLists();
+        }
+
+        // 渲染所有文件列表
+        function renderAllFileLists() {
+            renderFileList('suitability');
+            renderFileList('order');
+        }
+
+        // 渲染单个文件列表
+        function renderFileList(fileType) {
+            const containerId = fileType === 'suitability' ? 'suitabilityFileList' : 'orderFileList';
+            const container = document.getElementById(containerId);
+            const subTab = currentSubTabs[fileType];
+            
+            if (subTab === 'history') {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📜</div>
+                        <div class="empty-text">历史记录请查看其他页面</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let files = allFiles.filter(f => f.type === fileType);
+
+            if (files.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">📁</div>
+                        <div class="empty-text">暂无文件</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = files.map(file => `
+                <div class="file-item">
+                    <input type="checkbox" class="file-checkbox" 
+                           ${file.checked ? 'checked' : ''} 
+                           onchange="toggleFileCheck('${file.id}')">
+                    <span class="file-icon">📄</span>
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-meta">
+                            <span class="file-status">${getFileStatusHtml(file)}</span>
+                            <span>${file.isRegular ? '常规文档' : '后补文档'}</span>
+                        </div>
+                    </div>
+                    <div class="file-actions">
+                        ${getFileActionButtons(file)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 获取状态HTML
+        function getFileStatusHtml(file) {
+            const statusMap = {
+                'needCheck': { icon: '🔍', text: '待检查', color: '#1890ff' },
+                'pending': { icon: '⏳', text: '待签署', color: '#fa8c16' },
+                'stamped': { icon: '✅', text: '已用印', color: '#52c41a' },
+                'transferred': { icon: '📤', text: '已传输', color: '#52c41a' },
+                'error': { icon: '❌', text: '异常', color: '#f5222d' }
+            };
+            
+            const status = statusMap[file.status] || statusMap['pending'];
+            return `<span style="color: ${status.color}">${status.icon} ${status.text}</span>`;
+        }
+
+        // 获取文件操作按钮
+        function getFileActionButtons(file) {
+            if (file.type === 'suitability') {
+                return `<button class="btn btn-sm" onclick="viewFile('${file.id}')">查看</button>`;
+            }
+            // 订单签约文件：所有文件可查看，待签署的额外有用印按钮
+            let buttons = `<button class="btn btn-sm" onclick="viewFile('${file.id}')">查看</button>`;
+            if (file.status === 'pending') {
+                buttons += ` <button class="btn btn-sm btn-primary" onclick="openStampModal('${file.id}')">用印</button>`;
+            }
+            return buttons;
+        }
+
+        // 切换子标签页
+        function switchSubTab(fileType, tab) {
+            currentSubTabs[fileType] = tab;
+            
+            // 更新对应卡片的子标签状态
+            const card = fileType === 'suitability' 
+                ? document.querySelectorAll('.file-card')[0] 
+                : document.querySelectorAll('.file-card')[1];
+            const subTabs = card.querySelectorAll('.sub-tab');
+            subTabs[0].classList.toggle('active', tab === 'latest');
+            subTabs[1].classList.toggle('active', tab === 'history');
+            
+            renderFileList(fileType);
+        }
+
+        // 设置文件过滤器
+        function setFileFilter(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-tab').forEach((tab, index) => {
+                const filters = ['all', 'order', 'suitability'];
+                tab.classList.toggle('active', filters[index] === filter);
+            });
+            
+            renderAllFileLists();
+        }
+
+        // 切换文件选中
+        function toggleFileCheck(fileId) {
+            const file = allFiles.find(f => f.id === fileId);
+            if (file) {
+                file.checked = !file.checked;
+                updateSelectAllState();
+            }
+        }
+
+        // 全选/取消全选
+        function toggleSelectAllFiles() {
+            const selectAll = document.getElementById('selectAllFiles').checked;
+            let filesToToggle = allFiles;
+            
+            if (currentFilter === 'order') {
+                filesToToggle = allFiles.filter(f => f.type === 'order');
+            } else if (currentFilter === 'suitability') {
+                filesToToggle = allFiles.filter(f => f.type === 'suitability');
+            }
+            
+            filesToToggle.forEach(file => {
+                file.checked = selectAll;
+            });
+            
+            renderAllFileLists();
+        }
+
+        // 更新全选状态
+        function updateSelectAllState() {
+            let filesToCheck = allFiles;
+            
+            if (currentFilter === 'order') {
+                filesToCheck = allFiles.filter(f => f.type === 'order');
+            } else if (currentFilter === 'suitability') {
+                filesToCheck = allFiles.filter(f => f.type === 'suitability');
+            }
+            
+            const checkedFiles = filesToCheck.filter(f => f.checked);
+            document.getElementById('selectAllFiles').checked = checkedFiles.length === filesToCheck.length && filesToCheck.length > 0;
+            renderAllFileLists();
+        }
+
+        // 获取选中的文件
+        function getCheckedFiles() {
+            return allFiles.filter(f => f.checked);
+        }
+
+        // 刷新文件
+        function refreshFiles() {
+            showProgress('正在从妥妥递刷新文件...', () => {
+                loadFiles();
+                hideProgress();
+                showAlert('success', '刷新成功', ['文件列表已更新']);
+            });
+        }
+
+        // 查看适当性文件
+        function viewFile(fileId) {
+            const file = allFiles.find(f => f.id === fileId);
+            if (!file) return;
+            alert(`查看文件：${file.name}`);
+        }
+
+        let currentStampFileId = null;
+
+        // 打开用印弹窗
+        function openStampModal(fileId) {
+            const file = allFiles.find(f => f.id === fileId);
+            if (!file) return;
+
+            currentStampFileId = fileId;
+            document.getElementById('stampFileName').textContent = file.name;
+            document.getElementById('stampViewTitle').textContent = `文件预览 - ${file.name}`;
+
+            // 重置盖章状态
+            const stampPlaceholder = document.getElementById('stampPlaceholder');
+            stampPlaceholder.innerHTML = '点击盖章';
+            stampPlaceholder.className = 'stamp-placeholder';
+            stampPlaceholder.parentElement.className = 'pdf-stamp-area';
+
+            document.getElementById('stampViewModal').classList.add('show');
+        }
+
+        // 关闭用印弹窗
+        function closeStampViewModal() {
+            document.getElementById('stampViewModal').classList.remove('show');
+            currentStampFileId = null;
+        }
+
+        // 执行盖章
+        function applyStamp() {
+            if (!currentStampFileId) return;
+
+            const stampPlaceholder = document.getElementById('stampPlaceholder');
+
+            // 直接显示静态印模（无动画）
+            stampPlaceholder.innerHTML = '✓ 已盖章';
+            stampPlaceholder.className = 'stamp-applied';
+
+            // 更新文件状态
+            const file = allFiles.find(f => f.id === currentStampFileId);
+            if (file) {
+                file.status = 'stamped';
+                console.log(`文件 ${file.name} 已更新为已用印状态`);
+            }
+
+            // 短暂延迟后关闭弹窗
+            setTimeout(() => {
+                closeStampViewModal();
+                renderAllFileLists();
+
+                // 立即检查是否所有文件都已用印
+                checkAllOrderFilesStamped();
+            }, 500);
+        }
+
+        // 检查所有订单文件是否都已用印
+        function checkAllOrderFilesStamped() {
+            const orderFiles = allFiles.filter(f => f.type === 'order');
+            const allStamped = orderFiles.every(f => f.status === 'stamped');
+
+            console.log('=== 检查用印状态 ===');
+            orderFiles.forEach(f => {
+                console.log(`- ${f.name}: ${f.status}`);
+            });
+            console.log(`全部用印完成: ${allStamped}`);
+
+            if (allStamped) {
+                // 使用alert先提示，确保用户能看到
+                alert('所有文件已完成用印！\n\n是否将文件传输给妥妥递？');
+
+                // 然后显示弹窗
+                setTimeout(() => {
+                    document.getElementById('transferConfirmModal').classList.add('show');
+                    console.log('✓ 传输确认弹窗已显示');
+                }, 100);
+            }
+        }
+
+        // 关闭传输确认弹窗
+        function closeTransferConfirmModal() {
+            document.getElementById('transferConfirmModal').classList.remove('show');
+        }
+
+        // 确认传输到妥妥递
+        function confirmTransferToTTD() {
+            closeTransferConfirmModal();
+
+            console.log('开始传输到妥妥递...');
+
+            // 显示进度条
+            const progressContainer = document.getElementById('progressContainer');
+            const progressTitle = document.getElementById('progressTitle');
+            const progressFill = document.getElementById('progressFill');
+
+            progressContainer.classList.add('show');
+            progressTitle.innerHTML = '<span class="spinner"></span><span>正在传输文件到妥妥递...</span>';
+            progressFill.style.width = '0%';
+
+            // 模拟传输进度
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 20;
+                progressFill.style.width = progress + '%';
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        progressContainer.classList.remove('show');
+                        showAlert('success', '传输成功', ['所有文件已成功传输给妥妥递']);
+                        renderAllFileLists();
+                        console.log('✓ 文件传输完成');
+                    }, 500);
+                }
+            }, 300);
+        }
+
+        // 检查单个文件
+        function checkFile(fileId) {
+            const file = allFiles.find(f => f.id === fileId);
+            if (!file) return;
+
+            showProgress(`正在检查 ${file.name}...`, () => {
+                // 模拟检查结果 - 随机一致或不一致
+                const isConsistent = Math.random() > 0.3;
+                
+                if (isConsistent) {
+                    file.status = 'pending';
+                    hideProgress();
+                    showAlert('success', '文档检查通过', [`${file.name} 文档一致，已更新为待签署状态`]);
+                } else {
+                    file.status = 'error';
+                    currentOrder.ttdStatus = '异常-适当性提交异常';
+                    renderOrderInfo();
+                    hideProgress();
+                    showErrorModal('suitability', [file.name]);
+                }
+                
+                renderAllFileLists();
+            });
+        }
+
+        // 单个文件用印
+        function stampFile(fileId) {
+            const file = allFiles.find(f => f.id === fileId);
+            if (!file) return;
+
+            if (!file.isRegular) {
+                showStampModal([file]);
+            } else {
+                showProgress(`正在用印 ${file.name}...`, () => {
+                    file.status = 'stamped';
+                    hideProgress();
+                    showAlert('success', '用印成功', [`${file.name} 已完成用印`]);
+                    renderAllFileLists();
+                });
+            }
+        }
+
+        // 单个文件传输
+        function transferFile(fileId) {
+            const file = allFiles.find(f => f.id === fileId);
+            if (!file) return;
+
+            showProgress(`正在传输 ${file.name} 到妥妥递...`, () => {
+                    file.status = 'transferred';
+                    hideProgress();
+                    showAlert('success', '传输成功', [`${file.name} 已传输到妥妥递`]);
+                    renderAllFileLists();
+                });
+        }
+
+        // 查看文件
+        function viewFile(fileId) {
+            const file = allFiles.find(f => f.id === fileId);
+            if (file) {
+                alert(`正在预览：${file.name}\n\n（这是模拟预览，实际项目中会打开文件）`);
+            }
+        }
+
+        // 开始批量用印流程
+        function startStampProcess() {
+            const checkedFiles = getCheckedFiles();
+            
+            if (checkedFiles.length === 0) {
+                alert('请先选择要操作的文件！');
+                return;
+            }
+
+            // 先检查适当性文件
+            const suitabilityToCheck = checkedFiles.filter(f => f.type === 'suitability' && f.status === 'needCheck');
+            
+            if (suitabilityToCheck.length > 0) {
+                startCheckProcess(suitabilityToCheck, checkedFiles);
+            } else {
+                proceedToStamp(checkedFiles);
+            }
+        }
+
+        // 开始检查流程
+        function startCheckProcess(filesToCheck, allCheckedFiles) {
+            let currentIndex = 0;
+            const inconsistentFiles = [];
+
+            function checkNext() {
+                if (currentIndex >= filesToCheck.length) {
+                    if (inconsistentFiles.length > 0) {
+                        currentOrder.ttdStatus = '异常-适当性提交异常';
+                        renderOrderInfo();
+                        hideProgress();
+                        showErrorModal('suitability', inconsistentFiles.map(f => f.name));
+                    } else {
+                        proceedToStamp(allCheckedFiles);
+                    }
+                    return;
+                }
+
+                const file = filesToCheck[currentIndex];
+                updateProgress(`正在检查 ${file.name}...`, (currentIndex / filesToCheck.length) * 100);
+
+                setTimeout(() => {
+                    const isConsistent = Math.random() > 0.3;
+                    if (isConsistent) {
+                        file.status = 'pending';
+                    } else {
+                        inconsistentFiles.push(file);
+                        file.status = 'error';
+                    }
+                    currentIndex++;
+                    renderAllFileLists();
+                    checkNext();
+                }, 800);
+            }
+
+            showProgress('开始检查文档...', 0);
+            checkNext();
+        }
+
+        // 进行用印
+        function proceedToStamp(checkedFiles) {
+            const filesToStamp = checkedFiles.filter(f => f.status === 'pending');
+            
+            if (filesToStamp.length === 0) {
+                showAlert('warning', '没有需要用印的文件', ['请选择状态为"待签署"的文件']);
+                return;
+            }
+
+            const regularFiles = filesToStamp.filter(f => f.isRegular);
+            const irregularFiles = filesToStamp.filter(f => !f.isRegular);
+
+            if (irregularFiles.length > 0) {
+                showStampModal(filesToStamp);
+            } else {
+                executeStamp(regularFiles, []);
+            }
+        }
+
+        // 显示用印确认弹窗
+        function showStampModal(files) {
+            const regularFiles = files.filter(f => f.isRegular);
+            const irregularFiles = files.filter(f => !f.isRegular);
+
+            let html = '';
+
+            if (irregularFiles.length > 0) {
+                html += `
+                    <div class="modal-section">
+                        <div class="modal-section-title">⚠️ 检测到以下后补文档需要手动用印：</div>
+                        <ul class="modal-list">
+                            ${irregularFiles.map(f => `<li class="warning">${f.name}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            if (regularFiles.length > 0) {
+                html += `
+                    <div class="modal-section">
+                        <div class="modal-section-title">✅ 常规文档将自动用印：</div>
+                        <ul class="modal-list">
+                            ${regularFiles.map(f => `<li>${f.name}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            document.getElementById('stampModalBody').innerHTML = html;
+            document.getElementById('stampModal').classList.add('show');
+        }
+
+        // 关闭用印弹窗
+        function closeStampModal() {
+            document.getElementById('stampModal').classList.remove('show');
+        }
+
+        // 确认用印
+        function confirmStamp() {
+            closeStampModal();
+            
+            const checkedFiles = getCheckedFiles();
+            const filesToStamp = checkedFiles.filter(f => f.status === 'pending');
+            const regularFiles = filesToStamp.filter(f => f.isRegular);
+            const irregularFiles = filesToStamp.filter(f => !f.isRegular);
+
+            executeStamp(regularFiles, irregularFiles);
+        }
+
+        // 执行用印
+        function executeStamp(regularFiles, irregularFiles) {
+            const allFilesToStamp = [...regularFiles, ...irregularFiles];
+            let currentIndex = 0;
+
+            function stampNext() {
+                if (currentIndex >= allFilesToStamp.length) {
+                    hideProgress();
+                    
+                    const hasErrors = allFilesToStamp.some(f => f.status === 'error');
+                    if (hasErrors) {
+                        currentOrder.ttdStatus = '异常-订单用印异常';
+                        renderOrderInfo();
+                        showErrorModal('order', allFilesToStamp.filter(f => f.status === 'error').map(f => f.name));
+                    } else {
+                        showAlert('success', '用印完成', [`成功用印 ${allFilesToStamp.length} 个文件`]);
+                    }
+                    return;
+                }
+
+                const file = allFilesToStamp[currentIndex];
+                updateProgress(`正在用印 ${file.name}...`, (currentIndex / allFilesToStamp.length) * 100);
+
+                setTimeout(() => {
+                    // 模拟偶尔失败
+                    if (Math.random() > 0.9) {
+                        file.status = 'error';
+                    } else {
+                        file.status = 'stamped';
+                    }
+                    currentIndex++;
+                    renderAllFileLists();
+                    stampNext();
+                }, 600);
+            }
+
+            showProgress('开始用印...', 0);
+            stampNext();
+        }
+
+        // 批量传输
+        function transferToTTD() {
+            const checkedFiles = getCheckedFiles();
+            const filesToTransfer = checkedFiles.filter(f => f.status === 'stamped');
+
+            if (filesToTransfer.length === 0) {
+                alert('请先选择状态为"已用印"的文件！');
+                return;
+            }
+
+            let currentIndex = 0;
+
+            function transferNext() {
+                if (currentIndex >= filesToTransfer.length) {
+                    hideProgress();
+                    showAlert('success', '传输完成', [`成功传输 ${filesToTransfer.length} 个文件到妥妥递`]);
+                    return;
+                }
+
+                const file = filesToTransfer[currentIndex];
+                updateProgress(`正在传输 ${file.name}...`, (currentIndex / filesToTransfer.length) * 100);
+
+                setTimeout(() => {
+                    file.status = 'transferred';
+                    currentIndex++;
+                    renderAllFileLists();
+                    transferNext();
+                }, 500);
+            }
+
+            showProgress('开始传输...', 0);
+            transferNext();
+        }
+
+        // 显示进度
+        function showProgress(title, callbackOrProgress) {
+            document.getElementById('progressContainer').classList.add('show');
+            document.getElementById('progressTitle').innerHTML = `<span class="spinner"></span><span>${title}</span>`;
+            
+            if (typeof callbackOrProgress === 'function') {
+                setTimeout(callbackOrProgress, 1000);
+            }
+        }
+
+        // 更新进度
+        function updateProgress(title, progress) {
+            document.getElementById('progressTitle').innerHTML = `<span class="spinner"></span><span>${title}</span>`;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // 隐藏进度
+        function hideProgress() {
+            document.getElementById('progressContainer').classList.remove('show');
+            document.getElementById('progressFill').style.width = '0%';
+        }
+
+        // 显示提示
+        function showAlert(type, title, messages) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.className = 'alert-box show ' + type;
+            document.getElementById('alertTitle').innerHTML = `
+                <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️'}</span>
+                <span>${title}</span>
+            `;
+            document.getElementById('alertList').innerHTML = messages.map(m => `<li>${m}</li>`).join('');
+
+            setTimeout(() => {
+                alertBox.classList.remove('show');
+            }, 5000);
+        }
+
+        // 显示错误弹窗
+        function showErrorModal(errorType, fileNames) {
+            let title, message;
+            
+            if (errorType === 'suitability') {
+                title = '⚠️ 适当性提交异常';
+                message = `
+                    <p style="margin-bottom: 16px; font-size: 14px;">文档不一致，请业务确认：</p>
+                    <ul class="modal-list">
+                        ${fileNames.map(f => `<li class="warning">${f} (文档不一致)</li>`).join('')}
+                    </ul>
+                    <p style="margin-top: 16px; font-size: 14px;">已更新状态为：异常-适当性提交异常</p>
+                `;
+            } else {
+                title = '⚠️ 订单用印异常';
+                message = `
+                    <p style="margin-bottom: 16px; font-size: 14px;">以下文件用印失败：</p>
+                    <ul class="modal-list">
+                        ${fileNames.map(f => `<li class="warning">${f}</li>`).join('')}
+                    </ul>
+                    <p style="margin-top: 16px; font-size: 14px;">已更新状态为：异常-订单用印异常</p>
+                `;
+            }
+
+            document.getElementById('errorModalBody').innerHTML = `
+                <div style="font-weight: 600; font-size: 16px; margin-bottom: 16px;">${title}</div>
+                ${message}
+            `;
+            document.getElementById('errorModal').classList.add('show');
+        }
+
+        // 关闭错误弹窗
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.remove('show');
+        }
+
+        // 返回
+        function goBack() {
+            window.location.href = '5-自动用印.html';
+        }
+
+        // ===== 金证接口手动调取 =====
+        function fetchGoldCertAPI() {
+            const tag = document.getElementById('gcApiTag');
+            const icon = document.getElementById('gcApiIcon');
+            const value = document.getElementById('gcApiValue');
+            const btn = document.getElementById('gcFetchBtn');
+            const timeEl = document.getElementById('gcApiTime');
+
+            // 变绿
+            tag.classList.remove('gc-default');
+            tag.classList.add('gc-success');
+            icon.textContent = '✓';
+            value.textContent = '调取成功';
+
+            // 隐藏按钮，显示时间
+            btn.style.display = 'none';
+            timeEl.style.display = 'block';
+            const now = new Date();
+            timeEl.textContent = now.toLocaleString('zh-CN', {
+                month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        // 初始化
+        initPage();
+    </script>
+</body>
+</html>

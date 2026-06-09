@@ -1055,6 +1055,10 @@
                 <span class="menu-icon">📋</span>
                 <span>订单管理</span>
             </div>
+            <div class="menu-item" onclick="window.open('私募群管理人关系配置.html','_blank')">
+                <span class="menu-icon">💬</span>
+                <span>私募群管理人关系配置</span>
+            </div>
             <div class="menu-item">
                 <span class="menu-icon">⚙️</span>
                 <span>系统设置</span>
@@ -1379,6 +1383,15 @@
                         </div>
                     </div>
 
+                    <!-- 拟发送群 -->
+                    <div class="wechat-section">
+                        <label class="wechat-section-title">拟发送群</label>
+                        <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                            <span id="wechatGroupName" style="font-size: 14px; color: #1890ff;">--</span>
+                            <a href="私募群管理人关系配置.html" target="_blank" style="font-size: 12px; color: #1890ff; text-decoration: none; white-space: nowrap;">🔗 私募群管理人关系配置 →</a>
+                        </div>
+                    </div>
+
                     <!-- 企微话术 -->
                     <div class="wechat-section">
                         <div class="wechat-section-header">
@@ -1417,6 +1430,15 @@
                             <div style="margin-top: 10px;">
                                 <select id="wechatEmailOrderSelect" class="wechat-order-select" onchange="onWechatEmailOrderChange()">
                                 </select>
+                            </div>
+                        </div>
+
+                        <!-- 拟发送群 -->
+                        <div class="wechat-section">
+                            <label class="wechat-section-title">拟发送群</label>
+                            <div style="margin-top: 8px; display: flex; align-items: center; gap: 8px;">
+                                <span id="wechatEmailGroupName" style="font-size: 14px; color: #1890ff;">--</span>
+                                <a href="私募群管理人关系配置.html" target="_blank" style="font-size: 12px; color: #1890ff; text-decoration: none; white-space: nowrap;">🔗 私募群管理人关系配置 →</a>
                             </div>
                         </div>
 
@@ -1487,7 +1509,8 @@
                 goldCertDone: false,
                 transferDeadline: '2026-06-15 17:00',
                 inviteStatus: '未发送',
-                emailStatus: '排队中'
+                emailStatus: '排队中',
+                wechatGroup: '国联FOF1-管理人沟通群'
             },
             {
                 id: 2,
@@ -1511,7 +1534,8 @@
                     { name: '赎回申请表.pdf', desc: '赎回业务申请表' }
                 ],
                 goldCertDone: false,
-                transferDeadline: '2026-06-15 17:00'
+                transferDeadline: '2026-06-15 17:00',
+                wechatGroup: '国联FOF1-运营对接群'
             },
             {
                 id: 3,
@@ -1538,7 +1562,8 @@
                 goldCertDone: false,
                 transferDeadline: '2026-06-20 17:00',
                 inviteStatus: '未发送',
-                emailStatus: '未发送'
+                emailStatus: '未发送',
+                wechatGroup: '珠海宽德-管理人沟通群'
             },
             {
                 id: 4,
@@ -1564,7 +1589,8 @@
                 goldCertDone: true,
                 transferDeadline: '2026-06-10 17:00',
                 inviteStatus: '已发送',
-                emailStatus: '已发送'
+                emailStatus: '已发送',
+                wechatGroup: '上海幻方-管理人沟通群'
             }
         ];
 
@@ -2014,6 +2040,12 @@
 2、交易录单后，烦请老师告知~`;
 
             document.getElementById('wechatEmailText').value = template;
+
+            // 拟发送群
+            const groupNameEl = document.getElementById('wechatEmailGroupName');
+            if (groupNameEl && order && order.wechatGroup) {
+                groupNameEl.textContent = order.wechatGroup;
+            }
         }
 
         // 净值邮箱模式切换订单
@@ -2060,6 +2092,12 @@
             const linkUrl = `3-文件收集页面.html?orders=${order.id}`;
             const linkText = document.getElementById('wechatLinkText');
             linkText.innerHTML = `<a href="${linkUrl}" target="_blank">${linkUrl}</a>`;
+
+            // 拟发送群
+            const groupNameEl = document.getElementById('wechatGroupName');
+            if (groupNameEl && order.wechatGroup) {
+                groupNameEl.textContent = order.wechatGroup;
+            }
         }
 
         // 渲染附件文件列表

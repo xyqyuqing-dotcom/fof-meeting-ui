@@ -129,6 +129,60 @@
             font-weight: 500;
         }
 
+        /* 可编辑字段行 */
+        .editable-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .edit-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .edit-label {
+            font-size: 13px;
+            color: #666;
+        }
+        .edit-select,
+        .edit-input {
+            padding: 7px 10px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            outline: none;
+            transition: border-color 0.2s;
+            background: #fff;
+        }
+        .edit-select:focus,
+        .edit-input:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+        }
+
+        /* 归档按钮 */
+        .archive-btn {
+            padding: 7px 16px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #666;
+        }
+        .archive-btn:hover { border-color: #1890ff; color: #1890ff; }
+        .archive-btn.archived {
+            background: #f6ffed;
+            color: #52c41a;
+            border-color: #b7eb8f;
+            cursor: default;
+        }
+
         /* 批量操作栏 */
         .batch-bar {
             background: #fff;
@@ -278,6 +332,8 @@
 
         .flow-node:hover { color: #1890ff; }
         .flow-node.active { color: #52c41a; }
+        .flow-node.gc-red { color: #ff4d4f; }
+        .flow-node.gc-green { color: #52c41a; }
 
         .flow-dot {
             width: 10px;
@@ -288,6 +344,7 @@
         }
 
         .flow-dot.done { background: #52c41a; }
+        .flow-dot.fail { background: #ff4d4f; }
 
         .flow-text {
             font-size: 14px;
@@ -862,6 +919,9 @@
         .file-card-header {
             padding: 16px 24px;
             border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
         .file-type-tabs {
@@ -1296,6 +1356,7 @@
             </div>
             <div class="info-grid" id="orderInfoGrid">
             </div>
+            <div class="editable-row" id="editableRow"></div>
         </div>
 
         <!-- 状态提示区 -->
@@ -1336,6 +1397,11 @@
                 <a class="flow-node" href="用印划款流程.html?orderId=3" target="_blank" id="flowNode2">
                     <span class="flow-dot"></span>
                     <span class="flow-text">可划款</span>
+                </a>
+                <span class="flow-line"></span>
+                <a class="flow-node" href="#" id="flowNode3">
+                    <span class="flow-dot"></span>
+                    <span class="flow-text">划款执行</span>
                 </a>
             </div>
             <button class="btn btn-primary flow-launch-btn" id="flowLaunchBtn" onclick="launchTransferFlow()">
@@ -1404,6 +1470,7 @@
         <div class="file-card">
             <div class="file-card-header">
                 <span class="info-title">订单签约文件</span>
+                <button class="archive-btn" id="archiveBtn" onclick="doArchive()">📦 归档</button>
             </div>
             <div class="file-card-body">
                 <!-- 子标签页 -->
@@ -1541,7 +1608,7 @@
     </div>
 
     <script>
-        // 模拟订单数据
+        // 模拟订单数据（与列表页5-自动用印.html一致）
         const ordersData = {
             '1': {
                 id: 1,
@@ -1551,7 +1618,7 @@
                 tradeType: '追加',
                 amount: '1,500万',
                 progress: '交易已完成印',
-                ttdStatus: '关联已失效',
+                ttdStatus: '交易已生效',
                 status: 'completed'
             },
             '2': {
@@ -1562,7 +1629,7 @@
                 tradeType: '赎回',
                 amount: '500万',
                 progress: '交易已完成印',
-                ttdStatus: '订单待签署',
+                ttdStatus: '适当性提交异常',
                 status: 'pending'
             },
             '3': {
@@ -1573,7 +1640,7 @@
                 tradeType: '申购',
                 amount: '100.0万',
                 progress: '交易要素确认中',
-                ttdStatus: '订单待签署',
+                ttdStatus: '交易已生效',
                 status: 'pending'
             },
             '4': {
@@ -1584,7 +1651,73 @@
                 tradeType: '申购',
                 amount: '200.0万',
                 progress: '待交易',
-                ttdStatus: '未关联',
+                ttdStatus: '订单用印异常',
+                status: 'new'
+            },
+            '5': {
+                id: 5,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-03',
+                childFund: '明汯中性500指增A号',
+                tradeType: '申购',
+                amount: '300.0万',
+                progress: '待交易',
+                ttdStatus: '订单待确认',
+                status: 'new'
+            },
+            '6': {
+                id: 6,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-04',
+                childFund: '九坤多策略对冲7号',
+                tradeType: '追加',
+                amount: '800.0万',
+                progress: '待交易',
+                ttdStatus: '订单待签署',
+                status: 'pending'
+            },
+            '7': {
+                id: 7,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-05',
+                childFund: '灵均500增强A号',
+                tradeType: '申购',
+                amount: '250.0万',
+                progress: '待交易',
+                ttdStatus: '订单待确认',
+                status: 'new'
+            },
+            '8': {
+                id: 8,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-06',
+                childFund: '衍复量化300增强B号',
+                tradeType: '申购',
+                amount: '400.0万',
+                progress: '待交易',
+                ttdStatus: '适当性通过',
+                status: 'pending'
+            },
+            '9': {
+                id: 9,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-07',
+                childFund: '天演资本CTA策略A号',
+                tradeType: '追加',
+                amount: '600.0万',
+                progress: '待交易',
+                ttdStatus: '订单待签署',
+                status: 'pending'
+            },
+            '10': {
+                id: 10,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-08',
+                childFund: '黑翼资产CTA增强1号',
+                tradeType: '申购',
+                amount: '350.0万',
+                progress: '待交易',
+                ttdStatus: '订单用印异常',
                 status: 'new'
             }
         };
@@ -1898,19 +2031,96 @@
             const launchBtn = document.getElementById('flowLaunchBtn');
             const viewBtn = document.getElementById('flowViewBtn');
 
+            // 第4个节点"划款执行"始终根据金证状态着色（与是否发起无关）
+            applyGoldCertToNode3();
+
+            // 获取当前订单的妥妥递状态，决定前3个节点着色
+            const ttdStatus = currentOrder ? currentOrder.ttdStatus : '';
+
             if (flowLaunched) {
                 launchBtn.style.display = 'none';
                 viewBtn.style.display = 'inline-block';
 
-                // 模拟：发起后自动点亮全部节点
+                // 交易已生效：前3个节点全绿
+                if (ttdStatus === '交易已生效') {
+                    for (let i = 0; i < 3; i++) {
+                        const node = document.getElementById('flowNode' + i);
+                        node.classList.add('active');
+                        node.querySelector('.flow-dot').classList.add('done');
+                    }
+                }
+                // 订单用印异常/适当性通过/适当性提交异常：已发起、可用印 绿，可划款 灰
+                else if (ttdStatus === '订单用印异常' || ttdStatus === '适当性通过' || ttdStatus === '适当性提交异常') {
+                    for (let i = 0; i < 2; i++) {
+                        const node = document.getElementById('flowNode' + i);
+                        node.classList.add('active');
+                        node.querySelector('.flow-dot').classList.add('done');
+                    }
+                    const node2 = document.getElementById('flowNode2');
+                    node2.classList.remove('active');
+                    node2.querySelector('.flow-dot').classList.remove('done');
+                }
+                // 订单待签署：仅已发起 绿
+                else if (ttdStatus === '订单待签署') {
+                    const node0 = document.getElementById('flowNode0');
+                    node0.classList.add('active');
+                    node0.querySelector('.flow-dot').classList.add('done');
+                    for (let i = 1; i < 3; i++) {
+                        const node = document.getElementById('flowNode' + i);
+                        node.classList.remove('active');
+                        node.querySelector('.flow-dot').classList.remove('done');
+                    }
+                } else {
+                    // 其他已发起情况：默认全绿
+                    for (let i = 0; i < 3; i++) {
+                        const node = document.getElementById('flowNode' + i);
+                        node.classList.add('active');
+                        node.querySelector('.flow-dot').classList.add('done');
+                    }
+                }
+            } else {
+                // 未发起：前3个节点全部灰色
                 for (let i = 0; i < 3; i++) {
                     const node = document.getElementById('flowNode' + i);
-                    node.classList.add('active');
-                    node.querySelector('.flow-dot').classList.add('done');
+                    node.classList.remove('active');
+                    node.querySelector('.flow-dot').classList.remove('done');
                 }
             }
+        }
 
-            // 流程完成后更新金证卡片状态（demo：固定显示）
+        // 根据金证状态设置第4个节点颜色
+        function applyGoldCertToNode3() {
+            const node3 = document.getElementById('flowNode3');
+            const dot3 = node3.querySelector('.flow-dot');
+
+            // 与列表页数据一致：id=1→失败, id=3→成功, 其余未调取
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = parseInt(urlParams.get('orderId')) || 1;
+            let status;
+            if (orderId === 1) status = 'failed';
+            else if (orderId === 3) status = 'success';
+            else status = 'not_called';
+
+            node3.classList.remove('gc-red', 'gc-green');
+            dot3.classList.remove('done', 'fail');
+
+            if (status === 'failed') {
+                node3.classList.add('gc-red');
+                dot3.classList.add('fail');
+            } else if (status === 'success') {
+                node3.classList.add('gc-green');
+                dot3.classList.add('done');
+            }
+            // not_called: 默认灰色，不额外处理
+        }
+
+        // 根据母包收集状态更新流程条按钮（旧接口兼容）
+        function updateFlowStatusCompat(collectedCount) {
+            updateFlowStatus(collectedCount);
+        }
+
+        // 流程完成后更新金证卡片状态（demo：固定显示）
+        function updateGoldCertCard() {
             if (flowCompleted) {
                 document.getElementById('goldCertCard').classList.add('gc-completed');
             }
@@ -1953,6 +2163,16 @@
         function initPage() {
             currentOrderId = getUrlParams();
             currentOrder = ordersData[currentOrderId] || ordersData['3'];
+
+            // 根据妥妥递状态判断流程是否已发起
+            const oid = parseInt(currentOrderId);
+            const ttdStatus = currentOrder.ttdStatus || '';
+            if (ttdStatus === '交易已生效' || ttdStatus === '订单用印异常' ||
+                ttdStatus === '适当性通过' || ttdStatus === '适当性提交异常' ||
+                ttdStatus === '订单待签署') {
+                flowLaunched = true;
+                flowCompleted = true;
+            }
 
             renderOrderInfo();
             loadFiles();
@@ -2000,10 +2220,6 @@
                     <span class="info-value">${currentOrder.amount}</span>
                 </div>
                 <div class="info-item">
-                    <span class="info-label">完成情况</span>
-                    <span class="info-value">${currentOrder.progress}</span>
-                </div>
-                <div class="info-item">
                     <span class="info-label">妥妥递状态</span>
                     <span class="info-value">${currentOrder.ttdStatus}</span>
                 </div>
@@ -2012,6 +2228,74 @@
                     <span class="info-value">妥妥递</span>
                 </div>
             `;
+
+            // 可编辑字段行
+            renderEditableFields();
+        }
+
+        function renderEditableFields() {
+            const progressOpts = ['交易要素未确认','交易要素确认','材料准备','OA流程已发起','OA流程已完成','订单已确认'];
+            const statusOpts = ['材料准备','材料待上传','待公章用印','确认单已上传','待私募审核','T-1日打款'];
+            const followerNames = ['陈玉璇','李明辉','张晓峰','王思远','刘雨晴'];
+
+            const container = document.getElementById('editableRow');
+            if (!container) return;
+
+            // 每个订单默认不同数据
+            const defaults = {
+                '1': { progress: 'OA流程已完成', status: '待公章用印', follower: '陈玉璇' },
+                '2': { progress: '交易要素确认', status: '材料准备', follower: '李明辉' },
+                '3': { progress: '订单已确认', status: 'T-1日打款', follower: '张晓峰' },
+                '4': { progress: '材料准备', status: '材料待上传', follower: '王思远' },
+                '5': { progress: '交易要素未确认', status: '材料准备', follower: '刘雨晴' },
+                '6': { progress: 'OA流程已发起', status: '确认单已上传', follower: '陈玉璇' },
+                '7': { progress: '交易要素未确认', status: '材料准备', follower: '李明辉' },
+                '8': { progress: '材料准备', status: '待公章用印', follower: '张晓峰' },
+                '9': { progress: 'OA流程已发起', status: '待私募审核', follower: '王思远' },
+                '10':{ progress: '交易要素确认', status: '材料准备', follower: '刘雨晴' }
+            };
+            const d = defaults[currentOrderId] || defaults['1'];
+
+            const pVal = currentOrder.editProgress || d.progress;
+            const sVal = currentOrder.editStatus || d.status;
+            const fVal = currentOrder.follower || d.follower;
+
+            container.innerHTML = `
+                <div class="edit-field">
+                    <span class="edit-label">完成情况</span>
+                    <select class="edit-select" id="editProgress" onchange="onFieldChange()">
+                        ${progressOpts.map(o => `<option value="${o}" ${o === pVal ? 'selected' : ''}>${o}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="edit-field">
+                    <span class="edit-label">操作状态</span>
+                    <select class="edit-select" id="editStatus" onchange="onFieldChange()">
+                        ${statusOpts.map(o => `<option value="${o}" ${o === sVal ? 'selected' : ''}>${o}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="edit-field">
+                    <span class="edit-label">跟进人</span>
+                    <input type="text" class="edit-input" id="editFollower" value="${fVal}" placeholder="输入或选择跟进人" list="followerList" oninput="onFieldChange()">
+                    <datalist id="followerList">
+                        ${followerNames.map(n => `<option value="${n}">`).join('')}
+                    </datalist>
+                </div>
+            `;
+        }
+
+        // 字段变更保存
+        function onFieldChange() {
+            currentOrder.editProgress = document.getElementById('editProgress').value;
+            currentOrder.editStatus = document.getElementById('editStatus').value;
+            currentOrder.follower = document.getElementById('editFollower').value;
+        }
+
+        // 归档
+        function doArchive() {
+            const btn = document.getElementById('archiveBtn');
+            btn.textContent = '✓ 已归档';
+            btn.classList.add('archived');
+            btn.onclick = null;
         }
 
         // 加载文件
@@ -2667,11 +2951,10 @@
             const urlParams = new URLSearchParams(window.location.search);
             const orderId = parseInt(urlParams.get('orderId')) || 1;
 
-            // 模拟：orderId 1→失败(余额不足), 4→成功, 5→失败(额度), 8→失败(超时), 其余按规则
+            // 与列表页数据一致：id=1→失败, id=3→成功, 其余未调取
             let status;
             if (orderId === 1) status = 'failed';
-            else if (orderId === 4 || orderId === 6 || orderId === 9) status = 'success';
-            else if (orderId === 5 || orderId === 8) status = 'failed';
+            else if (orderId === 3) status = 'success';
             else status = 'not_called';
 
             const s = statusMap[status];
@@ -2682,7 +2965,6 @@
             if (status === 'failed') {
                 failReasonEl.style.display = 'block';
                 if (orderId === 1) failReasonEl.textContent = '子基金账户可用余额不足，当前余额 2,300 元，本次交易需划款 15,000,000 元';
-                else if (orderId === 5) failReasonEl.textContent = '该产品当日累计交易额度已用完，剩余额度 0 元，本次需额度 3,000,000 元';
                 else failReasonEl.textContent = '金证系统响应超时（30s），连接中断，请稍后重试';
             }
         }

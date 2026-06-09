@@ -1094,39 +1094,19 @@
             <div class="brand-name">妥妥递</div>
         </div>
         <div class="sidebar-menu">
-            <div class="menu-title">基础数据</div>
-            <div class="menu-item">
-                <span class="menu-icon">🏢</span>
-                <span>私募营销</span>
-            </div>
-            <div class="menu-item">
-                <span class="menu-icon">👥</span>
-                <span>投资主体</span>
-            </div>
-            <div class="menu-item">
-                <span class="menu-icon">🏦</span>
-                <span>业务管理</span>
-            </div>
-            <div class="menu-item">
-                <span class="menu-icon">📁</span>
-                <span>准入管理</span>
-            </div>
+            <div class="menu-item"><span class="menu-icon">👥</span><span>投资主体</span></div>
+            <div class="menu-item"><span class="menu-icon">📁</span><span>准入管理</span></div>
             <div class="menu-item active">
-                <span class="menu-icon">📋</span>
-                <span>订单管理</span>
+                <span class="menu-icon">📋</span><span>订单管理</span>
+            </div>
+            <div class="menu-item" onclick="window.open('机构材料管理.html','_blank')">
+                <span class="menu-icon">📂</span><span>机构材料管理</span>
             </div>
             <div class="menu-item" onclick="window.open('私募群管理人关系配置.html','_blank')">
-                <span class="menu-icon">💬</span>
-                <span>私募群管理人关系配置</span>
+                <span class="menu-icon">💬</span><span>私募群管理人关系配置</span>
             </div>
-            <div class="menu-item">
-                <span class="menu-icon">⚙️</span>
-                <span>系统设置</span>
-            </div>
-            <div class="menu-item">
-                <span class="menu-icon">🔌</span>
-                <span>模拟器</span>
-            </div>
+            <div class="menu-item"><span class="menu-icon">⚙️</span><span>系统设置</span></div>
+            <div class="menu-item"><span class="menu-icon">🔌</span><span>模拟器</span></div>
         </div>
     </div>
 
@@ -1220,7 +1200,6 @@
                             <th style="width: 110px;">金证状态</th>
                             <th style="width: 130px;">消息状态</th>
                             <th style="width: 140px;">划款截止</th>
-                            <th style="width: 100px;">交易</th>
                             <th style="width: 130px;">操作</th>
                         </tr>
                     </thead>
@@ -1620,20 +1599,20 @@
                 tradeType: '追加',
                 progress: '交易已完成印',
                 amount: '1,500万',
-                status: '订单待签署',
-                statusType: 'orange',
+                status: '交易已生效',
+                statusType: 'green',
                 platform: 'TTD',
                 canStamp: true,
                 customMessage: null,
                 customFiles: null,
-                wechatMessage: '【国联FOF1号 - 某某量化对冲A2号】\n\n尊敬的客户，您好：\n\n本次追加（1,500万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。',
+                wechatMessage: '@管理人 老师好，以下为我们的拟投计划，烦请确认【交易额度】及【签约渠道】，无误后推送妥妥递关联~\n\n--------------------------------------------------\n拟交易日期：2026-05-29\n母 基 金：国联FOF1号\n交 易 类 型：追加\n子 基 金：某某量化对冲A2号\n交 易 额 度：1,500万\n签 约 渠 道：直销-妥妥递\n--------------------------------------------------\n\n然后辛苦提供【子基金】的以下材料，我们内部走个流程~\n（1）合同（电子清洁版）\n（2）风揭（电子清洁版）\n（3）三级估值表（最新用印版）\n（4）补充协议（如有）\n\n--------------------------------------------------\n\n麻烦再看看咱追加时有无【特殊事项】，例如：\n（1）其他材料（妥妥递系统上要求上传以外的）\n（2）划款到账时间（早于交易日期17点前的）',
                 wechatFiles: [
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '备案函.pdf', desc: '产品备案证明文件' }
                 ],
                 goldCertStatus: 'failed',
                 goldCertFailReason: '子基金账户可用余额不足，当前余额 2,300 元，本次交易需划款 15,000,000 元',
-                transferDeadline: '2026-06-15 17:00',
+                transferDeadline: '2026-05-28 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '排队中',
                 wechatGroup: '国联FOF1-管理人沟通群'
@@ -1656,13 +1635,13 @@
                 canStamp: false,
                 customMessage: null,
                 customFiles: null,
-                wechatMessage: '【国联FOF1号 - 某某全天候A号】\n\n尊敬的客户，您好：\n\n本次赎回（500万）所需材料已就绪，请查阅附件并完成签署。',
+                wechatMessage: '@管理人 老师好，以下为我们的拟投计划，烦请确认【交易额度】及【签约渠道】，无误后推送妥妥递关联~\n\n--------------------------------------------------\n拟交易日期：2026-05-29\n母 基 金：国联FOF1号\n交 易 类 型：赎回\n子 基 金：某某全天候A号\n交 易 额 度：500万\n签 约 渠 道：直销-妥妥递\n--------------------------------------------------\n\n然后辛苦提供【子基金】的以下材料，我们内部走个流程~\n（1）合同（电子清洁版）\n（2）风揭（电子清洁版）\n（3）三级估值表（最新用印版）\n（4）补充协议（如有）\n\n--------------------------------------------------\n\n麻烦再看看咱赎回时有无【特殊事项】，例如：\n（1）其他材料（妥妥递系统上要求上传以外的）\n（2）划款到账时间（早于交易日期17点前的）',
                 wechatFiles: [
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '赎回申请表.pdf', desc: '赎回业务申请表' }
                 ],
                 goldCertStatus: 'not_called',
-                transferDeadline: '2026-06-15 17:00',
+                transferDeadline: '2026-05-28 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
                 wechatGroup: '国联FOF1-运营对接群'
@@ -1679,20 +1658,20 @@
                 tradeType: '申购',
                 progress: '交易要素确认中',
                 amount: '100.0万',
-                status: '订单待签署',
-                statusType: 'orange',
+                status: '交易已生效',
+                statusType: 'green',
                 platform: 'TTD',
                 canStamp: true,
                 customMessage: null,
                 customFiles: null,
-                wechatMessage: '【国联FOF1号 - 珠海宽德金刚钻16号】\n\n尊敬的客户，您好：\n\n本次申购（100万）所需材料已就绪，请查阅附件并完成签署。',
+                wechatMessage: '@管理人 老师好，以下为我们的拟投计划，烦请确认【交易额度】及【签约渠道】，无误后推送妥妥递关联~\n\n--------------------------------------------------\n拟交易日期：2026-01-20\n母 基 金：国联FOF1号\n交 易 类 型：申购\n子 基 金：珠海宽德金刚钻16号\n交 易 额 度：100.0万\n签 约 渠 道：直销-妥妥递\n--------------------------------------------------\n\n然后辛苦提供【子基金】的以下材料，我们内部走个流程~\n（1）合同（电子清洁版）\n（2）风揭（电子清洁版）\n（3）三级估值表（最新用印版）\n（4）补充协议（如有）\n\n--------------------------------------------------\n\n麻烦再看看咱申购时有无【特殊事项】，例如：\n（1）其他材料（妥妥递系统上要求上传以外的）\n（2）划款到账时间（早于交易日期17点前的）',
                 wechatFiles: [
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '备案函.pdf', desc: '产品备案证明文件' },
                     { name: '认申购单.pdf', desc: '认申购单' }
                 ],
                 goldCertStatus: 'success',
-                transferDeadline: '2026-06-20 17:00',
+                transferDeadline: '2026-01-19 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
                 wechatGroup: '珠海宽德-管理人沟通群'
@@ -1715,13 +1694,13 @@
                 canStamp: false,
                 customMessage: null,
                 customFiles: null,
-                wechatMessage: '【国联FOF1号 - 上海幻方指数增强5号】\n\n尊敬的客户，您好：\n\n本次申购（200万）所需材料已就绪，请查阅附件并完成签署。',
+                wechatMessage: '@管理人 老师好，以下为我们的拟投计划，烦请确认【交易额度】及【签约渠道】，无误后推送妥妥递关联~\n\n--------------------------------------------------\n拟交易日期：2026-06-01\n母 基 金：国联FOF1号\n交 易 类 型：申购\n子 基 金：上海幻方指数增强5号\n交 易 额 度：200.0万\n签 约 渠 道：直销-妥妥递\n--------------------------------------------------\n\n然后辛苦提供【子基金】的以下材料，我们内部走个流程~\n（1）合同（电子清洁版）\n（2）风揭（电子清洁版）\n（3）三级估值表（最新用印版）\n（4）补充协议（如有）\n\n--------------------------------------------------\n\n麻烦再看看咱申购时有无【特殊事项】，例如：\n（1）其他材料（妥妥递系统上要求上传以外的）\n（2）划款到账时间（早于交易日期17点前的）',
                 wechatFiles: [
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '备案函.pdf', desc: '产品备案证明文件' }
                 ],
-                goldCertStatus: 'success',
-                transferDeadline: '2026-06-10 17:00',
+                goldCertStatus: 'not_called',
+                transferDeadline: '2026-05-30 17:00',
                 inviteStatus: '已发送',
                 emailStatus: '已发送',
                 wechatGroup: '上海幻方-管理人沟通群'
@@ -1746,9 +1725,8 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertStatus: 'failed',
-                goldCertFailReason: '该产品当日累计交易额度已用完，剩余额度 0 元，本次需额度 3,000,000 元',
-                transferDeadline: '2026-06-18 17:00',
+                goldCertStatus: 'not_called',
+                transferDeadline: '2026-06-02 17:00',
                 inviteStatus: '已发送',
                 emailStatus: '已发送',
                 wechatGroup: '九坤-运营对接群'
@@ -1773,8 +1751,8 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertStatus: 'success',
-                transferDeadline: '2026-06-12 17:00',
+                goldCertStatus: 'not_called',
+                transferDeadline: '2026-06-03 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
                 wechatGroup: '明汯-管理人沟通群'
@@ -1800,7 +1778,7 @@
                 wechatMessage: '',
                 wechatFiles: [],
                 goldCertStatus: 'not_called',
-                transferDeadline: '2026-06-22 17:00',
+                transferDeadline: '2026-06-04 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
                 wechatGroup: '灵均-运营群'
@@ -1825,9 +1803,8 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertStatus: 'failed',
-                goldCertFailReason: '金证系统响应超时（30s），连接中断，请稍后重试',
-                transferDeadline: '2026-06-25 17:00',
+                goldCertStatus: 'not_called',
+                transferDeadline: '2026-06-05 17:00',
                 inviteStatus: '排队中',
                 emailStatus: '未发送',
                 wechatGroup: '衍复-管理人沟通群'
@@ -1852,8 +1829,8 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertStatus: 'success',
-                transferDeadline: '2026-06-14 17:00',
+                goldCertStatus: 'not_called',
+                transferDeadline: '2026-06-06 17:00',
                 inviteStatus: '已发送',
                 emailStatus: '已发送',
                 wechatGroup: '诚奇-运营对接群'
@@ -1879,7 +1856,7 @@
                 wechatMessage: '',
                 wechatFiles: [],
                 goldCertStatus: 'not_called',
-                transferDeadline: '2026-06-16 17:00',
+                transferDeadline: '2026-06-07 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
                 wechatGroup: '宽德-管理人沟通群'
@@ -1898,10 +1875,13 @@
             ];
         }
 
-        // 渲染订单表格
+        // 渲染订单表格（按划款截止日倒序）
         function renderOrderTable() {
+            const sorted = [...orders].sort((a, b) => {
+                return new Date(b.transferDeadline) - new Date(a.transferDeadline);
+            });
             const tbody = document.getElementById('orderTableBody');
-            tbody.innerHTML = orders.map(order => `
+            tbody.innerHTML = sorted.map(order => `
                 <tr ondblclick="openOrderDetail(${order.id})" style="cursor:pointer;">
                     <td><span style="color: ${order.starred ? '#ffd700' : '#ddd'};">★</span></td>
                     <td>
@@ -1920,7 +1900,6 @@
                     <td>${renderGoldCertCell(order)}</td>
                     <td>${renderMsgStatus(order.inviteStatus, order.emailStatus)}</td>
                     <td>${order.transferDeadline}</td>
-                    <td>${order.platform}</td>
                     <td class="action-menu" onclick="event.stopPropagation();">
                         ${order.matched
                             ? `<a class="action-link action-link-danger" onclick="openUnbindModal(${order.id})">解绑</a>`
@@ -2549,8 +2528,34 @@
             const order = wechatOrders[index];
             if (!order) return;
 
-            // 话术：优先使用 customMessage，否则用默认 wechatMessage
-            const message = order.customMessage !== null ? order.customMessage : order.wechatMessage;
+            // 话术：优先使用 customMessage，否则用 wechatMessage（为空则自动生成）
+            let message = order.customMessage !== null ? order.customMessage : order.wechatMessage;
+            if (!message && order) {
+                message = `@管理人 老师好，以下为我们的拟投计划，烦请确认【交易额度】及【签约渠道】，无误后推送妥妥递关联~
+
+--------------------------------------------------
+拟交易日期：${order.tradeDate}
+母 基 金：${order.motherFund}
+交 易 类 型：${order.tradeType}
+子 基 金：${order.childFund}
+交 易 额 度：${order.amount}
+签 约 渠 道：直销-妥妥递
+--------------------------------------------------
+
+然后辛苦提供【子基金】的以下材料，我们内部走个流程~
+（1）合同（电子清洁版）
+（2）风揭（电子清洁版）
+（3）三级估值表（最新用印版）
+（4）补充协议（如有）
+
+--------------------------------------------------
+
+麻烦再看看咱${order.tradeType}时有无【特殊事项】，例如：
+（1）其他材料（妥妥递系统上要求上传以外的）
+（2）划款到账时间（早于交易日期17点前的）`;
+                // 缓存到订单对象，避免重复生成
+                order.wechatMessage = message;
+            }
             document.getElementById('wechatMessageText').value = message;
 
             // 附件文件

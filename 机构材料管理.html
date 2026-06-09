@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>机构材料管理 - 妥妥递</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ===== 侧边栏 ===== */
+        .sidebar {
+            width: 220px;
+            background: #001529;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+        .sidebar-header {
+            padding: 20px 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #1890ff, #096dd9);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px; font-weight: bold;
+        }
+        .brand-name { font-size: 16px; font-weight: 600; }
+        .sidebar-menu { padding: 12px 0; flex: 1; overflow-y: auto; }
+        .menu-title {
+            padding: 8px 24px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.45);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .menu-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+            color: rgba(255,255,255,0.65);
+        }
+        .menu-item:hover { color: #fff; background: rgba(255,255,255,0.06); }
+        .menu-item.active { color: #fff; background: #1890ff; }
+        .menu-icon { font-size: 16px; }
+
+        /* ===== 主内容区 ===== */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .page-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .page-subtitle {
+            font-size: 14px;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* ===== 材料卡片（无左侧分类） ===== */
+        .material-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            overflow: hidden;
+        }
+
+        /* 详情区 - 全宽 */
+        .mat-detail {
+            padding: 28px 32px;
+        }
+        .mat-detail-header {
+            margin-bottom: 18px;
+        }
+        .mat-detail-title {
+            font-size: 17px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .mat-detail-desc {
+            font-size: 13px;
+            color: #999;
+            line-height: 1.6;
+        }
+        .mat-action-bar {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+        }
+        .mat-btn {
+            padding: 7px 18px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: 1px solid;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff;
+        }
+        .mat-btn:hover { opacity: 0.85; }
+        .mat-btn-upload {
+            background: #e6f7ff;
+            color: #1890ff;
+            border-color: #91d5ff;
+        }
+
+        /* 文件列表 */
+        .mat-file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .mat-file-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 18px;
+            border-radius: 8px;
+            transition: all 0.15s;
+            gap: 14px;
+            border: 1px solid transparent;
+        }
+        .mat-file-item:hover {
+            background: #fafafa;
+            border-color: #eee;
+        }
+        .mat-file-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .mat-file-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .mat-file-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        .mat-file-meta {
+            font-size: 12px;
+            color: #bbb;
+            margin-top: 2px;
+        }
+        .mat-file-tag {
+            font-size: 12px;
+            padding: 3px 13px;
+            border-radius: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .mat-file-tag.exists {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+        .mat-file-tag.missing {
+            background: #fff7e6;
+            color: #fa8c16;
+            border: 1px solid #ffd591;
+        }
+        .mat-file-del {
+            cursor: pointer;
+            color: #ccc;
+            font-size: 18px;
+            line-height: 1;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.15s;
+        }
+        .mat-file-del:hover {
+            color: #ff4d4f;
+            background: #fff1f0;
+        }
+
+        /* 视图切换 */
+        .mat-view-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+        .mat-view-btn {
+            padding: 4px 12px;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #d9d9d9;
+            background: #fff;
+            font-size: 12px;
+        }
+        .mat-view-btn.active {
+            background: #1890ff;
+            color: #fff;
+            border-color: #1890ff;
+        }
+
+        /* 多文件版本列表 */
+        .mat-version-list {
+            margin-left: 38px;
+            padding-left: 16px;
+            border-left: 2px solid #e8e8e8;
+            margin-top: 4px;
+            margin-bottom: 8px;
+        }
+        .mat-version-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 7px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .mat-version-item:hover { background: #fafafa; }
+        .mat-version-item.latest {
+            background: #f6ffed;
+            border: 1px solid #b7eb8f;
+        }
+        .mat-version-name {
+            flex: 1;
+            color: #555;
+        }
+        .mat-version-date {
+            font-size: 11px;
+            color: #bbb;
+            white-space: nowrap;
+        }
+        .mat-expand-icon {
+            cursor: pointer;
+            font-size: 12px;
+            color: #1890ff;
+            user-select: none;
+            min-width: 20px;
+        }
+
+        /* 底部统计 */
+        .mat-footer {
+            padding: 14px 32px;
+            border-top: 1px solid #f0f0f0;
+            background: #fafafa;
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mat-summary strong { color: #333; }
+
+        /* 上传弹窗 */
+        .upload-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .upload-modal {
+            background: #fff;
+            border-radius: 12px;
+            width: 420px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        }
+        .upload-modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .upload-close {
+            cursor: pointer;
+            font-size: 20px;
+            color: #999;
+            line-height: 1;
+        }
+        .upload-close:hover { color: #333; }
+        .upload-modal-body { padding: 24px; }
+        .upload-field {
+            display: block;
+            margin-bottom: 16px;
+        }
+        .upload-field span {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        .upload-field select,
+        .upload-field input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .upload-field select:focus,
+        .upload-field input:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24,144,255,0.1);
+        }
+        .upload-modal-footer {
+            padding: 14px 24px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .btn {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+            border: 1px solid #d9d9d9;
+        }
+        .btn-secondary:hover { background: #eee; }
+        .btn-primary {
+            background: #1890ff;
+            color: #fff;
+        }
+        .btn-primary:hover { background: #40a9ff; }
+    </style>
+</head>
+<body>
+
+<!-- 侧边栏 -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">妥</div>
+        <div class="brand-name">妥妥递</div>
+    </div>
+    <div class="sidebar-menu">
+        <div class="menu-item"><span class="menu-icon">👥</span><span>投资主体</span></div>
+        <div class="menu-item"><span class="menu-icon">📁</span><span>准入管理</span></div>
+        <div class="menu-item" onclick="window.location.href='5-自动用印.html'">
+            <span class="menu-icon">📋</span><span>订单管理</span>
+        </div>
+        <div class="menu-item active">
+            <span class="menu-icon">📂</span><span>机构材料管理</span>
+        </div>
+        <div class="menu-item" onclick="window.open('私募群管理人关系配置.html','_blank')">
+            <span class="menu-icon">💬</span><span>私募群管理人关系配置</span>
+        </div>
+        <div class="menu-item"><span class="menu-icon">⚙️</span><span>系统设置</span></div>
+        <div class="menu-item"><span class="menu-icon">🔌</span><span>模拟器</span></div>
+    </div>
+</div>
+
+<!-- 主内容区 -->
+<div class="main-content">
+    <div class="page-header">
+        <div class="page-title">机构材料管理</div>
+        <div class="page-subtitle">母包文件来源 — 机构文件维护与收集跟踪</div>
+    </div>
+
+    <div class="material-card">
+        <div class="mat-detail" id="matDetail"></div>
+        <div class="mat-footer" id="matFooter"></div>
+    </div>
+</div>
+
+<script>
+// ===== 数据：机构文件（每个类型支持多文件版本） =====
+let viewMode = 'latest'; // 'latest' | 'all'
+const fileCategories = [
+    {
+        typeName: '法人身份证',
+        files: []
+    },
+    {
+        typeName: '经办人身份证',
+        files: []
+    },
+    {
+        typeName: '税收证明文件',
+        files: []
+    },
+    {
+        typeName: '营业执照',
+        files: [
+            { name: '营业执照_扫描件.pdf', date: '2026-05-15', source: '内部系统（未用印版）' }
+        ]
+    },
+    {
+        typeName: '授权委托书',
+        files: [
+            { name: '授权委托书_v1.pdf', date: '2026-04-20', source: '手动上传' },
+            { name: '授权委托书_最新版.pdf', date: '2026-06-01', source: '手动上传' }
+        ]
+    }
+];
+
+// ===== 渲染 =====
+function render() {
+    const totalFiles = fileCategories.reduce((sum, c) => sum + c.files.length, 0);
+    const typesWithFiles = fileCategories.filter(c => c.files.length > 0).length;
+
+    document.getElementById('matDetail').innerHTML = `
+        <div class="mat-detail-header">
+            <div class="mat-detail-title">机构文件</div>
+            <div class="mat-detail-desc">除"交易申请书"之外的机构材料（法人身份证、经办人身份证、税收证明等），归档时直接放根目录</div>
+        </div>
+        <div class="mat-action-bar">
+            <div class="mat-view-toggle">
+                查看方式：
+                <span class="mat-view-btn ${viewMode === 'latest' ? 'active' : ''}" onclick="switchView('latest')">仅最新</span>
+                <span class="mat-view-btn ${viewMode === 'all' ? 'active' : ''}" onclick="switchView('all')">查看全部</span>
+            </div>
+            <button class="mat-btn mat-btn-upload" onclick="openUpload()">
+                📤 上传文件
+            </button>
+        </div>
+        <div class="mat-file-list">
+            ${fileCategories.map((cat, ci) => renderCategory(cat, ci)).join('')}
+        </div>
+    `;
+
+    document.getElementById('matFooter').innerHTML =
+        `<span class="mat-summary">共 <strong>${fileCategories.length}</strong> 种文件类型，<strong>${totalFiles}</strong> 个文件 &nbsp;&nbsp; 已上传 <strong>${typesWithFiles}</strong> 类</span>`;
+}
+
+function renderCategory(cat, ci) {
+    const hasFiles = cat.files.length > 0;
+    const latestFile = hasFiles ? cat.files[cat.files.length - 1] : null;
+
+    // 全部模式：显示展开的版本列表
+    if (viewMode === 'all' && hasFiles) {
+        return `
+            <div class="mat-file-item">
+                <span class="mat-expand-icon" onclick="toggleExpand(${ci})" id="expand${ci}">▼</span>
+                <span class="mat-file-icon">📄</span>
+                <div class="mat-file-info">
+                    <div class="mat-file-name">${cat.typeName}</div>
+                    <div class="mat-file-meta">${cat.files.length} 个版本 · 最新：${latestFile.date}</div>
+                </div>
+                <span class="mat-file-tag exists">已上传 (${cat.files.length})</span>
+            </div>
+            <div class="mat-version-list" id="versionList${ci}">
+                ${cat.files.map((f, fi) => `
+                    <div class="mat-version-item ${fi === cat.files.length - 1 ? 'latest' : ''}">
+                        <span>📎</span>
+                        <span class="mat-version-name">${f.name}</span>
+                        <span class="mat-version-date">${f.date}</span>
+                        <span style="cursor:pointer;color:#ccc;font-size:14px;" onclick="deleteFileVersion(${ci},${fi})" title="删除此版本">×</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    // 仅最新模式或无文件
+    if (hasFiles) {
+        return `
+            <div class="mat-file-item">
+                <span class="mat-expand-icon" onclick="switchView('all')" title="点击查看全部版本">▶</span>
+                <span class="mat-file-icon">📄</span>
+                <div class="mat-file-info">
+                    <div class="mat-file-name">${cat.typeName}</div>
+                    <div class="mat-file-meta">来源：${latestFile.source} · ${latestFile.date}${cat.files.length > 1 ? ` （共${cat.files.length}个版本）` : ''}</div>
+                </div>
+                <span class="mat-file-tag exists">已存在</span>
+                <span class="mat-file-del" onclick="deleteLatest(${ci})" title="删除">×</span>
+            </div>
+        `;
+    }
+
+    // 无文件
+    return `
+        <div class="mat-file-item">
+            <span class="mat-expand-icon"></span>
+            <span class="mat-file-icon">📋</span>
+            <div class="mat-file-info">
+                <div class="mat-file-name">${cat.typeName}</div>
+                <div class="mat-file-meta">来源：待补充</div>
+            </div>
+            <span class="mat-file-tag missing">待补充</span>
+        </div>
+    `;
+}
+
+function switchView(mode) {
+    viewMode = mode;
+    render();
+}
+
+// ===== 上传 =====
+function openUpload() {
+    const typeOptions = fileCategories.map(c =>
+        `<option value="${c.typeName}">${c.typeName}</option>`
+    ).join('');
+
+    const overlay = document.createElement('div');
+    overlay.className = 'upload-overlay';
+    overlay.id = 'uploadOverlay';
+    overlay.onclick = function(e) { if (e.target === overlay) closeUpload(); };
+    overlay.innerHTML = `
+        <div class="upload-modal">
+            <div class="upload-modal-header">
+                <span>上传文件 - 机构材料</span>
+                <span class="upload-close" onclick="closeUpload()">×</span>
+            </div>
+            <div class="upload-modal-body">
+                <label class="upload-field">
+                    <span>文件类型</span>
+                    <select id="uploadType">${typeOptions}</select>
+                </label>
+                <label class="upload-field">
+                    <span>文件名</span>
+                    <input type="text" id="uploadName" placeholder="请输入上传的文件名，如：法人身份证_张三.pdf">
+                </label>
+            </div>
+            <div class="upload-modal-footer">
+                <button class="btn btn-secondary" onclick="closeUpload()">取消</button>
+                <button class="btn btn-primary" onclick="confirmUpload()">确认上传</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+}
+
+function closeUpload() {
+    const el = document.getElementById('uploadOverlay');
+    if (el) el.remove();
+}
+
+function confirmUpload() {
+    const typeName = document.getElementById('uploadType').value;
+    const fileName = document.getElementById('uploadName').value.trim();
+    if (!fileName) { alert('请输入文件名'); return; }
+
+    const cat = fileCategories.find(c => c.typeName === typeName);
+    if (cat) {
+        const now = new Date();
+        const dateStr = now.toISOString().slice(0, 10);
+        cat.files.push({
+            name: fileName,
+            date: dateStr,
+            source: '手动上传'
+        });
+    }
+
+    closeUpload();
+    render();
+}
+
+function deleteLatest(ci) {
+    const cat = fileCategories[ci];
+    if (!confirm(`确定删除「${cat.typeName}」的最新文件「${cat.files[cat.files.length-1].name}」？`)) return;
+    cat.files.pop();
+    render();
+}
+
+function deleteFileVersion(ci, fi) {
+    const cat = fileCategories[ci];
+    if (!confirm(`确定删除「${cat.files[fi].name}」？`)) return;
+    cat.files.splice(fi, 1);
+    render();
+}
+
+// 初始化
+render();
+</script>
+
+</body>
+</html>

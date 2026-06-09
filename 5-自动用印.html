@@ -752,6 +752,18 @@
             color: #52c41a;
             font-weight: 500;
         }
+        .gc-cell.gc-failed {
+            color: #f5222d;
+            font-weight: 500;
+            cursor: help;
+            text-decoration: underline dotted #f5222d;
+            text-underline-offset: 3px;
+        }
+        .gc-cell.gc-failed:hover {
+            background: #fff1f0;
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
 
         .action-btn {
             background: none;
@@ -1619,7 +1631,8 @@
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '备案函.pdf', desc: '产品备案证明文件' }
                 ],
-                goldCertDone: false,
+                goldCertStatus: 'failed',
+                goldCertFailReason: '子基金账户可用余额不足，当前余额 2,300 元，本次交易需划款 15,000,000 元',
                 transferDeadline: '2026-06-15 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '排队中',
@@ -1648,7 +1661,7 @@
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '赎回申请表.pdf', desc: '赎回业务申请表' }
                 ],
-                goldCertDone: false,
+                goldCertStatus: 'not_called',
                 transferDeadline: '2026-06-15 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
@@ -1678,7 +1691,7 @@
                     { name: '备案函.pdf', desc: '产品备案证明文件' },
                     { name: '认申购单.pdf', desc: '认申购单' }
                 ],
-                goldCertDone: false,
+                goldCertStatus: 'success',
                 transferDeadline: '2026-06-20 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
@@ -1707,7 +1720,7 @@
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '备案函.pdf', desc: '产品备案证明文件' }
                 ],
-                goldCertDone: true,
+                goldCertStatus: 'success',
                 transferDeadline: '2026-06-10 17:00',
                 inviteStatus: '已发送',
                 emailStatus: '已发送',
@@ -1733,7 +1746,8 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertDone: false,
+                goldCertStatus: 'failed',
+                goldCertFailReason: '该产品当日累计交易额度已用完，剩余额度 0 元，本次需额度 3,000,000 元',
                 transferDeadline: '2026-06-18 17:00',
                 inviteStatus: '已发送',
                 emailStatus: '已发送',
@@ -1759,7 +1773,7 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertDone: true,
+                goldCertStatus: 'success',
                 transferDeadline: '2026-06-12 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
@@ -1785,7 +1799,7 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertDone: false,
+                goldCertStatus: 'not_called',
                 transferDeadline: '2026-06-22 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
@@ -1811,7 +1825,8 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertDone: false,
+                goldCertStatus: 'failed',
+                goldCertFailReason: '金证系统响应超时（30s），连接中断，请稍后重试',
                 transferDeadline: '2026-06-25 17:00',
                 inviteStatus: '排队中',
                 emailStatus: '未发送',
@@ -1837,7 +1852,7 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertDone: true,
+                goldCertStatus: 'success',
                 transferDeadline: '2026-06-14 17:00',
                 inviteStatus: '已发送',
                 emailStatus: '已发送',
@@ -1863,7 +1878,7 @@
                 customFiles: null,
                 wechatMessage: '',
                 wechatFiles: [],
-                goldCertDone: false,
+                goldCertStatus: 'not_called',
                 transferDeadline: '2026-06-16 17:00',
                 inviteStatus: '未发送',
                 emailStatus: '未发送',
@@ -1902,7 +1917,7 @@
                     <td>${order.progress}</td>
                     <td>${order.amount}</td>
                     <td><span class="status-tag ${order.statusType}">${order.status}</span></td>
-                    <td><span class="gc-cell ${order.goldCertDone ? 'gc-done' : ''}">${order.goldCertDone ? '✓ 已调取' : '○ 未调取'}</span></td>
+                    <td>${renderGoldCertCell(order)}</td>
                     <td>${renderMsgStatus(order.inviteStatus, order.emailStatus)}</td>
                     <td>${order.transferDeadline}</td>
                     <td>${order.platform}</td>
@@ -1930,6 +1945,21 @@
                 <span class="msg-item"><span class="msg-dot ${dot(invite)}"></span>邀请</span>
                 <span class="msg-item"><span class="msg-dot ${dot(email)}"></span>邮箱</span>
             </div>`;
+        }
+
+        // 渲染金证状态单元格（三态 + 失败hover提示）
+        function renderGoldCertCell(order) {
+            const statusMap = {
+                success: { icon: '✓', text: '已调取', cls: 'gc-done' },
+                failed: { icon: '✗', text: '失败', cls: 'gc-failed' },
+                not_called: { icon: '○', text: '未调取', cls: '' }
+            };
+            const s = statusMap[order.goldCertStatus] || statusMap.not_called;
+
+            if (order.goldCertStatus === 'failed') {
+                return `<span class="gc-cell ${s.cls}" title="${order.goldCertFailReason}">${s.icon} ${s.text}</span>`;
+            }
+            return `<span class="gc-cell ${s.cls}">${s.icon} ${s.text}</span>`;
         }
 
         // 切换订单选中状态

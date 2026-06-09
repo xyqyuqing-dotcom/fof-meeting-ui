@@ -784,6 +784,27 @@
 
         .gc-tag:hover { border-color: #d9d9d9; }
 
+        /* 金证接口失败态 */
+        .gc-tag.gc-error {
+            background: #fff1f0;
+            border-color: #ffccc7;
+        }
+        .gc-tag.gc-error .gc-tag-icon { color: #f5222d; }
+        .gc-tag.gc-error .gc-tag-value { color: #cf1322; font-weight: 600; }
+
+        .gc-fail-reason {
+            display: none;
+            margin-top: 8px;
+            padding: 8px 10px;
+            background: #fff1f0;
+            border: 1px solid #ffa39e;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #cf1322;
+            line-height: 1.6;
+            text-align: left;
+        }
+
         .gc-tag-icon {
             font-size: 22px;
             display: block;
@@ -1430,8 +1451,7 @@
                     <span class="gc-tag-icon" id="gcApiIcon">○</span>
                     <span class="gc-tag-label">金证接口</span>
                     <span class="gc-tag-value" id="gcApiValue">未调取</span>
-                    <button class="gc-fetch-btn" id="gcFetchBtn" onclick="fetchGoldCertAPI()">🔗 手动调取</button>
-                    <span class="gc-api-time" id="gcApiTime"></span>
+                    <div class="gc-fail-reason" id="gcFailReason"></div>
                 </div>
             </div>
         </div>
@@ -1937,6 +1957,7 @@
             renderOrderInfo();
             loadFiles();
             initMotherPackage();
+            initGoldCertStatus();
         }
 
         // 渲染订单信息
@@ -2627,28 +2648,43 @@
             window.location.href = '5-自动用印.html';
         }
 
-        // ===== 金证接口手动调取 =====
-        function fetchGoldCertAPI() {
+        // ===== 金证接口状态初始化（三态） =====
+        function initGoldCertStatus() {
             const tag = document.getElementById('gcApiTag');
             const icon = document.getElementById('gcApiIcon');
             const value = document.getElementById('gcApiValue');
-            const btn = document.getElementById('gcFetchBtn');
-            const timeEl = document.getElementById('gcApiTime');
+            const failReasonEl = document.getElementById('gcFailReason');
 
-            // 变绿
-            tag.classList.remove('gc-default');
-            tag.classList.add('gc-success');
-            icon.textContent = '✓';
-            value.textContent = '调取成功';
+            // 从 URL 参数或模拟数据获取状态
+            // demo: 模拟不同状态，实际应从后端获取
+            const statusMap = {
+                success: { icon: '✓', text: '已调取', cls: 'gc-success' },
+                failed: { icon: '✗', text: '调取失败', cls: 'gc-error' },
+                not_called: { icon: '○', text: '未调取', cls: 'gc-default' }
+            };
 
-            // 隐藏按钮，显示时间
-            btn.style.display = 'none';
-            timeEl.style.display = 'block';
-            const now = new Date();
-            timeEl.textContent = now.toLocaleString('zh-CN', {
-                month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit'
-            });
+            // demo: 根据 orderId 模拟不同状态
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = parseInt(urlParams.get('orderId')) || 1;
+
+            // 模拟：orderId 1→失败(余额不足), 4→成功, 5→失败(额度), 8→失败(超时), 其余按规则
+            let status;
+            if (orderId === 1) status = 'failed';
+            else if (orderId === 4 || orderId === 6 || orderId === 9) status = 'success';
+            else if (orderId === 5 || orderId === 8) status = 'failed';
+            else status = 'not_called';
+
+            const s = statusMap[status];
+            tag.className = `gc-tag ${s.cls}`;
+            icon.textContent = s.icon;
+            value.textContent = s.text;
+
+            if (status === 'failed') {
+                failReasonEl.style.display = 'block';
+                if (orderId === 1) failReasonEl.textContent = '子基金账户可用余额不足，当前余额 2,300 元，本次交易需划款 15,000,000 元';
+                else if (orderId === 5) failReasonEl.textContent = '该产品当日累计交易额度已用完，剩余额度 0 元，本次需额度 3,000,000 元';
+                else failReasonEl.textContent = '金证系统响应超时（30s），连接中断，请稍后重试';
+            }
         }
 
         // 初始化

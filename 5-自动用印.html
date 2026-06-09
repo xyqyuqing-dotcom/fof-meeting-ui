@@ -685,14 +685,62 @@
 
         .action-menu {
             position: relative;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .action-menu .action-btn {
-            display: block;
-            margin-bottom: 6px;
+        /* 紧凑操作链接 */
+        .action-link {
+            font-size: 13px;
+            color: #1890ff;
+            cursor: pointer;
+            text-decoration: none;
+            white-space: nowrap;
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: all 0.15s;
         }
-        .action-menu .action-btn:last-child {
-            margin-bottom: 0;
+        .action-link:hover {
+            color: #40a9ff;
+            background: #e6f7ff;
+        }
+        .action-link-primary {
+            color: #1890ff;
+        }
+        .action-link-danger {
+            color: #f5222d;
+        }
+        .action-link-danger:hover {
+            color: #ff4d4f;
+            background: #fff1f0;
+        }
+
+        /* 竖三点按钮 */
+        .action-dots {
+            font-size: 18px;
+            line-height: 1;
+            background: none;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            cursor: pointer;
+            color: #666;
+            padding: 2px 6px;
+            transition: all 0.15s;
+            letter-spacing: -1px;
+        }
+        .action-dots:hover {
+            background: #f5f5f5;
+            border-color: #d9d9d9;
+            color: #333;
+        }
+
+        /* 匹配候选列表选中态 */
+        .match-candidate-item.selected {
+            background: #e6f7ff !important;
+        }
+        .match-candidate-item.selected input[type="radio"] {
+            accent-color: #1890ff;
         }
 
         /* 金证状态单元格 */
@@ -1362,6 +1410,69 @@
         </div>
     </div>
 
+    <!-- 匹配妥妥递订单弹窗 -->
+    <div id="matchModal" class="modal-overlay hidden">
+        <div class="modal" style="width: 720px;">
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="font-size:12px;color:#999;">手动匹配</span>
+                    <span class="modal-title">选择妥妥递订单</span>
+                </div>
+                <button class="modal-close" onclick="closeMatchModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:13px;color:#999;margin-bottom:16px;">从符合条件的候选订单中选择一条进行绑定</p>
+
+                <!-- 当前订单信息 -->
+                <div id="matchCurrentOrderInfo" style="background:#fafafa;border:1px solid #e8e8e8;border-radius:6px;padding:14px 18px;margin-bottom:16px;display:flex;flex-wrap:wrap;gap:12px 32px;font-size:13px;">
+                </div>
+
+                <!-- 搜索框 -->
+                <div style="margin-bottom:12px;">
+                    <input type="text" id="matchSearchInput" class="search-input"
+                           placeholder="搜索交易编号、金额、开放日..."
+                           oninput="filterMatchCandidates()"
+                           style="width:100%;padding:10px 16px;">
+                </div>
+
+                <!-- 候选列表 -->
+                <div id="matchCandidateList" style="max-height:320px;overflow-y:auto;border:1px solid #e8e8e8;border-radius:6px;">
+                </div>
+
+                <div style="margin-top:12px;font-size:13px;color:#999;">
+                    共 <span id="matchCandidateCount">0</span> 条候选订单
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeMatchModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmMatch()" id="confirmMatchBtn" disabled>确认绑定 →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 解绑确认弹窗 -->
+    <div id="unbindModal" class="modal-overlay hidden">
+        <div class="modal" style="width: 480px;">
+            <div class="modal-header">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span style="color:#f5222d;font-size:20px;">⚠</span>
+                    <span class="modal-title">解绑妥妥递订单</span>
+                </div>
+                <button class="modal-close" onclick="closeUnbindModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <p style="font-size:14px;color:#666;margin-bottom:20px;line-height:1.8;">解绑后该投资计划将与当前妥妥递订单断开，可重新发起匹配。</p>
+
+                <div id="unbindOrderInfo" style="background:#fafafa;border:1px solid #e8e8e8;border-radius:6px;padding:16px;font-size:13px;line-height:2;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeUnbindModal()">取消</button>
+                <button class="btn btn-danger" onclick="confirmUnbind()">解绑</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 发送企微邀请弹窗 -->
     <div id="sendWechatModal" class="modal-overlay hidden">
         <div class="wechat-modal">
@@ -1489,6 +1600,8 @@
                 id: 1,
                 starred: true,
                 selected: false,
+                matched: true,
+                matchedTTDOrderNo: '2026060817585188',
                 motherFund: '国联FOF1号',
                 tradeDate: '2026-05-29',
                 childFund: '某某量化对冲A2号',
@@ -1501,7 +1614,7 @@
                 canStamp: true,
                 customMessage: null,
                 customFiles: null,
-                wechatMessage: '【国联FOF1号 - 某某量化对冲A2号】\n\n尊敬的客户，您好：\n\n本次追加（1,500万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。\n\n(4) 补充协议（如有）\n----------------------------------------------------------\n\n原始话术看咱们申购时有无【特殊事项】，例如：\n(1) 其他材料（妥妥递系统上要求上传以外的）\n(2) 划款到账时间（早于交易日期17点前的）',
+                wechatMessage: '【国联FOF1号 - 某某量化对冲A2号】\n\n尊敬的客户，您好：\n\n本次追加（1,500万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。',
                 wechatFiles: [
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '备案函.pdf', desc: '产品备案证明文件' }
@@ -1516,6 +1629,8 @@
                 id: 2,
                 starred: false,
                 selected: false,
+                matched: false,
+                matchedTTDOrderNo: null,
                 motherFund: '国联FOF1号',
                 tradeDate: '2026-05-29',
                 childFund: '某某全天候A号',
@@ -1528,19 +1643,23 @@
                 canStamp: false,
                 customMessage: null,
                 customFiles: null,
-                wechatMessage: '【国联FOF1号 - 某某全天候A号】\n\n尊敬的客户，您好：\n\n本次赎回（500万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。',
+                wechatMessage: '【国联FOF1号 - 某某全天候A号】\n\n尊敬的客户，您好：\n\n本次赎回（500万）所需材料已就绪，请查阅附件并完成签署。',
                 wechatFiles: [
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '赎回申请表.pdf', desc: '赎回业务申请表' }
                 ],
                 goldCertDone: false,
                 transferDeadline: '2026-06-15 17:00',
+                inviteStatus: '未发送',
+                emailStatus: '未发送',
                 wechatGroup: '国联FOF1-运营对接群'
             },
             {
                 id: 3,
                 starred: false,
                 selected: false,
+                matched: true,
+                matchedTTDOrderNo: '2026060875896390',
                 motherFund: '国联FOF1号',
                 tradeDate: '2026-01-20',
                 childFund: '珠海宽德金刚钻16号',
@@ -1553,7 +1672,7 @@
                 canStamp: true,
                 customMessage: null,
                 customFiles: null,
-                wechatMessage: '【国联FOF1号 - 珠海宽德金刚钻16号】\n\n尊敬的客户，您好：\n\n本次申购（100万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。',
+                wechatMessage: '【国联FOF1号 - 珠海宽德金刚钻16号】\n\n尊敬的客户，您好：\n\n本次申购（100万）所需材料已就绪，请查阅附件并完成签署。',
                 wechatFiles: [
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '备案函.pdf', desc: '产品备案证明文件' },
@@ -1569,6 +1688,8 @@
                 id: 4,
                 starred: false,
                 selected: false,
+                matched: true,
+                matchedTTDOrderNo: '2026060807454558',
                 motherFund: '国联FOF1号',
                 tradeDate: '2026-06-01',
                 childFund: '上海幻方指数增强5号',
@@ -1581,7 +1702,7 @@
                 canStamp: false,
                 customMessage: null,
                 customFiles: null,
-                wechatMessage: '【国联FOF1号 - 上海幻方指数增强5号】\n\n尊敬的客户，您好：\n\n本次申购（200万）所需材料已就绪，请查阅附件并完成签署。\n\n为方便您上传材料，请点击下方链接：\n【文件收集链接】\n\n如有疑问请随时联系。',
+                wechatMessage: '【国联FOF1号 - 上海幻方指数增强5号】\n\n尊敬的客户，您好：\n\n本次申购（200万）所需材料已就绪，请查阅附件并完成签署。',
                 wechatFiles: [
                     { name: '托管函.pdf', desc: '产品托管账户证明文件' },
                     { name: '备案函.pdf', desc: '产品备案证明文件' }
@@ -1591,6 +1712,162 @@
                 inviteStatus: '已发送',
                 emailStatus: '已发送',
                 wechatGroup: '上海幻方-管理人沟通群'
+            },
+            {
+                id: 5,
+                starred: false,
+                selected: false,
+                matched: false,
+                matchedTTDOrderNo: null,
+                motherFund: '国联FOF2号',
+                tradeDate: '2026-06-03',
+                childFund: '九坤投资多策略增强7号',
+                tradeType: '申购',
+                progress: '交易已完成印',
+                amount: '300万',
+                status: '订单待确认',
+                statusType: 'blue',
+                platform: 'TA30',
+                canStamp: true,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '',
+                wechatFiles: [],
+                goldCertDone: false,
+                transferDeadline: '2026-06-18 17:00',
+                inviteStatus: '已发送',
+                emailStatus: '已发送',
+                wechatGroup: '九坤-运营对接群'
+            },
+            {
+                id: 6,
+                starred: false,
+                selected: false,
+                matched: true,
+                matchedTTDOrderNo: '2026060533422188',
+                motherFund: '国联FOF2号',
+                tradeDate: '2026-06-04',
+                childFund: '明汯量化中性策略9号',
+                tradeType: '追加',
+                progress: '用印中',
+                amount: '800万',
+                status: '订单待签署',
+                statusType: 'orange',
+                platform: 'TA30',
+                canStamp: true,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '',
+                wechatFiles: [],
+                goldCertDone: true,
+                transferDeadline: '2026-06-12 17:00',
+                inviteStatus: '未发送',
+                emailStatus: '未发送',
+                wechatGroup: '明汯-管理人沟通群'
+            },
+            {
+                id: 7,
+                starred: false,
+                selected: false,
+                matched: false,
+                matchedTTDOrderNo: null,
+                motherFund: '国联FOF3号',
+                tradeDate: '2026-06-05',
+                childFund: '灵均中证500指增12号',
+                tradeType: '申购',
+                progress: '待交易',
+                amount: '120万',
+                status: '订单待确认',
+                statusType: 'blue',
+                platform: 'TA30',
+                canStamp: true,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '',
+                wechatFiles: [],
+                goldCertDone: false,
+                transferDeadline: '2026-06-22 17:00',
+                inviteStatus: '未发送',
+                emailStatus: '未发送',
+                wechatGroup: '灵均-运营群'
+            },
+            {
+                id: 8,
+                starred: true,
+                selected: false,
+                matched: true,
+                matchedTTDOrderNo: '2026060711223344',
+                motherFund: '国联FOF3号',
+                tradeDate: '2026-06-06',
+                childFund: '衍复中证1000增强A号',
+                tradeType: '申购',
+                progress: '交易要素确认中',
+                amount: '250万',
+                status: '适当性通过',
+                statusType: 'green',
+                platform: 'TA30',
+                canStamp: true,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '',
+                wechatFiles: [],
+                goldCertDone: false,
+                transferDeadline: '2026-06-25 17:00',
+                inviteStatus: '排队中',
+                emailStatus: '未发送',
+                wechatGroup: '衍复-管理人沟通群'
+            },
+            {
+                id: 9,
+                starred: false,
+                selected: false,
+                matched: false,
+                matchedTTDOrderNo: null,
+                motherFund: '国联FOF1号',
+                tradeDate: '2026-06-07',
+                childFund: '诚奇灵活对冲6号',
+                tradeType: '追加',
+                progress: '交易已完成印',
+                amount: '600万',
+                status: '订单待签署',
+                statusType: 'orange',
+                platform: 'TTD',
+                canStamp: true,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '',
+                wechatFiles: [],
+                goldCertDone: true,
+                transferDeadline: '2026-06-14 17:00',
+                inviteStatus: '已发送',
+                emailStatus: '已发送',
+                wechatGroup: '诚奇-运营对接群'
+            },
+            {
+                id: 10,
+                starred: false,
+                selected: false,
+                matched: true,
+                matchedTTDOrderNo: '2026060899887766',
+                motherFund: '国联FOF2号',
+                tradeDate: '2026-06-08',
+                childFund: '宽德中证500指增3号',
+                tradeType: '申购',
+                progress: '用印中',
+                amount: '450万',
+                status: '订单用印异常',
+                statusType: 'red',
+                platform: 'TA30',
+                canStamp: false,
+                customMessage: null,
+                customFiles: null,
+                wechatMessage: '',
+                wechatFiles: [],
+                goldCertDone: false,
+                transferDeadline: '2026-06-16 17:00',
+                inviteStatus: '未发送',
+                emailStatus: '未发送',
+                wechatGroup: '宽德-管理人沟通群'
             }
         ];
 
@@ -1610,13 +1887,13 @@
         function renderOrderTable() {
             const tbody = document.getElementById('orderTableBody');
             tbody.innerHTML = orders.map(order => `
-                <tr>
+                <tr ondblclick="openOrderDetail(${order.id})" style="cursor:pointer;">
                     <td><span style="color: ${order.starred ? '#ffd700' : '#ddd'};">★</span></td>
                     <td>
-                        <input type="checkbox" 
+                        <input type="checkbox"
                                ${!order.canStamp ? 'disabled style="opacity:0.3;cursor:not-allowed;"' : ''}
-                               ${order.selected ? 'checked' : ''} 
-                               onchange="toggleOrder(${order.id})">
+                               ${order.selected ? 'checked' : ''}
+                               onclick="event.stopPropagation(); toggleOrder(${order.id})">
                     </td>
                     <td>${order.motherFund}</td>
                     <td>${order.tradeDate}</td>
@@ -1629,9 +1906,13 @@
                     <td>${renderMsgStatus(order.inviteStatus, order.emailStatus)}</td>
                     <td>${order.transferDeadline}</td>
                     <td>${order.platform}</td>
-                    <td class="action-menu">
-                        <button class="action-btn" onclick="openTransferWorkflow(${order.id})">用印划款</button>
-                        <button class="action-btn" onclick="openOrderDetail(${order.id})">详情</button>
+                    <td class="action-menu" onclick="event.stopPropagation();">
+                        ${order.matched
+                            ? `<a class="action-link action-link-danger" onclick="openUnbindModal(${order.id})">解绑</a>`
+                            : `<a class="action-link action-link-primary" onclick="openMatchModal(${order.id})">匹配</a>`
+                        }
+                        <a class="action-link" onclick="openTransferWorkflow(${order.id})">用印划款</a>
+                        <button class="action-dots" onclick="openOrderDetail(${order.id})" title="详情">⋮</button>
                     </td>
                 </tr>
             `).join('');
@@ -1898,6 +2179,163 @@
         // 打开用印划款流程
         function openTransferWorkflow(orderId) {
             window.location.href = `用印划款流程.html?orderId=${orderId}`;
+        }
+
+        // ===== 匹配/解绑 =====
+        let matchCurrentOrderId = null;
+        let matchSelectedCandidateId = null;
+
+        // 模拟妥妥递候选订单数据
+        const ttdCandidates = [
+            { id: 'TTD001', orderNo: '2026060817585188', status: '订单待确认', matchScore: 8, amount: '90000', tradeDate: '2026-06-11', fundName: 'TA30号MOM集合资产管理计划', product: 'SAJP17' },
+            { id: 'TTD002', orderNo: '2026060875896390', status: '订单待确认', matchScore: 6, amount: '85666', tradeDate: '2026-06-08', fundName: 'TA30号MOM集合资产管理计划', product: 'SAJP17' },
+            { id: 'TTD003', orderNo: '2026060807454558', status: '文件待签署', matchScore: 3, amount: '60000', tradeDate: '2026-06-09', fundName: '大理财量化4号私募资产', product: 'SANS95' },
+            { id: 'TTD004', orderNo: '2026060799112233', status: '订单待确认', matchScore: 5, amount: '120000', tradeDate: '2026-06-10', fundName: '启林量化中性3号', product: 'QLZN03' },
+            { id: 'TTD005', orderNo: '2026060655443322', status: '订单待确认', matchScore: 7, amount: '75000', tradeDate: '2026-06-12', fundName: '天演资本多策略A号', product: 'TYCD01' },
+            { id: 'TTD006', orderNo: '2026060522119988', status: '文件待签署', matchScore: 4, amount: '50000', tradeDate: '2026-06-07', fundName: '黑翼资产CTA增强1号', product: 'HYCT01' },
+            { id: 'TTD007', orderNo: '2026060488776655', status: '订单待确认', matchScore: 9, amount: '200000', tradeDate: '2026-06-13', fundName: '佳期投资股票增强号', product: 'JQCG02' },
+            { id: 'TTD008', orderNo: '2026060333445566', status: '订单待确认', matchScore: 2, amount: '35000', tradeDate: '2026-06-05', fundName: '龙旗科技指增Alpha号', product: 'LQZQ01' },
+        ];
+
+        // 打开匹配弹窗
+        function openMatchModal(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order) return;
+
+            matchCurrentOrderId = orderId;
+            matchSelectedCandidateId = null;
+
+            // 显示当前订单信息
+            document.getElementById('matchCurrentOrderInfo').innerHTML = `
+                <div><span style="color:#999;">子基金</span><div style="font-weight:500;color:#333;">${order.childFund}</div></div>
+                <div><span style="color:#999;">交易类型</span><div style="font-weight:500;color:#333;">${order.tradeType}</div></div>
+                <div><span style="color:#999;">金额</span><div style="font-weight:500;color:#333;">${order.amount.replace('万','')}元</div></div>
+                <div><span style="color:#999;">拟交易日</span><div style="font-weight:500;color:#333;">${order.tradeDate}</div></div>
+                <div><span style="color:#999;">产品</span><div style="font-weight:500;color:#333;">--</div></div>
+            `;
+
+            // 清空搜索
+            document.getElementById('matchSearchInput').value = '';
+
+            // 渲染候选列表
+            renderMatchCandidates(ttdCandidates);
+
+            // 重置按钮状态
+            document.getElementById('confirmMatchBtn').disabled = true;
+
+            document.getElementById('matchModal').classList.remove('hidden');
+        }
+
+        function closeMatchModal() {
+            document.getElementById('matchModal').classList.add('hidden');
+            matchCurrentOrderId = null;
+            matchSelectedCandidateId = null;
+        }
+
+        // 渲染候选列表
+        function renderMatchCandidates(candidates) {
+            const container = document.getElementById('matchCandidateList');
+            if (candidates.length === 0) {
+                container.innerHTML = '<div style="padding:40px;text-align:center;color:#999;font-size:14px;">无匹配结果</div>';
+                document.getElementById('matchCandidateCount').textContent = '0';
+                return;
+            }
+
+            container.innerHTML = candidates.map(c => `
+                <div class="match-candidate-item ${matchSelectedCandidateId === c.id ? 'selected' : ''}"
+                     onclick="selectMatchCandidate('${c.id}')"
+                     style="display:flex;align-items:center;gap:16px;padding:14px 18px;border-bottom:1px solid #f0f0f0;cursor:pointer;transition:background 0.15s;"
+                     onmouseenter="this.style.background='#fafafa'" onmouseleave="this.style.background='#fff'">
+                    <input type="radio" name="matchCandidate" ${matchSelectedCandidateId === c.id ? 'checked' : ''} onclick="event.stopPropagation();selectMatchCandidate('${c.id}')">
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                            <span style="font-size:14px;font-weight:600;color:#333;white-space:nowrap;">${c.orderNo}</span>
+                            <span class="status-tag blue" style="font-size:11px;">${c.status}</span>
+                            <span style="font-size:12px;color:#999;background:#f5f5f5;padding:1px 8px;border-radius:10px;">匹配分 ${c.matchScore}</span>
+                        </div>
+                        <div style="display:flex;flex-wrap:wrap;gap:12px 24px;font-size:13px;color:#666;">
+                            <span>金额/<b>${c.amount}</b>份</span>
+                            <span>开放日 <b>${c.tradeDate}</b></span>
+                            <span>基金 <b>${c.fundName}</b></span>
+                            <span>产品 <b>${c.product}</b></span>
+                            <span>私募 <b>--</b></span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('matchCandidateCount').textContent = candidates.length;
+        }
+
+        // 选择候选订单
+        function selectMatchCandidate(candidateId) {
+            matchSelectedCandidateId = candidateId;
+            document.getElementById('confirmMatchBtn').disabled = false;
+            // 重新渲染以更新选中态
+            filterMatchCandidates();
+        }
+
+        // 搜索过滤候选
+        function filterMatchCandidates() {
+            const keyword = document.getElementById('matchSearchInput').value.toLowerCase();
+            const filtered = ttdCandidates.filter(c =>
+                c.orderNo.toLowerCase().includes(keyword) ||
+                c.amount.includes(keyword) ||
+                c.tradeDate.includes(keyword) ||
+                c.fundName.toLowerCase().includes(keyword)
+            );
+            renderMatchCandidates(filtered);
+        }
+
+        // 确认匹配
+        function confirmMatch() {
+            if (!matchCurrentOrderId || !matchSelectedCandidateId) return;
+
+            const candidate = ttdCandidates.find(c => c.id === matchSelectedCandidateId);
+            const order = orders.find(o => o.id === matchCurrentOrderId);
+
+            if (candidate && order) {
+                order.matched = true;
+                order.matchedTTDOrderNo = candidate.orderNo;
+            }
+
+            closeMatchModal();
+            renderOrderTable();
+        }
+
+        // ===== 解绑 =====
+        let unbindCurrentOrderId = null;
+
+        function openUnbindModal(orderId) {
+            const order = orders.find(o => o.id === orderId);
+            if (!order || !order.matched) return;
+
+            unbindCurrentOrderId = orderId;
+
+            document.getElementById('unbindOrderInfo').innerHTML = `
+                <div><span style="color:#999;display:inline-block;width:70px;">子基金</span>${order.childFund}TA30号MOM集合资产管理计划</div>
+                <div><span style="color:#999;display:inline-block;width:70px;">订单号</span><b>${order.matchedTTDOrderNo}</b></div>
+            `;
+
+            document.getElementById('unbindModal').classList.remove('hidden');
+        }
+
+        function closeUnbindModal() {
+            document.getElementById('unbindModal').classList.add('hidden');
+            unbindCurrentOrderId = null;
+        }
+
+        function confirmUnbind() {
+            if (!unbindCurrentOrderId) return;
+
+            const order = orders.find(o => o.id === unbindCurrentOrderId);
+            if (order) {
+                order.matched = false;
+                order.matchedTTDOrderNo = null;
+            }
+
+            closeUnbindModal();
+            renderOrderTable();
         }
 
         // ===== 批量操作 =====

@@ -737,6 +737,7 @@
                     <button class="batch-btn" onclick="showBatchExemptMenu(event)">批量豁免</button>
                     <button class="batch-btn" onclick="showBatchStatusMenu(event)">批量修改状态</button>
                     <button class="batch-btn" onclick="openModal('batchCreatePlanModal')">批量排期下单</button>
+                    <button class="batch-btn" onclick="alert('导出功能开发中')">📥 下载</button>
                 </div>
             </div>
 
@@ -1064,22 +1065,26 @@ const parentFunds = [
       establishDate: '2025-07-22', latestDate: '2026-05-11',
       unitNav: '1.0334', totalNav: '1.0519', manager: '张建强',
       netAsset: '9234.00', totalReturn: '308.56', weeklyReturn: '0.00%',
-      annualReturn: '108.00%', ytdReturn: '16.00%' },
+      annualReturn: '108.00%', ytdReturn: '16.00%',
+      dept: '证券-上海大渡河路', servicePerson: '小A', expectedReturn: '15%', drawdownTolerance: '5%' },
     { code: 'SKZX002', name: '私募尊享FOF2号', status: 'pending',
       establishDate: '2025-09-10', latestDate: '2026-05-11',
       unitNav: '1.0210', totalNav: '1.0420', manager: '李明辉',
       netAsset: '5620.00', totalReturn: '210.30', weeklyReturn: '-0.32%',
-      annualReturn: '85.50%', ytdReturn: '12.80%' },
+      annualReturn: '85.50%', ytdReturn: '12.80%',
+      dept: '期货-资管部', servicePerson: '张三', expectedReturn: '12%', drawdownTolerance: '8%' },
     { code: 'SKZX003', name: '私募尊享FOF3号', status: 'normal',
       establishDate: '2025-11-05', latestDate: '2026-05-11',
       unitNav: '1.0567', totalNav: '1.0890', manager: '王志强',
       netAsset: '7890.00', totalReturn: '456.80', weeklyReturn: '0.15%',
-      annualReturn: '120.30%', ytdReturn: '22.10%' },
+      annualReturn: '120.30%', ytdReturn: '22.10%',
+      dept: '证券-北京金融街', servicePerson: '李四', expectedReturn: '18%', drawdownTolerance: '6%' },
     { code: 'SKZX004', name: '私募尊享FOF4号', status: 'normal',
       establishDate: '2026-01-15', latestDate: '2026-05-11',
       unitNav: '1.0123', totalNav: '1.0250', manager: '赵晓峰',
       netAsset: '3450.00', totalReturn: '125.60', weeklyReturn: '0.08%',
-      annualReturn: '65.40%', ytdReturn: '8.90%' }
+      annualReturn: '65.40%', ytdReturn: '8.90%',
+      dept: '期货-广州天河', servicePerson: '王五', expectedReturn: '10%', drawdownTolerance: '10%' }
 ];
 
 // 主表格数据
@@ -1310,6 +1315,39 @@ function renderFundDetail(fund) {
                     <span class="info-value red">${fund.ytdReturn}</span>
                 </div>
             </div>
+
+            <!-- 新增可编辑字段区域 -->
+            <div class="fund-info-grid" style="border-top:1px solid #f0f0f0;padding-top:12px;margin-top:4px;">
+                <div class="info-item">
+                    <span class="info-label">营业部/部门</span>
+                    <select class="form-select" style="padding:4px 8px;font-size:13px;width:100%;">
+                        <option value="">请选择</option>
+                        <optgroup label="证券营业部">
+                            <option value="证券-上海大渡河路" ${fund.dept === '证券-上海大渡河路' ? 'selected' : ''}>证券-上海大渡河路</option>
+                            <option value="证券-上海宜山路" ${fund.dept === '证券-上海宜山路' ? 'selected' : ''}>证券-上海宜山路</option>
+                            <option value="证券-北京金融街" ${fund.dept === '证券-北京金融街' ? 'selected' : ''}>证券-北京金融街</option>
+                            <option value="证券-深圳福田" ${fund.dept === '证券-深圳福田' ? 'selected' : ''}>证券-深圳福田</option>
+                        </optgroup>
+                        <optgroup label="期货营业部">
+                            <option value="期货-资管部" ${fund.dept === '期货-资管部' ? 'selected' : ''}>期货-资管部</option>
+                            <option value="期货-广州天河" ${fund.dept === '期货-广州天河' ? 'selected' : ''}>期货-广州天河</option>
+                            <option value="期货-深圳福田" ${fund.dept === '期货-深圳福田' ? 'selected' : ''}>期货-深圳福田</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">服务人员/客户经理</span>
+                    <input type="text" class="form-input" style="padding:4px 8px;font-size:13px;width:100%;" placeholder="请输入" value="${fund.servicePerson || ''}">
+                </div>
+                <div class="info-item">
+                    <span class="info-label">预期收益</span>
+                    <input type="text" class="form-input" style="padding:4px 8px;font-size:13px;width:100%;" placeholder="请输入" value="${fund.expectedReturn || ''}">
+                </div>
+                <div class="info-item">
+                    <span class="info-label">回撤容忍</span>
+                    <input type="text" class="form-input" style="padding:4px 8px;font-size:13px;width:100%;" placeholder="请输入" value="${fund.drawdownTolerance || ''}">
+                </div>
+            </div>
         </div>
 
         <!-- 建仓和调仓记录 -->
@@ -1335,6 +1373,7 @@ function renderRecordTable() {
                 <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="openEditRecordModal('调仓','2026-01-10',573.00,'李婷婷')">✏ 编辑</button>
                 <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="showBatchStatusMenu(event)">批量修改状态</button>
                 <button class="tool-btn primary" style="padding:4px 10px;font-size:12px" onclick="openModal('batchCreatePlanModal')">批量排期下单</button>
+                <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="alert('导出功能开发中')">📥 下载</button>
             </div>
         </div>
         <div class="table-wrapper" style="border-radius:0;border:none;box-shadow:none;">
@@ -1399,6 +1438,7 @@ function renderRecordTable() {
                 <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="openEditRecordModal('建仓','2025-10-12',1146.00,'刘芳')">✏ 编辑</button>
                 <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="showBatchStatusMenu(event)">批量修改状态</button>
                 <button class="tool-btn primary" style="padding:4px 10px;font-size:12px" onclick="openModal('batchCreatePlanModal')">批量排期下单</button>
+                <button class="tool-btn" style="padding:4px 10px;font-size:12px" onclick="alert('导出功能开发中')">📥 下载</button>
             </div>
         </div>
         <div class="table-wrapper" style="border-radius:0;border:none;box-shadow:none;">

@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>母层商务</title>
+    <style>
+        /* ===== 全局 ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            color: #333;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .top-bar {
+            height: 48px;
+            background: #004ea2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+        .top-logo {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .top-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .top-avatar {
+            width: 28px; height: 28px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; color: #004ea2;
+        }
+
+        /* ===== 面包屑 ===== */
+        .breadcrumb {
+            padding: 12px 24px;
+            font-size: 13px; color: #666;
+        }
+        .breadcrumb a { color: #1890ff; text-decoration: none; }
+        .breadcrumb span { margin: 0 6px; color: #999; }
+
+        /* ===== 主内容区 ===== */
+        .main-content { padding: 0 24px 30px; }
+
+        /* ===== 筛选栏 ===== */
+        .filter-bar {
+            display: flex; align-items: center; gap: 24px;
+            margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .filter-item { display: flex; align-items: center; gap: 8px; }
+        .filter-label { color: #333; white-space: nowrap; font-size: 14px; }
+        .filter-select {
+            min-width: 280px; padding: 8px 12px;
+            border: 1px solid #d9d9d9; border-radius: 6px;
+            font-size: 14px; outline: none; cursor: pointer; background: #fff;
+        }
+        .filter-select:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+
+        /* ===== 表格工具栏 ===== */
+        .table-toolbar {
+            display: flex; align-items: center; gap: 10px; margin-bottom: 12px;
+        }
+        .btn-download {
+            padding: 7px 18px;
+            background: #1890ff; color: #fff;
+            border: none; border-radius: 6px;
+            cursor: pointer; font-size: 13px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .btn-download:hover { background: #096dd9; }
+        .search-btn {
+            width: 36px; height: 36px; border-radius: 50%;
+            background: #1890ff; color: #fff; border: none;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; margin-left: auto;
+        }
+        .search-btn:hover { background: #096dd9; }
+
+        /* ===== 数据表格 ===== */
+        .data-table {
+            width: 100%; border-collapse: collapse;
+            background: #fff; border-radius: 8px;
+            overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .data-table th {
+            background: #fafafa; padding: 11px 12px; text-align: left;
+            font-weight: 500; color: #666; border-bottom: 1px solid #f0f0f0;
+            font-size: 13px; white-space: nowrap;
+        }
+        .data-table td {
+            padding: 12px; border-bottom: 1px solid #f0f0f0;
+            vertical-align: top; font-size: 13px; line-height: 1.7;
+        }
+        .data-table tr:hover { background: #fafafa; }
+        .data-table tr:last-child td { border-bottom: none; }
+
+        .col-code { color: #333; font-family: 'Consolas', monospace; font-size: 13px; }
+        .col-name { color: #333; font-weight: 500; }
+        .col-cell { color: #555; font-size: 13px; white-space: pre-line; line-height: 1.7; }
+        .col-action a { color: #1890ff; text-decoration: none; cursor: pointer; font-size: 13px; }
+        .col-action a:hover { text-decoration: underline; }
+        .row-all-products td:first-child { color: #c00; font-weight: 600; }
+        .row-all-products { background: #fff5f5 !important; }
+        .checkbox-col { width: 40px; text-align: center; }
+        .checkbox-col input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #1890ff; }
+
+        /* ===== 弹窗遮罩 ===== */
+        .modal-overlay {
+            display: none; position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.45); z-index: 1000;
+            justify-content: center; align-items: flex-start;
+            padding-top: 60px; overflow-y: auto;
+        }
+        .modal-overlay.active { display: flex; }
+
+        /* ===== 详情弹窗 ===== */
+        .modal-detail {
+            width: 820px; max-height: calc(100vh - 80px);
+            background: #fff; border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+        .modal-header-blue {
+            background: #1890ff; color: #fff;
+            padding: 14px 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .modal-header-blue h3 { font-size: 17px; font-weight: 500; }
+        .modal-close {
+            width: 28px; height: 28px; border: none; background: transparent;
+            color: #fff; font-size: 22px; cursor: pointer; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .modal-close:hover { background: rgba(255,255,255,0.15); }
+        .modal-body { padding: 20px 28px; overflow-y: auto; flex: 1; }
+
+        /* 标注提示（红色文字改为标注样式） */
+        .form-tip {
+            background: #fff7e6; border-left: 3px solid #faad14;
+            padding: 10px 14px; margin-bottom: 20px;
+            border-radius: 4px; font-size: 13px; color: #d46b08;
+            line-height: 1.6;
+        }
+
+        /* 产品选择 */
+        .product-select-wrap {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 22px;
+        }
+        .product-select-label { color: #333; font-weight: 500; font-size: 14px; }
+        .product-select {
+            flex: 1; padding: 9px 12px;
+            border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; outline: none;
+        }
+        .product-select:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+
+        /* ===== 分组区块 ===== */
+        .section-block { margin-bottom: 26px; }
+
+        /* 一级标题（蓝色竖线） */
+        .section-title {
+            font-size: 15px; font-weight: 600; color: #333;
+            padding-left: 12px; border-left: 3px solid #1890ff;
+            margin-bottom: 14px; line-height: 1.3;
+        }
+
+        /* 二级子标题（黑色方块） */
+        .sub-section-title {
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 12px; font-size: 14px;
+        }
+        .sub-section-dot {
+            width: 10px; height: 10px; background: #555;
+            border-radius: 2px; flex-shrink: 0;
+        }
+        .sub-section-name { font-weight: 600; color: #333; }
+
+        /* 标注（原红色文字，改为标注样式） */
+        .annotation {
+            display: inline-block;
+            background: #fff7e6; border: 1px solid #ffe58f;
+            color: #d46b08; font-size: 12px; padding: 2px 8px;
+            border-radius: 4px; margin-left: 8px; vertical-align: middle;
+            cursor: help;
+        }
+        .annotation:hover::after {
+            content: attr(data-tip);
+            position: absolute; bottom: 100%; left: 50%;
+            transform: translateX(-50%);
+            background: #333; color: #fff; padding: 6px 10px;
+            border-radius: 4px; font-size: 12px; white-space: nowrap;
+            z-index: 10; margin-bottom: 4px;
+        }
+        .annotation-wrap { position: relative; display: inline-block; }
+
+        /* 子表格行 */
+        .sub-table-header {
+            display: grid;
+            grid-template-columns: 140px 180px 1fr 44px;
+            gap: 10px; margin-bottom: 8px;
+            font-size: 13px; color: #888; padding: 0 4px;
+            align-items: center;
+        }
+        .sub-table-row {
+            display: grid;
+            grid-template-columns: 140px 180px 1fr 44px;
+            gap: 10px; margin-bottom: 8px; align-items: center;
+        }
+        .sub-input {
+            padding: 8px 10px; border: 1px solid #d9d9d9; border-radius: 6px;
+            font-size: 13px; outline: none; background: #fff;
+        }
+        .sub-input:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+        .ratio-hint { color: #999; font-size: 12px; }
+        .ratio-ok { color: #52c41a; font-size: 12px; }
+
+        .btn-remove-row {
+            width: 28px; height: 28px; border: 1px solid #d9d9d9;
+            border-radius: 4px; background: #f5f5f5; color: #999;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+        }
+        .btn-remove-row:hover { border-color: #ff4d4f; color: #ff4d4f; background: #fff2f0; }
+
+        /* 操作按钮组 */
+        .action-buttons { display: flex; gap: 10px; margin-top: 8px; }
+        .btn-action-outline {
+            padding: 7px 20px; border: 1px dashed #1890ff;
+            background: #fff; color: #1890ff; border-radius: 6px;
+            cursor: pointer; font-size: 13px;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .btn-action-outline:hover { background: #e6f7ff; }
+
+        /* 信息提示框 */
+        .info-box {
+            background: #e6f7ff; border: 1px solid #91d5ff;
+            border-radius: 6px; padding: 10px 14px;
+            font-size: 13px; color: #0050b3; margin-bottom: 12px; line-height: 1.6;
+        }
+
+        /* 比例校验提示 */
+        .ratio-validate-msg { font-size: 12px; margin-top: 4px; min-height: 18px; }
+
+        /* 底部按钮 */
+        .modal-footer {
+            padding: 16px 28px; border-top: 1px solid #f0f0f0;
+            display: flex; justify-content: flex-end; flex-shrink: 0;
+        }
+        .btn-primary-lg {
+            padding: 9px 48px; background: #1890ff; color: #fff;
+            border: none; border-radius: 6px; font-size: 15px;
+            cursor: pointer; font-weight: 500;
+        }
+        .btn-primary-lg:hover { background: #096dd9; }
+
+        /* ===== 复制弹窗 ===== */
+        .modal-copy {
+            width: 480px; background: #fff; border-radius: 8px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        .copy-body { padding: 28px 32px; }
+        .copy-field {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 18px;
+        }
+        .copy-field-label { width: 60px; color: #333; font-size: 14px; }
+        .copy-field-select {
+            flex: 1; padding: 9px 12px;
+            border: 1px solid #d9d9d9; border-radius: 6px; font-size: 14px; outline: none;
+        }
+        .copy-field-tag { color: #999; font-size: 13px; white-space: nowrap; }
+        .copy-footer { padding: 12px 32px 24px; display: flex; justify-content: center; }
+
+        /* 复制目标多选区域 */
+        .copy-multi-area {
+            margin-top: 4px; padding: 12px 14px;
+            background: #fafafa; border: 1px solid #e8e8e8;
+            border-radius: 6px;
+        }
+        .copy-multi-label { font-size: 13px; color: #666; margin-bottom: 8px; }
+        .copy-checkbox-group { display: flex; flex-direction: column; gap: 6px; }
+        .copy-checkbox-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; color: #333; cursor: pointer; padding: 3px 0;
+        }
+        .copy-checkbox-label input[type=checkbox] { accent-color: #1890ff; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<!-- ==================== 顶部栏 ==================== -->
+<div class="top-bar">
+    <div class="top-logo">XXXX期货</div>
+    <div class="top-right">
+        <div class="top-avatar">&#128100;</div>
+        <div class="top-avatar">&#9881;</div>
+    </div>
+</div>
+
+<!-- ==================== 面包屑 ==================== -->
+<div class="breadcrumb">
+    <a href="#">资产管理首页</a><span>&gt;</span>
+    <a href="#">商务管理</a><span>&gt;</span>
+    母层商务
+</div>
+
+<!-- ==================== 主内容 ==================== -->
+<div class="main-content">
+    <!-- 筛选栏 -->
+    <div class="filter-bar">
+        <div class="filter-item">
+            <span class="filter-label">产品</span>
+            <select class="filter-select" id="filterProduct">
+                <option value="">全部产品</option>
+                <option value="SXX123">SXX123(XXXX期货XXXXX资产管理计划)</option>
+                <option value="SXX124">SXX124(XXXX期货XXXXX2号资产管理计划)</option>
+                <option value="SXX125">SXX125(XXXX期货XXXXX3号资产管理计划)</option>
+                <option value="SXX126">SXX126(XXXX期货XXXXX4号资产管理计划)</option>
+            </select>
+        </div>
+        <div class="filter-item">
+            <span class="filter-label">状态</span>
+            <select class="filter-select" id="filterStatus" style="min-width:140px;">
+                <option value="">运行中</option>
+                <option value="running">运行中</option>
+                <option value="stopped">已终止</option>
+                <option value="pending">待成立</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 工具栏：下载 + 新增 + 搜索 -->
+    <div class="table-toolbar">
+        <button class="btn-download" onclick="doDownload()">&#8615; 下载</button>
+        <button class="btn-download" style="background:#52c41a;" onclick="doAdd()">+ 新增</button>
+        <button class="search-btn" onclick="doSearch()">&#128269;</button>
+    </div>
+
+    <!-- 数据表格 -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th class="checkbox-col"><input type="checkbox"></th>
+                <th>产品代码</th>
+                <th>产品名称</th>
+                <th>销售情况</th>
+                <th>收入分配-管理费</th>
+                <th>收入分配-业绩报酬</th>
+                <th>收入分配-认申赎费</th>
+                <th>收入分配-外包费</th>
+                <th>经纪业务-期货户</th>
+                <th>经纪业务-证券户</th>
+                <th style="width:60px;">操作</th>
+            </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+
+<!-- ==================== 详情弹窗 ==================== -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-detail">
+        <div class="modal-header-blue">
+            <h3>详情</h3>
+            <button class="modal-close" onclick="closeDetailModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+
+            <!-- 提示（标注样式） -->
+            <div class="form-tip">
+                &#9888; 全部字段为非必填，默认值可以修改，比例和需要为1
+            </div>
+
+            <!-- 产品选择 -->
+            <div class="product-select-wrap">
+                <span class="product-select-label">产品</span>
+                <select class="product-select" id="detailProductSelect" onchange="onDetailProductChange()">
+                    <option value="SXX123">SXX123(XXXX期货XXXXX资产管理计划)</option>
+                    <option value="SXX124">SXX124(XXXX期货XXXXX2号资产管理计划)</option>
+                    <option value="SXX125">SXX125(XXXX期货XXXXX3号资产管理计划)</option>
+                    <option value="SXX126">SXX126(XXXX期货XXXXX4号资产管理计划)</option>
+                </select>
+            </div>
+
+            <!-- ========== 一、销售情况 ========== -->
+            <div class="section-block">
+                <div class="section-title">销售情况</div>
+                <div class="sub-table-header" style="grid-template-columns: 140px 180px 160px 120px 44px;">
+                    <span>公司归属</span>
+                    <span>营业部</span>
+                    <span>客户经理</span>
+                    <span>比例(%)
+                        <span class="annotation-wrap"><span class="annotation" data-tip="默认分配100%">默认100%</span></span>
+                    </span>
+                    <span></span>
+                </div>
+                <div id="salesRows"></div>
+                <div class="action-buttons">
+                    <button class="btn-action-outline" onclick="addSalesRow()">+ 添加</button>
+                    <button class="btn-action-outline" onclick="openCopyModal('sales')">&#128203; 复制</button>
+                </div>
+                <div class="ratio-validate-msg" id="salesRatioMsg"></div>
+            </div>
+
+            <!-- ========== 二、资管业务收入分配情况 ========== -->
+            <div class="section-block">
+                <div class="section-title">资管业务收入分配情况</div>
+
+                <!-- 管理费 -->
+                <div class="sub-section-title">
+                    <span class="sub-section-dot"></span>
+                    <span class="sub-section-name">管理费</span>
+                    <span class="annotation-wrap">
+                        <span class="annotation" data-tip="默认资管部50%，销售情况的营业部50%">FOF类单一产品默认规则</span>
+                    </span>
+                </div>
+                <div class="sub-table-header">
+                    <span>公司归属</span>
+                    <span>营业部</span>
+                    <span style="grid-column: span 2;">分配比例(%)</span>
+                    <span></span>
+                </div>
+                <div id="mgmtFeeRows"></div>
+                <div class="action-buttons">
+                    <button class="btn-action-outline" onclick="addMgmtFeeRow()">+ 添加</button>
+                </div>
+                <div class="ratio-validate-msg" id="mgmtFeeRatioMsg"></div>
+
+                <!-- 业绩报酬 -->
+                <div class="sub-section-title" style="margin-top:20px;">
+                    <span class="sub-section-dot"></span>
+                    <span class="sub-section-name">业绩报酬</span>
+                </div>
+                <div class="sub-table-header">
+                    <span>公司归属</span>
+                    <span>营业部</span>
+                    <span style="grid-column: span 2;">分配比例(%)</span>
+                    <span></span>
+                </div>
+                <div id="perfFeeRows"></div>
+                <div class="action-buttons">
+                    <button class="btn-action-outline" onclick="addPerfFeeRow()">+ 添加</button>
+                </div>
+                <div class="ratio-validate-msg" id="perfFeeRatioMsg"></div>
+
+                <!-- 认申赎费 -->
+                <div class="sub-section-title" style="margin-top:20px;">
+                    <span class="sub-section-dot"></span>
+                    <span class="sub-section-name">认申赎费</span>
+                </div>
+                <div class="sub-table-header">
+                    <span>公司归属</span>
+                    <span>营业部</span>
+                    <span style="grid-column: span 2;">分配比例(%)</span>
+                    <span></span>
+                </div>
+                <div id="redeemFeeRows"></div>
+                <div class="action-buttons">
+                    <button class="btn-action-outline" onclick="addRedeemFeeRow()">+ 添加</button>
+                </div>
+                <div class="ratio-validate-msg" id="redeemFeeRatioMsg"></div>
+
+                <!-- 外包费 -->
+                <div class="sub-section-title" style="margin-top:20px;">
+                    <span class="sub-section-dot"></span>
+                    <span class="sub-section-name">外包费</span>
+                </div>
+                <div class="sub-table-header">
+                    <span>公司归属</span>
+                    <span>营业部</span>
+                    <span style="grid-column: span 2;">分配比例(%)</span>
+                    <span></span>
+                </div>
+                <div id="outsourceRows"></div>
+                <div class="action-buttons">
+                    <button class="btn-action-outline" onclick="addOutsourceRow()">+ 添加</button>
+                </div>
+                <div class="ratio-validate-msg" id="outsourceRatioMsg"></div>
+            </div>
+
+            <!-- ========== 三、经纪业务收入分配情况 ========== -->
+            <div class="section-block">
+                <div class="section-title">经纪业务收入分配情况</div>
+
+                <!-- 期货户 -->
+                <div class="sub-section-title">
+                    <span class="sub-section-dot"></span>
+                    <span class="sub-section-name">期货户</span>
+                    <span class="annotation-wrap">
+                        <span class="annotation" data-tip="资管组默认资管部100%；资管合作组默认资管部50%，账户业务单位50%">资管组/资管合作组默认分配规则</span>
+                    </span>
+                </div>
+                <div class="info-box">
+                    期货账号业务单位：大渡河路营业部；所属组：资管合作组 / 暂无期货账号
+                </div>
+                <div class="sub-table-header">
+                    <span>公司归属</span>
+                    <span>营业部</span>
+                    <span style="grid-column: span 2;">分配比例(%)</span>
+                    <span></span>
+                </div>
+                <div id="futureRows"></div>
+                <div class="action-buttons">
+                    <button class="btn-action-outline" onclick="addFutureRow()">+ 添加</button>
+                </div>
+                <div class="ratio-validate-msg" id="futureRatioMsg">
+                    <span style="color:#d46b08;">&#9888; 资管组默认资管部100%</span><br>
+                    <span style="color:#d46b08;">&#9888; 资管合作组默认 资管部50%，账户业务单位50%</span>
+                </div>
+
+                <!-- 证券户 -->
+                <div class="sub-section-title" style="margin-top:20px;">
+                    <span class="sub-section-dot"></span>
+                    <span class="sub-section-name">证券户</span>
+                </div>
+                <div class="sub-table-header">
+                    <span>公司归属</span>
+                    <span>营业部</span>
+                    <span style="grid-column: span 2;">分配比例(%)</span>
+                    <span></span>
+                </div>
+                <div id="securityRows"></div>
+                <div class="action-buttons">
+                    <button class="btn-action-outline" onclick="addSecurityRow()">+ 添加</button>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn-primary-lg" onclick="confirmDetail()">确定</button>
+        </div>
+    </div>
+</div>
+
+
+<!-- ==================== 复制弹窗 ==================== -->
+<div class="modal-overlay" id="copyModal">
+    <div class="modal-copy">
+        <div class="modal-header-blue">
+            <h3>复制</h3>
+            <button class="modal-close" onclick="closeCopyModal()">&times;</button>
+        </div>
+        <div class="copy-body">
+            <div class="copy-field">
+                <span class="copy-field-label">从</span>
+                <select class="copy-field-select" id="copyFrom" onchange="onCopyFromChange()">
+                    <option value="sales">销售情况</option>
+                    <option value="mgmtFee">管理费</option>
+                    <option value="perfFee">业绩报酬</option>
+                    <option value="redeemFee">认申赎费</option>
+                    <option value="outsource">外包费</option>
+                    <option value="future">期货户</option>
+                    <option value="security">证券户</option>
+                </select>
+                <span class="copy-field-tag">单选</span>
+            </div>
+            <div class="copy-field">
+                <span class="copy-field-label">复制到</span>
+                <select class="copy-field-select" id="copyToDisplay" disabled style="background:#f5f5f5;color:#999;">
+                    <option>请勾选下方目标模块</option>
+                </select>
+                <span class="copy-field-tag">多选</span>
+            </div>
+            <!-- 多选目标区域 -->
+            <div class="copy-multi-area" id="copyMultiArea">
+                <div class="copy-multi-label">选择要复制到的目标模块：</div>
+                <div class="copy-checkbox-group" id="copyCheckboxGroup">
+                    <label class="copy-checkbox-label"><input type="checkbox" value="mgmtFee" checked> 管理费</label>
+                    <label class="copy-checkbox-label"><input type="checkbox" value="perfFee"> 业绩报酬</label>
+                    <label class="copy-checkbox-label"><input type="checkbox" value="redeemFee"> 认申赎费</label>
+                    <label class="copy-checkbox-label"><input type="checkbox" value="outsource"> 外包费</label>
+                    <label class="copy-checkbox-label"><input type="checkbox" value="future"> 期货户</label>
+                    <label class="copy-checkbox-label"><input type="checkbox" value="security"> 证券户</label>
+                </div>
+            </div>
+        </div>
+        <div class="copy-footer">
+            <button class="btn-primary-lg" style="padding:9px 64px;" onclick="confirmCopy()">确定</button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// ============================================================
+// Mock 数据 — 带完整字段值
+// ============================================================
+const productsData = [
+    {
+        code: 'SXX123',
+        name: 'XXXX期货XXXXX资产管理计划',
+        sales: [
+            { company: '证券', dept: '上海大渡河路', manager: '小A', ratio: '60' },
+            { company: '证券', dept: '上海宜山路', manager: '小B', ratio: '40' }
+        ],
+        mgmtFee: [
+            { company: '期货', dept: '资管部', ratio: '50' },
+            { company: '期货', dept: '上海大渡河路', ratio: '50' }
+        ],
+        perfFee: [
+            { company: '期货', dept: '资管部', ratio: '80' },
+            { company: '期货', dept: '上海宜山路', ratio: '20' }
+        ],
+        redeemFee: [
+            { company: '期货', dept: '资管部', ratio: '70' },
+            { company: '期货', dept: '深圳福田', ratio: '30' }
+        ],
+        outsource: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        future: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        security: [
+            { company: '期货', dept: '上海大渡河路', ratio: '60' },
+            { company: '期货', dept: '北京金融街', ratio: '40' }
+        ]
+    },
+    {
+        code: 'SXX124',
+        name: 'XXXX期货XXXXX2号资产管理计划',
+        sales: [],
+        mgmtFee: [
+            { company: '期货', dept: '资管部', ratio: '50' },
+            { company: '期货', dept: '广州天河', ratio: '50' }
+        ],
+        perfFee: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        redeemFee: [
+            { company: '期货', dept: '资管部', ratio: '60' },
+            { company: '期货', dept: '广州天河', ratio: '40' }
+        ],
+        outsource: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        future: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        security: []
+    },
+    {
+        code: 'SXX125',
+        name: 'XXXX期货XXXXX3号资产管理计划',
+        sales: [
+            { company: '证券', dept: '上海大渡河路', manager: '小A', ratio: '50' },
+            { company: '证券', dept: '北京金融街', manager: '张三', ratio: '50' }
+        ],
+        mgmtFee: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        perfFee: [
+            { company: '期货', dept: '资管部', ratio: '70' },
+            { company: '期货', dept: '深圳福田', ratio: '30' }
+        ],
+        redeemFee: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        outsource: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        future: [
+            { company: '期货', dept: '资管部', ratio: '50' },
+            { company: '期货', dept: '上海大渡河路', ratio: '50' }
+        ],
+        security: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ]
+    },
+    {
+        code: 'SXX126',
+        name: 'XXXX期货XXXXX4号资产管理计划',
+        sales: [
+            { company: '证券', dept: '深圳福田', manager: '李四', ratio: '100' }
+        ],
+        mgmtFee: [
+            { company: '期货', dept: '资管部', ratio: '50' },
+            { company: '期货', dept: '北京金融街', ratio: '50' }
+        ],
+        perfFee: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        redeemFee: [
+            { company: '期货', dept: '资管部', ratio: '80' },
+            { company: '期货', dept: '上海宜山路', ratio: '20' }
+        ],
+        outsource: [
+            { company: '期货', dept: '资管部', ratio: '100' }
+        ],
+        future: [],
+        security: []
+    }
+];
+
+let currentProductId = 'SXX123';
+let currentEditData = null;
+
+const companyOptions = ['证券', '期货'];
+const deptOptions = ['上海大渡河路', '上海宜山路', '北京金融街', '深圳福田', '广州天河', '资管部'];
+const managerOptions = ['小A', '小B', '小C', '张三', '李四', '王五'];
+
+// 所有可复制的 section 列表
+const allSections = ['sales','mgmtFee','perfFee','redeemFee','outsource','future','security'];
+
+
+// ============================================================
+// 初始化 & 列表渲染
+// ============================================================
+function init() { renderTable(); }
+
+function renderTable() {
+    const tbody = document.getElementById('tableBody');
+    let html = '';
+    productsData.forEach((p) => {
+        html += `<tr>
+            <td class="checkbox-col"><input type="checkbox"></td>
+            <td class="col-code">${p.code}</td>
+            <td class="col-name">${p.name}</td>
+            <td class="col-cell">${formatCellData(p.sales, true)}</td>
+            <td class="col-cell">${formatCellData(p.mgmtFee)}</td>
+            <td class="col-cell">${formatCellData(p.perfFee)}</td>
+            <td class="col-cell">${formatCellData(p.redeemFee)}</td>
+            <td class="col-cell">${formatCellData(p.outsource)}</td>
+            <td class="col-cell">${formatCellData(p.future)}</td>
+            <td class="col-cell">${formatCellData(p.security)}</td>
+            <td class="col-action"><a onclick="openDetail('${p.code}')">编辑</a></td>
+        </tr>`;
+    });
+    tbody.innerHTML = html;
+}
+
+function formatCellData(rows, isSales) {
+    if (!rows || rows.length === 0) return '-';
+    if (isSales) {
+        return rows.map(r =>
+            `${r.company || ''}${r.dept ? '-' + r.dept : ''}${r.manager ? '-' + r.manager : ''}${r.ratio ? ' ' + r.ratio + '%' : ''}`
+        ).join('<br>');
+    }
+    return rows.map(r =>
+        `${r.company || ''}${r.dept ? '-' + r.dept : ''}${r.ratio ? ' ' + r.ratio + '%' : ''}`
+    ).join('<br>');
+}
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function doDownload() { alert('下载功能（Demo）'); }
+function doSearch() { alert('搜索功能（Demo）'); }
+function doAdd() {
+    // 新增产品：打开详情弹窗，每个类型都有一行默认数据
+    currentProductId = 'NEW';
+    currentEditData = {
+        // 销售情况：默认100%
+        sales: [{company:'证券',dept:'',manager:'',ratio:'100'}],
+        // 管理费：FOF类产品默认资管部50%
+        mgmtFee: [{company:'期货',dept:'资管部',ratio:'50'}],
+        // 业绩报酬：空白
+        perfFee: [{company:'期货',dept:'',ratio:''}],
+        // 认申赎费：空白
+        redeemFee: [{company:'期货',dept:'',ratio:''}],
+        // 外包费：空白
+        outsource: [{company:'期货',dept:'',ratio:''}],
+        // 期货户：资管合作组默认规则
+        future: [
+            {company:'期货',dept:'资管部',ratio:'50'},
+            {company:'期货',dept:'大渡河路营业部',ratio:'50'}
+        ],
+        // 证券户：空白
+        security: [{company:'期货',dept:'',ratio:''}]
+    };
+    document.getElementById('detailProductSelect').value = 'SXX123';
+    renderAllSubTables();
+    document.getElementById('detailModal').classList.add('active');
+}
+
+
+// ============================================================
+// 详情弹窗
+// ============================================================
+function openDetail(productId) {
+    currentProductId = productId;
+    currentEditData = JSON.parse(JSON.stringify(
+        productsData.find(p => p.code === productId) || productsData[0]
+    ));
+    document.getElementById('detailProductSelect').value = productId;
+    renderAllSubTables();
+    document.getElementById('detailModal').classList.add('active');
+}
+function closeDetailModal() { document.getElementById('detailModal').classList.remove('active'); }
+
+function onDetailProductChange() {
+    const val = document.getElementById('detailProductSelect').value;
+    currentProductId = val;
+    currentEditData = JSON.parse(JSON.stringify(
+        productsData.find(p => p.code === val) || productsData[0]
+    ));
+    renderAllSubTables();
+}
+
+function confirmDetail() {
+    const allOk = validateAllRatios();
+    if (!allOk) { alert('请检查各模块的比例之和是否为 100%'); return; }
+    // 回写数据源
+    const idx = productsData.findIndex(p => p.code === currentProductId);
+    if (idx >= 0) productsData[idx] = JSON.parse(JSON.stringify(currentEditData));
+    closeDetailModal();
+    renderTable();
+    alert('保存成功');
+}
+
+
+// ============================================================
+// 子表格通用方法
+// ============================================================
+function buildOptions(options, selected) {
+    return options.map(o => `<option value="${o}" ${o === selected ? 'selected' : ''}>${o}</option>`).join('');
+}
+
+function buildSimpleRow(row, idx, section) {
+    const cap = section.charAt(0).toUpperCase() + section.slice(1);
+    const rmFn = `remove${cap}Row`;
+    const upFn = `update${cap}Row`;
+    const isSales = (section === 'sales');
+
+    // 销售情况使用5列，其他使用4列
+    const headerGrid = isSales
+        ? 'grid-template-columns: 140px 180px 160px 120px 44px;'
+        : 'grid-template-columns: 140px 180px 1fr 44px;';
+
+    return `<div class="sub-table-row" style="${headerGrid}">
+        <select class="sub-input" onchange="${upFn}(${idx},'company',this.value)">
+            ${buildOptions(companyOptions, row.company)}
+        </select>` +
+        (isSales ?
+        `<select class="sub-input" onchange="${upFn}(${idx},'dept',this.value)">
+            ${buildOptions(deptOptions, row.dept)}
+        </select>
+        <select class="sub-input" onchange="${upFn}(${idx},'manager',this.value)">
+            ${buildOptions(managerOptions, row.manager)}
+        </select>
+        <input type="text" class="sub-input" value="${row.ratio||''}" placeholder=""
+               onchange="${upFn}(${idx},'ratio',this.value)"
+               oninput="validateSectionRatio('${section}')">`
+        :
+        `<select class="sub-input" onchange="${upFn}(${idx},'dept',this.value)">
+            ${buildOptions(deptOptions, row.dept)}
+        </select>
+        <input type="text" class="sub-input" value="${row.ratio||''}" placeholder=""
+               onchange="${upFn}(${idx},'ratio',this.value)"
+               oninput="validateSectionRatio('${section}')">`
+        ) +
+        `<button class="btn-remove-row" onclick="${rmFn}(${idx})" title="删除">&minus;</button>
+    </div>`;
+}
+
+// --- 销售情况 ---
+function renderSalesRows() {
+    const c=document.getElementById('salesRows');c.innerHTML='';
+    (currentEditData.sales||[]).forEach((r,i)=>{c.innerHTML+=buildSimpleRow(r,i,'sales');});
+    validateSectionRatio('sales');
+}
+function addSalesRow(){if(!currentEditData.sales)currentEditData.sales=[];currentEditData.sales.push({company:'证券',dept:'',manager:'',ratio:''});renderSalesRows();}
+function removeSalesRow(idx){currentEditData.sales.splice(idx,1);renderSalesRows();}
+function updateSalesRow(idx,f,v){if(currentEditData.sales[idx])currentEditData.sales[idx][f]=v;}
+
+// --- 管理费 ---
+function renderMgmtFeeRows(){const c=document.getElementById('mgmtFeeRows');c.innerHTML='';(currentEditData.mgmtFee||[]).forEach((r,i)=>{c.innerHTML+=buildSimpleRow(r,i,'mgmtFee');});validateSectionRatio('mgmtFee');}
+function addMgmtFeeRow(){if(!currentEditData.mgmtFee)currentEditData.mgmtFee=[];currentEditData.mgmtFee.push({company:'期货',dept:'',ratio:''});renderMgmtFeeRows();}
+function removeMgmtFeeRow(idx){currentEditData.mgmtFee.splice(idx,1);renderMgmtFeeRows();}
+function updateMgmtFeeRow(idx,f,v){if(currentEditData.mgmtFee[idx])currentEditData.mgmtFee[idx][f]=v;}
+
+// --- 业绩报酬 ---
+function renderPerfFeeRows(){const c=document.getElementById('perfFeeRows');c.innerHTML='';(currentEditData.perfFee||[]).forEach((r,i)=>{c.innerHTML+=buildSimpleRow(r,i,'perfFee');});validateSectionRatio('perfFee');}
+function addPerfFeeRow(){if(!currentEditData.perfFee)currentEditData.perfFee=[];currentEditData.perfFee.push({company:'期货',dept:'',ratio:''});renderPerfFeeRows();}
+function removePerfFeeRow(idx){currentEditData.perfFee.splice(idx,1);renderPerfFeeRows();}
+function updatePerfFeeRow(idx,f,v){if(currentEditData.perfFee[idx])currentEditData.perfFee[idx][f]=v;}
+
+// --- 认申赎费 ---
+function renderRedeemFeeRows(){const c=document.getElementById('redeemFeeRows');c.innerHTML='';(currentEditData.redeemFee||[]).forEach((r,i)=>{c.innerHTML+=buildSimpleRow(r,i,'redeemFee');});validateSectionRatio('redeemFee');}
+function addRedeemFeeRow(){if(!currentEditData.redeemFee)currentEditData.redeemFee=[];currentEditData.redeemFee.push({company:'期货',dept:'',ratio:''});renderRedeemFeeRows();}
+function removeRedeemFeeRow(idx){currentEditData.redeemFee.splice(idx,1);renderRedeemFeeRows();}
+function updateRedeemFeeRow(idx,f,v){if(currentEditData.redeemFee[idx])currentEditData.redeemFee[idx][f]=v;}
+
+// --- 外包费 ---
+function renderOutsourceRows(){const c=document.getElementById('outsourceRows');c.innerHTML='';(currentEditData.outsource||[]).forEach((r,i)=>{c.innerHTML+=buildSimpleRow(r,i,'outsource');});validateSectionRatio('outsource');}
+function addOutsourceRow(){if(!currentEditData.outsource)currentEditData.outsource=[];currentEditData.outsource.push({company:'期货',dept:'',ratio:''});renderOutsourceRows();}
+function removeOutsourceRow(idx){currentEditData.outsource.splice(idx,1);renderOutsourceRows();}
+function updateOutsourceRow(idx,f,v){if(currentEditData.outsource[idx])currentEditData.outsource[idx][f]=v;}
+
+// --- 期货户 ---
+function renderFutureRows(){const c=document.getElementById('futureRows');c.innerHTML='';(currentEditData.future||[]).forEach((r,i)=>{c.innerHTML+=buildSimpleRow(r,i,'future');});validateSectionRatio('future');}
+function addFutureRow(){if(!currentEditData.future)currentEditData.future=[];currentEditData.future.push({company:'期货',dept:'',ratio:''});renderFutureRows();}
+function removeFutureRow(idx){currentEditData.future.splice(idx,1);renderFutureRows();}
+function updateFutureRow(idx,f,v){if(currentEditData.future[idx])currentEditData.future[idx][f]=v;}
+
+// --- 证券户 ---
+function renderSecurityRows(){const c=document.getElementById('securityRows');c.innerHTML='';(currentEditData.security||[]).forEach((r,i)=>{c.innerHTML+=buildSimpleRow(r,i,'security');});}
+function addSecurityRow(){if(!currentEditData.security)currentEditData.security=[];currentEditData.security.push({company:'期货',dept:'',ratio:''});renderSecurityRows();}
+function removeSecurityRow(idx){currentEditData.security.splice(idx,1);renderSecurityRows();}
+function updateSecurityRow(idx,f,v){if(currentEditData.security[idx])currentEditData.security[idx][f]=v;}
+
+function renderAllSubTables() {
+    renderSalesRows(); renderMgmtFeeRows(); renderPerfFeeRows();
+    renderRedeemFeeRows(); renderOutsourceRows();
+    renderFutureRows(); renderSecurityRows();
+}
+
+
+// ============================================================
+// 比例校验
+// ============================================================
+function getRows(section) {
+    switch(section){
+        case 'sales':return currentEditData.sales||[];
+        case 'mgmtFee':return currentEditData.mgmtFee||[];
+        case 'perfFee':return currentEditData.perfFee||[];
+        case 'redeemFee':return currentEditData.redeemFee||[];
+        case 'outsource':return currentEditData.outsource||[];
+        case 'future':return currentEditData.future||[];
+        case 'security':return currentEditData.security||[];
+        default:return [];
+    }
+}
+function setRows(section,data){
+    switch(section){
+        case 'sales':currentEditData.sales=data;break;
+        case 'mgmtFee':currentEditData.mgmtFee=data;break;
+        case 'perfFee':currentEditData.perfFee=data;break;
+        case 'redeemFee':currentEditData.redeemFee=data;break;
+        case 'outsource':currentEditData.outsource=data;break;
+        case 'future':currentEditData.future=data;break;
+        case 'security':currentEditData.security=data;break;
+    }
+}
+
+function validateSectionRatio(section) {
+    const elIdMap = {sales:'salesRatioMsg',mgmtFee:'mgmtFeeRatioMsg',perfFee:'perfFeeRatioMsg',redeemFee:'redeemFeeRatioMsg',outsource:'outsourceRatioMsg',future:'futureRatioMsg'};
+    const msgEl = document.getElementById(elIdMap[section]);
+    if (!msgEl) return true;
+    const rows = getRows(section);
+    let total = 0, hasValue = false;
+    rows.forEach(r => { const v = parseFloat(r.ratio); if (!isNaN(v)) { total += v; hasValue = true; }});
+    if (!hasValue) { msgEl.innerHTML = ''; return true; }
+    if (Math.abs(total - 100) < 0.01) {
+        msgEl.innerHTML = '';
+        return true;
+    } else {
+        msgEl.innerHTML = '<span style="color:#ff4d4f;">&#10007; 当前合计 '+total.toFixed(2)+'%，需为 100%（差 '+(total-100).toFixed(2)+'%）</span>';
+        return false;
+    }
+}
+function validateAllRatios() {
+    let ok = true;
+    ['sales','mgmtFee','perfFee','redeemFee','outsource','future'].forEach(s => { if (!validateSectionRatio(s)) ok = false; });
+    return ok;
+}
+
+
+// ============================================================
+// 复制弹窗
+// ============================================================
+function openCopyModal(fromSection) {
+    document.getElementById('copyFrom').value = fromSection;
+    onCopyFromChange();
+    // 默认不选中任何目标
+    document.querySelectorAll('#copyCheckboxGroup input[type=checkbox]').forEach(cb => cb.checked = false);
+    document.getElementById('copyModal').classList.add('active');
+}
+
+function closeCopyModal() { document.getElementById('copyModal').classList.remove('active'); }
+
+function onCopyFromChange() {
+    const from = document.getElementById('copyFrom').value;
+    // 禁用源自身的 checkbox
+    document.querySelectorAll('#copyCheckboxGroup input[type=checkbox]').forEach(cb => {
+        cb.checked = false;
+        cb.disabled = (cb.value === from);
+        cb.parentElement.style.opacity = cb.disabled ? '0.4' : '1';
+    });
+}
+
+function confirmCopy() {
+    const from = document.getElementById('copyFrom').value;
+    // 收集选中的目标
+    const targets = [];
+    document.querySelectorAll('#copyCheckboxGroup input[type=checkbox]:checked').forEach(cb => targets.push(cb.value));
+
+    if (targets.length === 0) { alert('请至少选择一个目标模块'); return; }
+
+    const sourceData = JSON.parse(JSON.stringify(getRows(from)));
+    targets.forEach(t => { setRows(t, JSON.parse(JSON.stringify(sourceData))); });
+
+    closeCopyModal();
+    renderAllSubTables();
+
+    const targetNames = targets.map(t => getSectionName(t)).join('、');
+    alert('已将「'+getSectionName(from)+'」复制到：'+targetNames);
+}
+
+function getSectionName(key) {
+    const m = {sales:'销售情况',mgmtFee:'管理费',perfFee:'业绩报酬',redeemFee:'认申赎费',outsource:'外包费',future:'期货户',security:'证券户'};
+    return m[key] || key;
+}
+
+init();
+</script>
+</body>
+</html>

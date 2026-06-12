@@ -136,6 +136,18 @@
             overflow: hidden;
             box-shadow: 0 1px 2px rgba(0,0,0,0.06);
         }
+        /* 母基金视图中的表格支持水平滚动 */
+        .detail-main .table-wrapper {
+            overflow-x: auto;
+        }
+        .detail-main .table-wrapper table {
+            min-width: max-content;
+        }
+        /* 母基金视图表格字体统一 */
+        .detail-main .table-wrapper th,
+        .detail-main .table-wrapper td {
+            font-size: 13px !important;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -424,6 +436,33 @@
         .required { color: #ff4d4f; margin-left: 2px; }
         .hint-text { font-size: 12px; color: #999; }
         .hint-text.error { color: #ff4d4f; }
+
+        /* 二次确认 - 醒目提示样式 */
+        .confirm-highlight {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: #fff7e6;
+            border: 1px solid #ffd591;
+            border-radius: 4px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .confirm-highlight:hover {
+            background: #fffbe6;
+            border-color: #ffc53d;
+        }
+        .confirm-highlight input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #fa8c16;
+        }
+        .confirm-highlight span {
+            font-size: 13px;
+            font-weight: 500;
+            color: #d46b08;
+        }
 
         /* 明细表格 */
         .detail-table-section {
@@ -756,6 +795,7 @@
                             <th>子基金代码</th>
                             <th>子基金名称</th>
                             <th>策略</th>
+                            <th>策略比例</th>
                             <th>金额(万)</th>
                             <th>配置比例</th>
                             <th>调仓金额(万)</th>
@@ -1125,11 +1165,11 @@ const mainTableData = [
       parentFund: 'SKZX003 私客尊享FOF3号', subManager: '衍复投资', subCode: 'YF005',
       subName: '衍复量化增强1号', strategy: '量化指增', amount: 198,
       ratio: '32.78%', adjAmt: '-', pool: '上分50池-核心池', scheduled: 0, pending: 198 },
-    { id: 10, opType: '建仓', status: '待上会', totalAmount: 604, assistant: '张晓明',
+    { id: 10, opType: '建仓', status: '待豁免', totalAmount: 604, assistant: '张晓明',
        parentFund: 'SKZX003 私客尊享FOF3号', subManager: '九坤投资', subCode: 'JK001',
        subName: '九坤量化对冲1号', strategy: '量化对冲', amount: 156,
        ratio: '25.83%', adjAmt: '-', pool: '上分50池-配置池', scheduled: 0, pending: 156 },
-    { id: 11, opType: '调仓', status: '待上会', totalAmount: 604, assistant: '张晓明',
+    { id: 11, opType: '调仓', status: '待豁免', totalAmount: 604, assistant: '张晓明',
        parentFund: 'SKZX003 私客尊享FOF3号', subManager: '黑翼资产', subCode: 'HY007',
        subName: '黑翼对冲基金6号', strategy: '量化对冲', amount: '-', ratio: '-', adjAmt: '-',
        pool: '-', scheduled: 0, pending: '-' },
@@ -1196,6 +1236,18 @@ function switchTab(tab) {
 function renderMainTable() {
     const tbody = document.getElementById('mainTableBody');
     const isBuild = row => row.opType === '建仓';
+
+    // 计算每个策略的合并比例（相同策略的比例相加）
+    const strategyRatioMap = {};
+    mainTableData.forEach(row => {
+        if (row.ratio && row.ratio !== '-') {
+            const num = parseFloat(row.ratio);
+            if (!isNaN(num)) {
+                strategyRatioMap[row.strategy] = (strategyRatioMap[row.strategy] || 0) + num;
+            }
+        }
+    });
+
     tbody.innerHTML = mainTableData.map(row => `
         <tr>
             <td><input type="checkbox"></td>
@@ -1208,6 +1260,7 @@ function renderMainTable() {
             <td>${row.subCode}</td>
             <td>${row.subName}</td>
             <td>${row.strategy}</td>
+            <td>${strategyRatioMap[row.strategy] ? strategyRatioMap[row.strategy].toFixed(2) + '%' : '-'}</td>
             <td style="color:${isBuild(row) ? '' : '#ccc'}">${row.amount}</td>
             <td style="color:${isBuild(row) ? '' : '#ccc'}">${row.ratio}</td>
             <td style="color:${!isBuild(row) ? '' : '#ccc'}">${row.adjAmt}</td>
@@ -1224,7 +1277,7 @@ function renderMainTable() {
 }
 
 function getStatusClass(status) {
-    const map = { '豁免上会': 'status-exempt', '已上会': 'status-done', '待上会': 'status-pending' };
+    const map = { '豁免上会': 'status-exempt', '已上会': 'status-done', '待上会': 'status-pending', '待豁免': 'status-waiting' };
     return map[status] || 'status-waiting';
 }
 
@@ -1385,11 +1438,18 @@ function renderRecordTable() {
                     <th>子基金代码</th>
                     <th>子基金名称</th>
                     <th>策略</th>
+                    <th>策略比例</th>
                     <th>最新估值日期</th>
                     <th>已投金额(万)</th>
                     <th>配置比例</th>
                     <th>调仓原因</th>
                     <th>调仓金额(万)</th>
+                    <th>调仓后金额(万)</th>
+                    <th>调仓后配置比例</th>
+                    <th>证券交易落地营业部</th>
+                    <th>期货交易落地营业部</th>
+                    <th>已排期(万)</th>
+                    <th>待排期(万)</th>
                     <th>操作</th>
                 </tr></thead>
                 <tbody>
@@ -1397,33 +1457,61 @@ function renderRecordTable() {
                         <td><input type="checkbox"></td>
                         <td><span class="status-exempt">豁免上会</span></td>
                         <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>量化指增</td>
+                        <td>32.78%</td>
                         <td>2026-05-13</td><td>574.00</td><td>6.46%</td>
                         <td style="max-width:140px;font-size:12px;">平滑组合整体收益风险特征</td><td>86.00</td>
+                        <td>660.00</td><td>7.43%</td>
+                        <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">南京新街口营业部</td>
+                        <td>86.00</td><td>0.00</td>
                         <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',86)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
                         <td><span class="status-done">已上会</span></td>
                         <td>九坤投资</td><td>JK001</td><td>九坤量化对冲1号</td><td>量化对冲</td>
+                        <td>48.05%</td>
                         <td>2026-05-12</td><td>435.00</td><td>4.90%</td>
                         <td style="max-width:140px;font-size:12px;">增强组合防守属性</td><td>163.00</td>
+                        <td>598.00</td><td>6.73%</td>
+                        <td style="font-size:12px;">上海陆家嘴营业部</td><td style="font-size:12px;">上海陆家嘴营业部</td>
+                        <td>163.00</td><td>0.00</td>
                         <td><a class="action-link" onclick="openScheduleOrderFromDetail('九坤投资','JK001','九坤量化对冲1号','量化对冲',163)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
                         <td><span class="status-done">已上会</span></td>
                         <td>幻方量化</td><td>HF002</td><td>幻方量化中性3号</td><td>量化中性</td>
+                        <td>25.36%</td>
                         <td>2026-05-04</td><td>663.00</td><td>7.46%</td>
                         <td style="max-width:140px;font-size:12px;">平滑组合整体收益风险特征</td><td>57.00</td>
+                        <td>720.00</td><td>8.11%</td>
+                        <td style="font-size:12px;">北京金融街营业部总部</td><td style="font-size:12px;">北京金融街营业部总部</td>
+                        <td>57.00</td><td>0.00</td>
                         <td><a class="action-link" onclick="openScheduleOrderFromDetail('幻方量化','HF002','幻方量化中性3号','量化中性',57)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
                         <td><span class="status-done">已上会</span></td>
                         <td>黑翼资产</td><td>HY007</td><td>黑翼对冲基金6号</td><td>量化对冲</td>
+                        <td>48.05%</td>
                         <td>2026-05-16</td><td>624.00</td><td>7.02%</td>
                         <td style="max-width:140px;font-size:12px;">根据市场环境调整策略配置</td><td>119.00</td>
+                        <td>743.00</td><td>8.37%</td>
+                        <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">广州天河营业部</td>
+                        <td>119.00</td><td>0.00</td>
                         <td><a class="action-link" onclick="openScheduleOrderFromDetail('黑翼资产','HY007','黑翼对冲基金6号','量化对冲',119)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-waiting">待豁免</span></td>
+                        <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>量化指增</td>
+                        <td>32.78%</td>
+                        <td>-</td><td>0.00</td><td>0.00%</td>
+                        <td style="max-width:140px;font-size:12px;">新策略首次配置</td><td>150.00</td>
+                        <td>150.00</td><td>1.69%</td>
+                        <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">南京新街口营业部</td>
+                        <td>0.00</td><td>150.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',150)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                 </tbody>
             </table>
@@ -1450,6 +1538,7 @@ function renderRecordTable() {
                     <th>子基金代码</th>
                     <th>子基金名称</th>
                     <th>策略</th>
+                    <th>策略比例</th>
                     <th>金额(万)</th>
                     <th>配置比例</th>
                     <th>池子</th>
@@ -1464,6 +1553,7 @@ function renderRecordTable() {
                         <td><input type="checkbox"></td>
                         <td><span class="status-exempt">豁免上会</span></td>
                         <td>幻方量化</td><td>HF002</td><td>幻方量化中性3号</td><td>量化中性</td>
+                        <td>25.36%</td>
                         <td>229.00</td><td>19.98%</td><td>上分50池-核心池</td>
                         <td style="font-size:12px;">北京金融街营业部总部</td><td style="font-size:12px;">北京金融街营业部总部</td>
                         <td>0.00</td><td>229.00</td>
@@ -1473,6 +1563,7 @@ function renderRecordTable() {
                         <td><input type="checkbox"></td>
                         <td><span class="status-exempt">豁免上会</span></td>
                         <td>宁波幻方</td><td>NB008</td><td>宁波幻方混合1号</td><td>混合策略</td>
+                        <td>8.99%</td>
                         <td>231.00</td><td>20.16%</td><td>上分50池-配置池</td>
                         <td style="font-size:12px;">北京金融街营业部</td><td style="font-size:12px;">杭州西湖营业部</td>
                         <td>0.00</td><td>231.00</td>
@@ -1482,6 +1573,7 @@ function renderRecordTable() {
                         <td><input type="checkbox"></td>
                         <td><span class="status-pending">豁免上会</span></td>
                         <td>九坤投资</td><td>JK001</td><td>九坤量化对冲1号</td><td>量化对冲</td>
+                        <td>48.05%</td>
                         <td>289.00</td><td>25.22%</td><td>上分50池-配置池</td>
                         <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">上海陆家嘴营业部</td>
                         <td>0.00</td><td>289.00</td>
@@ -1491,10 +1583,21 @@ function renderRecordTable() {
                         <td><input type="checkbox"></td>
                         <td><span class="status-waiting">待上会</span></td>
                         <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>量化指增</td>
+                        <td>32.78%</td>
                         <td>199.00</td><td>17.36%</td><td>上分50池-核心池</td>
                         <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">南京新街口营业部</td>
                         <td><a style="color:#1890ff;cursor:pointer;font-weight:500;" onclick="openModal('scheduledPlansModal')">573.00</a></td><td>199.00</td>
                         <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',199)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                    </tr>
+                    <tr>
+                        <td><input type="checkbox"></td>
+                        <td><span class="status-waiting">待豁免</span></td>
+                        <td>明汯投资</td><td>MH001</td><td>明汯多策略1号</td><td>混合策略</td>
+                        <td>8.99%</td>
+                        <td>180.00</td><td>15.71%</td><td>上分50池-配置池</td>
+                        <td style="font-size:12px;">上海浦东营业部</td><td style="font-size:12px;">上海陆家嘴营业部</td>
+                        <td>0.00</td><td>180.00</td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('明汯投资','MH001','明汯多策略1号','混合策略',180)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                 </tbody>
             </table>
@@ -2102,10 +2205,14 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
                     </tbody>
                 </table>
             </div>
+            <div style="margin-top:16px;padding:12px 16px;background:#fff7e6;border:1px solid #ffd591;border-radius:4px;">
+                <label class="confirm-highlight" style="background:transparent;border:none;padding:0;"><input type="checkbox" id="bcpConfirm"> <span>二次确认</span></label>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-default" onclick="closeModal('batchCreatePlanModal')">取消</button>
             <button class="btn btn-primary" onclick="submitBatchPlan()">创建投资计划</button>
+            <button class="btn btn-primary" onclick="submitBatchPlan(true)">创建投资计划并确认</button>
         </div>
     </div>
 </div>
@@ -2255,10 +2362,14 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
                     <input type="text" class="form-input" id="soRemark">
                 </div>
             </div>
+            <div style="margin-top:16px;padding:12px 16px;background:#fff7e6;border:1px solid #ffd591;border-radius:4px;">
+                <label class="confirm-highlight" style="background:transparent;border:none;padding:0;"><input type="checkbox" id="soConfirm"> <span>二次确认</span></label>
+            </div>
         </div>
         <div class="modal-footer">
             <button class="btn btn-default" onclick="closeModal('scheduleOrderModal')">取消</button>
             <button class="btn btn-primary" onclick="submitScheduleOrder()">创建投资计划</button>
+            <button class="btn btn-primary" onclick="submitScheduleOrder(true)">创建投资计划并确认</button>
         </div>
     </div>
 </div>

@@ -161,6 +161,41 @@
         }
         .matrix-cell { flex: 1; min-width: 0; }
 
+        /* 视图切换Tab */
+        .view-tabs { display: flex; border: 1px solid #d9d9d9; border-radius: 4px; overflow: hidden; }
+        .view-tab {
+            padding: 4px 14px; font-size: 12px; cursor: pointer;
+            background: white; color: #666; transition: all 0.15s;
+            border-right: 1px solid #d9d9d9;
+        }
+        .view-tab:last-child { border-right: none; }
+        .view-tab:hover { color: #1890ff; }
+        .view-tab.active { background: #1890ff; color: white; }
+
+        /* 总览一览 - 全宽 */
+        .overview-full { flex: 1; }
+        .overview-wrapper { overflow-x: auto; }
+        .overview-table-wrap { min-width: 900px; }
+        .overview-table {
+            width: 100%; border-collapse: collapse; font-size: 12px;
+        }
+        .overview-table th {
+            background: #fafafa; padding: 8px 10px; text-align: left;
+            font-weight: 600; border-bottom: 2px solid #e8e8e8;
+            white-space: nowrap; color: #666; position: sticky; top: 0;
+        }
+        .overview-table td {
+            padding: 7px 10px; border-bottom: 1px solid #f0f0f0;
+            vertical-align: top; max-width: 200px;
+        }
+        .overview-table tr:hover td { background: #fafafa; }
+        .overview-prod-name { font-weight: 500; white-space: nowrap; }
+        .overview-prod-code { font-size: 11px; color: #999; display: block; }
+        .overview-email-text {
+            word-break: break-all; line-height: 1.5; font-size: 12px;
+        }
+        .overview-empty { color: #bbb; font-size: 12px; }
+
         /* 其他列 - 自由输入 */
         .other-input {
             width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9;
@@ -336,11 +371,18 @@
 <!-- ======== 主内容区 ======== -->
 <div class="main-content">
     <div class="top-bar">
-        <h2>邮箱配置管理</h2>
+        <div style="display:flex;align-items:center;gap:16px;">
+            <h2>邮箱配置管理</h2>
+            <div class="view-tabs" id="viewTabs">
+                <span class="view-tab active" onclick="switchView('edit')">配置编辑</span>
+                <span class="view-tab" onclick="switchView('overview')">总览一览</span>
+            </div>
+        </div>
         <button class="btn btn-sm btn-primary" onclick="saveCurrentConfig()">保存全部配置</button>
     </div>
 
-    <div class="page-container">
+    <!-- 编辑视图：左右分栏 -->
+    <div class="page-container" id="editContainer">
         <!-- 左侧面板 -->
         <div class="left-panel">
             <!-- 数据类型Tab -->
@@ -388,16 +430,24 @@
                     <h2 id="rightTitle">私客通用 - 净值</h2>
                     <div class="right-header-sub" id="rightSubTitle"></div>
                 </div>
-                <div style="display:flex;gap:8px;">
-                    <button class="btn btn-sm" onclick="saveCurrentConfig()">保存当前页</button>
-                </div>
+                <button class="btn btn-sm" onclick="saveCurrentConfig()">保存当前页</button>
             </div>
 
-            <!-- 邮箱类型标签栏 -->
+            <!-- 邮箱类型标签栏（编辑视图） -->
             <div class="email-type-bar" id="emailTypeBar"></div>
 
-            <!-- 竖排配置列表 -->
-            <div class="matrix-list" id="matrixList"></div>
+            <!-- 编辑视图内容 -->
+            <div class="matrix-list" id="editView"></div>
+        </div>
+    </div>
+
+    <!-- 总览视图：全宽 -->
+    <div class="overview-full" id="overviewView" style="display:none;">
+        <div style="padding:16px 24px;">
+            <div class="data-type-tabs" id="overviewDataTypeTabs"></div>
+        </div>
+        <div class="overview-wrapper" style="padding:0 24px 24px;">
+            <div class="overview-table-wrap" id="overviewTableWrap"></div>
         </div>
     </div>
 </div>
@@ -548,7 +598,8 @@ function switchDataType(dt) {
     currentDataType = dt;
     renderDataTypeTabs();
     renderEmailTypeBar();
-    renderMatrix();
+    if (currentView === 'edit') { currentConfigKey = 'universal'; selectConfig('universal'); }
+    else { renderOverviewDataTypeTabs(); renderOverview(); }
     updateRightHeader();
 }
 
@@ -598,26 +649,14 @@ function updateRightHeader() {
 function renderMatrix() {
     const types = getEmailTypesForCurrentDt();
     const allTypes = [...types, '其他'];
-    let html = '';
 
-    // 当前配置行
     const configName = currentConfigKey === 'universal'
         ? '<strong>私客通用</strong>'
         : (() => { const p = productOverrides.find(x=>x.code===currentConfigKey); return p ? `<strong>${p.name}</strong><small style="color:#999;margin-left:6px;">${p.code}</small>` : currentConfigKey; })();
 
-    html += `<div style="margin-bottom:16px;"><div style="font-size:13px;color:#999;margin-bottom:8px;">${configName}</div>`;
+    let html = `<div style="font-size:13px;color:#999;margin-bottom:8px;">${configName}</div>`;
     html += allTypes.map(t => renderVerticalCell(currentDataType, currentConfigKey, t)).join('');
-    html += `</div>`;
-
-    // 特殊产品显示继承预览
-    if (currentConfigKey !== 'universal') {
-        html += `<div style="border-top:2px solid #e8e8e8;padding-top:16px;">
-            <div style="font-size:12px;color:#999;margin-bottom:8px;">实际生效（含继承私客通用）</div>`;
-        html += allTypes.map(t => renderVerticalPreview(currentDataType, currentConfigKey, t)).join('');
-        html += `</div>`;
-    }
-
-    document.getElementById('matrixList').innerHTML = html;
+    document.getElementById('editView').innerHTML = html;
 }
 
 function renderVerticalCell(dt, key, et) {
@@ -625,10 +664,10 @@ function renderVerticalCell(dt, key, et) {
         const val = configs[dt]?.[key]?.['其他'] || '';
         const isUniversal = key === 'universal';
         const hasOwn = configs[dt]?.[key]?.['其他'] !== undefined;
-        const cls = !isUniversal && !hasOwn ? 'inherited' : '';
+        const cls = !isUniversal && !hasOwn ? '' : '';
         return `<div class="matrix-row">
             <div class="matrix-row-label">其他</div>
-            <div class="matrix-cell"><input type="text" class="other-input ${cls}" placeholder="${isUniversal ? '输入邮箱，多个用;分隔' : (hasOwn ? '' : '继承通用')}" value="${val}" onchange="saveOtherEmail('${dt}','${key}',this.value)"></div>
+            <div class="matrix-cell"><input type="text" class="other-input ${cls}" placeholder="${isUniversal ? '输入邮箱，多个用;分隔' : (hasOwn ? '' : '未配置')}" value="${val}" onchange="saveOtherEmail('${dt}','${key}',this.value)"></div>
         </div>`;
     }
     return `<div class="matrix-row">
@@ -637,20 +676,68 @@ function renderVerticalCell(dt, key, et) {
     </div>`;
 }
 
-function renderVerticalPreview(dt, key, et) {
-    if (et === '其他') {
-        const own = configs[dt]?.[key]?.['其他'];
-        const val = own !== undefined ? own : (configs[dt]?.['universal']?.['其他'] || '');
-        return `<div class="matrix-row" style="background:#fafafa;">
-            <div class="matrix-row-label" style="color:#999;">其他</div>
-            <div class="matrix-cell"><div class="email-display inherited">${val || '<span class="empty">(无)</span>'}</div></div>
-        </div>`;
+// ============================================================
+// 视图切换 & 总览
+// ============================================================
+let currentView = 'edit';
+
+function switchView(view) {
+    currentView = view;
+    document.querySelectorAll('#viewTabs .view-tab').forEach((t, i) => {
+        t.classList.toggle('active', (view === 'edit' && i === 0) || (view === 'overview' && i === 1));
+    });
+    document.getElementById('editContainer').style.display = view === 'edit' ? '' : 'none';
+    document.getElementById('overviewView').style.display = view === 'overview' ? '' : 'none';
+    if (view === 'overview') {
+        renderOverviewDataTypeTabs();
+        renderOverview();
     }
-    const emails = getEffectiveEmails(dt, key, et);
-    return `<div class="matrix-row" style="background:#fafafa;">
-        <div class="matrix-row-label" style="color:#999;">${et}</div>
-        <div class="matrix-cell"><div class="email-display inherited" onclick="openCellPicker('${dt}','${key}','${et}')">${emails.length > 0 ? emails.join('; ') + '<span class="email-count">' + emails.length + '个</span>' : '<span class="empty">(无)</span>'}</div></div>
-    </div>`;
+}
+
+function renderOverviewDataTypeTabs() {
+    document.getElementById('overviewDataTypeTabs').innerHTML = DATA_TYPES.map(dt =>
+        `<div class="data-tab ${dt === currentDataType ? 'active' : ''}" onclick="currentDataType='${dt}';renderOverviewDataTypeTabs();renderOverview();">${dt}</div>`
+    ).join('');
+}
+
+function renderOverview() {
+    const types = getEmailTypesForCurrentDt();
+    const allTypes = [...types, '其他'];
+    const allProducts = [{ code: 'universal', name: '私客通用' }, ...productOverrides];
+
+    // 表头
+    let html = `<table class="overview-table"><thead><tr><th>产品</th>`;
+    allTypes.forEach(t => { html += `<th>${t}</th>`; });
+    html += '</tr></thead><tbody>';
+
+    allProducts.forEach(prod => {
+        const key = prod.code;
+        const isUni = key === 'universal';
+        const nameHtml = isUni ? '<span class="overview-prod-name">私客通用</span>'
+            : `<span class="overview-prod-name">${prod.name}</span><span class="overview-prod-code">${prod.code}</span>`;
+
+        html += '<tr>';
+        html += `<td>${nameHtml}</td>`;
+
+        allTypes.forEach(et => {
+            let cellContent;
+            if (et === '其他') {
+                const val = configs[currentDataType]?.[key]?.['其他'] || '';
+                cellContent = val ? `<span class="overview-email-text">${val}</span>` : '<span class="overview-empty">(未配置)</span>';
+            } else {
+                const emails = getConfigEmails(currentDataType, key, et);
+                cellContent = emails.length > 0
+                    ? `<span class="overview-email-text">${emails.join('; ')}</span>`
+                    : '<span class="overview-empty">(未配置)</span>';
+            }
+            html += `<td>${cellContent}</td>`;
+        });
+
+        html += '</tr>';
+    });
+
+    html += '</tbody></table>';
+    document.getElementById('overviewTableWrap').innerHTML = html;
 }
 
 function saveOtherEmail(dt, key, val) {
@@ -667,11 +754,11 @@ function renderCell(dt, key, et) {
     const hasOwn = configs[dt]?.[key]?.[et] !== undefined;
     const displayEmails = hasOwn ? cellEmails : [];
     const isUniversal = key === 'universal';
-    return `<div class="email-display ${displayEmails.length === 0 && !isUniversal ? 'inherited empty' : ''}" onclick="openCellPicker('${dt}','${key}','${et}')" title="${isUniversal ? '' : (hasOwn ? '已单独配置' : '继承自私客通用')}">${
+    return `<div class="email-display ${displayEmails.length === 0 ? 'empty' : ''}" onclick="openCellPicker('${dt}','${key}','${et}')" title="${isUniversal ? '' : (hasOwn ? '已单独配置' : '未配置，点击添加')}">${
         displayEmails.length > 0
             ? displayEmails.join('; ') + '<span class="email-count">' + displayEmails.length + '个</span>'
-            : (isUniversal ? '<span class="empty">点击选择邮箱...</span>' : '<span class="empty">继承通用</span>')
-    }${displayEmails.length > 0 ? '<span class="clear-icon" onclick="event.stopPropagation();clearCell(\'' + dt + '\',\'' + key + '\',\'' + et + '\')">&times;</span>' : ''}${!isUniversal && !hasOwn ? '<span class="inherit-badge">继承</span>' : ''}</div>`;
+            : (isUniversal ? '<span class="empty">点击选择邮箱...</span>' : '<span class="empty">(未配置)</span>')
+    }${displayEmails.length > 0 ? '<span class="clear-icon" onclick="event.stopPropagation();clearCell(\'' + dt + '\',\'' + key + '\',\'' + et + '\')">&times;</span>' : ''}</div>`;
 }
 
 function getConfigEmails(dt, key, et) { return configs[dt]?.[key]?.[et] || []; }

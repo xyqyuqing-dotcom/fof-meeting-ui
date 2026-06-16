@@ -1,0 +1,3145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TA数据发送</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+            font-size: 14px;
+            color: #333;
+            background-color: #f5f7fa;
+        }
+
+        /* 顶部导航 */
+        .header {
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
+            color: white;
+            padding: 12px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .header-link {
+            color: rgba(255,255,255,0.85);
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .header-link:hover {
+            color: white;
+        }
+
+        /* 主容器 */
+        .container {
+            max-width: 1400px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        /* 页面视图 */
+        .page-view {
+            display: none;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 24px;
+        }
+
+        .page-view.active {
+            display: block;
+        }
+
+        /* 提示信息栏 */
+        .notice-bar {
+            background: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 4px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #0050b3;
+        }
+
+        .notice-bar strong {
+            margin-right: 8px;
+        }
+
+        .toggle-btn {
+            color: #1890ff;
+            cursor: pointer;
+            margin-left: 8px;
+            user-select: none;
+        }
+
+        .notice-content {
+            display: none;
+            margin-top: 8px;
+            line-height: 1.6;
+            color: #666;
+        }
+
+        .notice-content.show {
+            display: block;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .form-label {
+            width: 140px;
+            text-align: right;
+            padding-right: 12px;
+            color: #333;
+            flex-shrink: 0;
+        }
+
+        .form-label.required::before {
+            content: '*';
+            color: #ff4d4f;
+            margin-right: 4px;
+        }
+
+        .form-control {
+            flex: 1;
+            max-width: 500px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+            line-height: 1.5;
+            transition: all 0.3s;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24,144,255,0.2);
+        }
+
+        input[readonly] {
+            background-color: #f5f5f5;
+            cursor: not-allowed;
+            color: #666;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        select {
+            cursor: pointer;
+            background: white;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"],
+        input[type="radio"] {
+            cursor: pointer;
+        }
+
+        input[type="checkbox"]:disabled,
+        input[type="radio"]:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .help-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border: 1px solid #999;
+            border-radius: 50%;
+            font-size: 12px;
+            color: #666;
+            margin-left: 4px;
+            cursor: help;
+        }
+
+        /* 产品选择区域 */
+        .product-select-area {
+            margin-top: 12px;
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 4px;
+            border: 1px solid #e8e8e8;
+        }
+
+        .product-select-title {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+
+        .product-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .product-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .product-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-top: 8px;
+            padding: 12px;
+            background: white;
+            border-radius: 4px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        /* 数据类型选择表格 */
+        .data-type-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            border: 1px solid #e8e8e8;
+        }
+
+        .data-type-table th,
+        .data-type-table td {
+            border: 1px solid #e8e8e8;
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        .data-type-table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .data-type-table .checkbox-cell {
+            width: 60px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .freq-text {
+            color: #666;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .freq-select {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .format-options,
+        .mode-options,
+        .style-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .note-text {
+            color: #999;
+            font-size: 12px;
+            line-height: 1.6;
+            margin-top: 8px;
+        }
+
+        .template-link {
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 13px;
+            display: inline-block;
+            margin: 4px 0;
+        }
+
+        .template-link:hover {
+            text-decoration: underline;
+        }
+
+        .template-list {
+            margin-top: 8px;
+        }
+
+        /* 邮箱输入组 */
+        .email-input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-btn-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #1890ff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .add-btn-icon:hover {
+            background: #40a9ff;
+        }
+
+        /* 按钮组 */
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        .btn {
+            padding: 8px 24px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #1890ff;
+            color: white;
+            border-color: #1890ff;
+        }
+
+        .btn-primary:hover {
+            background: #40a9ff;
+        }
+
+        .btn-default {
+            background: white;
+            color: #333;
+            border-color: #d9d9d9;
+        }
+
+        .btn-default:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+
+        /* Tab导航 */
+        .tab-nav {
+            display: flex;
+            gap: 0;
+            border-bottom: 2px solid #e8e8e8;
+            margin-bottom: 20px;
+        }
+
+        .tab-item {
+            padding: 12px 24px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            color: #666;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        .tab-item:hover {
+            color: #1890ff;
+        }
+
+        .tab-item.active {
+            color: #1890ff;
+            border-bottom-color: #1890ff;
+            font-weight: 600;
+        }
+
+        /* 搜索栏 */
+        .search-bar {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            align-items: center;
+            background: #fafafa;
+            padding: 16px 20px;
+            border-radius: 6px;
+            border: 1px solid #e8e8e8;
+            overflow-x: auto;
+        }
+
+        .search-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .search-item label {
+            color: #666;
+            font-size: 13px;
+            white-space: nowrap;
+            font-weight: 500;
+        }
+
+        .search-item input,
+        .search-item select {
+            width: 200px;
+            padding: 7px 12px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+            transition: all 0.3s;
+        }
+
+        .search-item input:focus,
+        .search-item select:focus {
+            outline: none;
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+        }
+
+        .search-buttons {
+            margin-left: auto;
+            display: flex;
+            gap: 10px;
+            padding-left: 20px;
+            border-left: 1px solid #e0e0e0;
+        }
+
+        .btn-search {
+            padding: 7px 20px;
+            background: #1890ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-search:hover {
+            background: #40a9ff;
+        }
+
+        .btn-reset {
+            padding: 7px 20px;
+            background: white;
+            color: #666;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .btn-reset:hover {
+            color: #1890ff;
+            border-color: #1890ff;
+        }
+
+        /* 操作按钮栏 */
+        .action-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px 20px;
+            background: #fff;
+            border-radius: 6px;
+        }
+
+        .btn-action {
+            padding: 8px 18px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-action-primary {
+            background: #1890ff;
+            color: white;
+        }
+
+        .btn-action-primary:hover {
+            background: #40a9ff;
+        }
+
+        .btn-action-success {
+            background: #52c41a;
+            color: white;
+        }
+
+        .btn-action-default {
+            background: white;
+            color: #333;
+            border-color: #d9d9d9;
+        }
+
+        /* 数据表格 */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table th,
+        .data-table td {
+            border: 1px solid #e8e8e8;
+            padding: 10px 12px;
+            text-align: left;
+        }
+
+        .data-table th {
+            background: #fafafa;
+            font-weight: 600;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        .data-table tr:hover {
+            background: #fafafa;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+        .tag-blue {
+            background: #e6f7ff;
+            color: #1890ff;
+            border: 1px solid #91d5ff;
+        }
+
+        .tag-green {
+            background: #f6ffed;
+            color: #52c41a;
+            border: 1px solid #b7eb8f;
+        }
+
+        .switch {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .switch-toggle {
+            width: 44px;
+            height: 22px;
+            background: #ccc;
+            border-radius: 11px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .switch-toggle.active {
+            background: #1890ff;
+        }
+
+        .switch-toggle::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+
+        .switch-toggle.active::after {
+            left: 24px;
+        }
+
+        .action-links {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .link-action {
+            color: #1890ff;
+            text-decoration: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .link-action:hover {
+            text-decoration: underline;
+        }
+
+        .link-danger {
+            color: #ff4d4f;
+        }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow: auto;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-close {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+        }
+
+        .modal-close:hover {
+            background: #f5f5f5;
+            color: #666;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 12px 24px;
+            border-top: 1px solid #e8e8e8;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        /* 投资者信息展示 */
+        .investor-info {
+            background: #fafafa;
+            padding: 16px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .investor-info h3 {
+            font-size: 15px;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-label {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-value {
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* 分区标题 */
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin: 24px 0 16px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #1890ff;
+        }
+
+        /* 单选组 */
+        .radio-group {
+            display: flex;
+            gap: 24px;
+            margin-top: 8px;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        /* 提示文字 */
+        .hint-text {
+            color: #999;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .warning-text {
+            color: #faad14;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        /* 响应式 */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 0 12px;
+            }
+            
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* 可搜索下拉框样式 */
+        .dropdown-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background-color: #e6f7ff;
+            color: #1890ff;
+        }
+
+        .dropdown-item.selected {
+            background-color: #bae7ff;
+            color: #1890ff;
+            font-weight: 500;
+        }
+
+        /* 发送划款指令样式 */
+        .instruction-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            background: linear-gradient(135deg, #f0f5ff 0%, #e6f7ff 100%);
+            border: 2px solid #91d5ff;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .instruction-toggle:hover {
+            border-color: #1890ff;
+            box-shadow: 0 4px 12px rgba(24,144,255,0.15);
+        }
+
+        .instruction-toggle input[type="checkbox"] {
+            display: none;
+        }
+
+        .toggle-slider {
+            width: 48px;
+            height: 26px;
+            background: #d9d9d9;
+            border-radius: 13px;
+            position: relative;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .toggle-slider::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .instruction-toggle input[type="checkbox"]:checked + .toggle-slider {
+            background: #1890ff;
+        }
+
+        .instruction-toggle input[type="checkbox"]:checked + .toggle-slider::after {
+            left: 25px;
+        }
+
+        .toggle-text {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            letter-spacing: 0.5px;
+        }
+
+        .toggle-hint {
+            font-size: 12px;
+            color: #999;
+            margin-left: auto;
+            padding-left: 16px;
+            border-left: 1px solid #d9d9d9;
+        }
+
+        /* 日期选择框统一样式 */
+        input[type="date"] {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Microsoft YaHei", sans-serif;
+            font-size: 14px;
+            line-height: 32px;
+            height: 32px;
+            padding: 0 8px;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            background-color: #fff;
+            color: #333;
+            outline: none;
+        }
+
+        input[type="date"]:focus {
+            border-color: #1890ff;
+            box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+        }
+
+        /* 补发弹窗邮箱显示样式 */
+        .email-display {
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 4px;
+            padding: 16px;
+            margin-top: 8px;
+        }
+
+        .email-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .email-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .email-label {
+            font-size: 14px;
+            color: #666;
+            font-weight: 500;
+            min-width: 80px;
+        }
+
+        .email-value {
+            font-size: 14px;
+            color: #333;
+            background: white;
+            border: 1px solid #d9d9d9;
+            border-radius: 4px;
+            padding: 6px 12px;
+            flex: 1;
+            display: inline-block;
+        }
+
+        /* 批量操作按钮状态 */
+        .btn-action-success {
+            background: #52c41a;
+            color: white;
+        }
+
+        .btn-action-danger {
+            background: #ff4d4f;
+            color: white;
+        }
+
+        .btn-action:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* 列设置下拉菜单 */
+        .column-settings-wrapper {
+            position: relative;
+        }
+
+        .column-settings-dropdown {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 4px;
+            background: white;
+            border: 1px solid #d9d9d9;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            padding: 12px;
+            min-width: 160px;
+            z-index: 1000;
+        }
+
+        .column-settings-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+
+        .column-settings-dropdown label {
+            display: block;
+            padding: 4px 0;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .column-settings-dropdown label:hover {
+            color: #1890ff;
+            background: #f5f5f5;
+            padding-left: 4px;
+            border-radius: 3px;
+        }
+
+        .column-settings-dropdown input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .column-settings-dropdown hr {
+            border: none;
+            border-top: 1px solid #e8e8e8;
+            margin: 8px 0;
+        }
+
+        /* 表格复选框样式 */
+        input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: #1890ff;
+        }
+
+        input[type="checkbox"]:disabled {
+            cursor: not-allowed;
+            accent-color: #d9d9d9;
+        }
+
+        tr[data-status="sent"] td:first-child {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <div class="header">
+        <h1>TA数据发送</h1>
+    </div>
+
+    <div class="container">
+        <!-- 视图1: TA数据发送设置 -->
+        <div id="view-settings" class="page-view">
+            <div style="background: white; padding: 16px; border-radius: 8px; margin-bottom: 16px; color: #666; font-size: 13px;">
+                本页发送信息邮件均由gtjazxjs@gtjaqh.com发出。
+            </div>
+
+            <div style="background: white; padding: 24px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                <!-- 发送维度 -->
+                <div class="form-group">
+                    <label class="form-label">TA数据发送维度：</label>
+                    <div class="form-control">
+                        <select id="sendDimension" onchange="onDimensionChange()" style="min-width: 200px;">
+                            <option value="investor">按投资者发送</option>
+                            <option value="product">按产品发送</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 发送划款指令（仅按产品发送时显示） -->
+                <div class="form-group" id="sendInstructionGroupWrapper" style="display: none;">
+                    <label class="form-label"></label>
+                    <div class="form-control">
+                        <label class="instruction-toggle">
+                            <input type="checkbox" id="sendInstruction" onchange="onSendInstructionChange()">
+                            <span class="toggle-slider"></span>
+                            <span class="toggle-text">发送划款指令数据</span>
+                            <span class="toggle-hint">勾选后任务名将自动生成</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 选择投资者 (仅按投资者发送时显示) -->
+                <div class="form-group" id="investorSelectGroup">
+                    <label class="form-label required">选择投资者：</label>
+                    <div class="form-control">
+                        <!-- 可搜索的下拉框 -->
+                        <div class="custom-select" style="position: relative;">
+                            <input type="text" id="investorNameInput" placeholder="请输入或选择投资者..." 
+                                   style="width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px;"
+                                   oninput="filterInvestorDropdown()" onfocus="showInvestorDropdown()" onclick="showInvestorDropdown()">
+                            <input type="hidden" id="investorName" value="">
+                            <div id="investorDropdown" class="dropdown-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #d9d9d9; border-top: none; border-radius: 0 0 4px 4px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+                                <div class="dropdown-item" data-value="张三丰" onclick="selectInvestor('张三丰')">张三丰</div>
+                                <div class="dropdown-item" data-value="李四光" onclick="selectInvestor('李四光')">李四光</div>
+                                <div class="dropdown-item" data-value="王五明" onclick="selectInvestor('王五明')">王五明</div>
+                                <div class="dropdown-item" data-value="赵六安" onclick="selectInvestor('赵六安')">赵六安</div>
+                                <div class="dropdown-item" data-value="孙七巧" onclick="selectInvestor('孙七巧')">孙七巧</div>
+                                <div class="dropdown-item" data-value="周八达" onclick="selectInvestor('周八达')">周八达</div>
+                                <div class="dropdown-item" data-value="吴九鼎" onclick="selectInvestor('吴九鼎')">吴九鼎</div>
+                                <div class="dropdown-item" data-value="郑十全" onclick="selectInvestor('郑十全')">郑十全</div>
+                            </div>
+                        </div>
+                        
+                        <!-- 投资者选择后的产品多选区域 -->
+                        <div id="productMultiSelectArea" class="product-select-area" style="display: none;">
+                            <div class="product-select-title">请选择要发送的产品：</div>
+                            <div class="product-options">
+                                <label class="product-option">
+                                    <input type="radio" name="productSelectMode" value="all" checked onchange="onProductModeChange()">
+                                    该投资者名下所有产品（含后续新增产品）
+                                </label>
+                                <label class="product-option">
+                                    <input type="radio" name="productSelectMode" value="custom" onchange="onProductModeChange()">
+                                    自定义选择产品（多选）
+                                </label>
+                                <button type="button" class="btn btn-default" id="openProductModalBtn" style="margin-left: 12px; padding: 4px 12px; font-size: 13px; display: none;" onclick="openProductSelectModal()">
+                                    选择产品
+                                </button>
+                            </div>
+                            
+                            <!-- 已选择的产品展示 -->
+                            <div id="selectedProductsDisplay" style="margin-top: 8px; padding: 8px; background: white; border-radius: 4px; display: none;">
+                                <div style="font-size: 13px; color: #666; margin-bottom: 4px;">已选择产品：</div>
+                                <div id="selectedProductsTags" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 选择产品 (仅按产品发送时显示) -->
+                <div class="form-group" id="productSelectGroup" style="display: none;">
+                    <label class="form-label required">选择产品：</label>
+                    <div class="form-control">
+                        <!-- 可搜索的下拉框 -->
+                        <div class="custom-select" style="position: relative;">
+                            <input type="text" id="productNameInput" placeholder="请输入或选择产品..." 
+                                   style="width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px;"
+                                   oninput="filterProductDropdown()" onfocus="showProductDropdown()" onclick="showProductDropdown()">
+                            <input type="hidden" id="productName" value="">
+                            <div id="productDropdown" class="dropdown-list" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #d9d9d9; border-top: none; border-radius: 0 0 4px 4px; max-height: 200px; overflow-y: auto; z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+                                <div class="dropdown-item" data-value="SAQP21_国泰君安期货趋势1号FOF集合资产管理计划" onclick="selectProduct('SAQP21_国泰君安期货趋势1号FOF集合资产管理计划')">SAQP21_国泰君安期货趋势1号FOF集合资产管理计划</div>
+                                <div class="dropdown-item" data-value="SANP26_国泰君安期货天利1号集合资产管理计划" onclick="selectProduct('SANP26_国泰君安期货天利1号集合资产管理计划')">SANP26_国泰君安期货天利1号集合资产管理计划</div>
+                                <div class="dropdown-item" data-value="SAWM70_国泰君安期货CTA策略1号集合资产管理计划" onclick="selectProduct('SAWM70_国泰君安期货CTA策略1号集合资产管理计划')">SAWM70_国泰君安期货CTA策略1号集合资产管理计划</div>
+                                <div class="dropdown-item" data-value="SAQP30_国泰君安期货量化对冲1号集合资产管理计划" onclick="selectProduct('SAQP30_国泰君安期货量化对冲1号集合资产管理计划')">SAQP30_国泰君安期货量化对冲1号集合资产管理计划</div>
+                                <div class="dropdown-item" data-value="SAMP88_国泰君安期货稳健增长1号集合资产管理计划" onclick="selectProduct('SAMP88_国泰君安期货稳健增长1号集合资产管理计划')">SAMP88_国泰君安期货稳健增长1号集合资产管理计划</div>
+                                <div class="dropdown-item" data-value="SAXP99_国泰君安期货指数增强1号集合资产管理计划" onclick="selectProduct('SAXP99_国泰君安期货指数增强1号集合资产管理计划')">SAXP99_国泰君安期货指数增强1号集合资产管理计划</div>
+                                <div class="dropdown-item" data-value="SAQW01_国泰君安期货量化选股1号集合资产管理计划" onclick="selectProduct('SAQW01_国泰君安期货量化选股1号集合资产管理计划')">SAQW01_国泰君安期货量化选股1号集合资产管理计划</div>
+                                <div class="dropdown-item" data-value="SAXH02_国泰君安期货套利策略1号集合资产管理计划" onclick="selectProduct('SAXH02_国泰君安期货套利策略1号集合资产管理计划')">SAXH02_国泰君安期货套利策略1号集合资产管理计划</div>
+                            </div>
+                        </div>
+                        <div class="hint-text">将导出该产品名下的所有当日交易确认及份额持有数据</div>
+
+                        <!-- 按产品发送时的投资者选择区域 -->
+                        <div id="investorForProductArea" class="product-select-area" style="margin-top: 12px; display: none;">
+                            <div class="product-select-title">请选择要发送的投资者：</div>
+                            <div class="product-options">
+                                <label class="product-option">
+                                    <input type="radio" name="investorSelectMode" value="all" checked onchange="onInvestorModeChange()">
+                                    所有投资者
+                                </label>
+                                <label class="product-option">
+                                    <input type="radio" name="investorSelectMode" value="custom" onchange="onInvestorModeChange()">
+                                    自定义选择投资者（多选）
+                                </label>
+                                <button type="button" class="btn btn-default" id="openInvestorModalBtn" style="margin-left: 12px; padding: 4px 12px; font-size: 13px; display: none;" onclick="openInvestorSelectModal()">
+                                    选择投资者
+                                </button>
+                            </div>
+                            
+                            <!-- 已选择的投资者展示 -->
+                            <div id="selectedInvestorsDisplay" style="margin-top: 8px; padding: 8px; background: white; border-radius: 4px; display: none;">
+                                <div style="font-size: 13px; color: #666; margin-bottom: 4px;">已选择投资者：</div>
+                                <div id="selectedInvestorsTags" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 发送任务名 -->
+                <div class="form-group">
+                    <label class="form-label required">发送任务名：</label>
+                    <div class="form-control">
+                        <textarea id="taskName" placeholder="请输入自定义任务名" oninput="onTaskNameInput()"></textarea>
+                        <div class="hint-text" id="taskNameHint"></div>
+                    </div>
+                </div>
+
+                <!-- 选择发送数据类型 -->
+                <div class="form-group" style="align-items: flex-start;">
+                    <label class="form-label required">选择发送数据类型：</label>
+                    <div class="form-control" style="max-width: 100%;">
+                        <table class="data-type-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 60px;">选择</th>
+                                    <th style="width: 180px;">发送数据类型</th>
+                                    <th>发送频率</th>
+                                    <th style="width: 120px;">发送数据格式</th>
+                                    <th style="width: 120px;">发送模式</th>
+                                    <th>发送样式</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 交易确认数据行 -->
+                                <tr>
+                                    <td class="checkbox-cell">
+                                        <input type="checkbox" id="checkTradeConfirm" checked onchange="onDataTypeChange()">
+                                    </td>
+                                    <td><strong>交易确认数据</strong></td>
+                                    <td>
+                                        <div class="freq-text">
+                                            业务发生时发送（包括认申赎交易、分红、统一计提业绩报酬、清盘等业务）<br>
+                                            当日配置的规则可当日生效
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="format-options">
+                                            <label><input type="checkbox" id="tradeExcel"> EXCEL</label>
+                                            <label><input type="checkbox" id="tradePdf" checked> PDF</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mode-options">
+                                            <label><input type="radio" name="mode1" value="summary"> 汇总发送</label>
+                                            <label><input type="radio" name="mode1" value="detail" checked> 逐笔发送</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="style-options">
+                                            <label><input type="checkbox" id="styleHoldShare"> 含持有份额</label>
+                                            <label><input type="checkbox" id="styleHoldRatio"> 含占产品总份额比例</label>
+                                            <label><input type="checkbox" id="styleBaseValue"> 含最近基准日市值<span class="help-icon">?</span></label>
+                                        </div>
+                                        <div class="template-list">
+                                            <a href="#" class="template-link">【交易确认】交易确认函_模板.pdf</a><br>
+                                            <a href="#" class="template-link">【交易确认】交易确认数据汇总_模板.pdf</a><br>
+                                            <a href="#" class="template-link">【交易确认】交易确认数据_模板.xlsx</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <!-- 份额持有数据行 -->
+                                <tr>
+                                    <td class="checkbox-cell">
+                                        <input type="checkbox" id="checkShareHold" checked onchange="onDataTypeChange()">
+                                    </td>
+                                    <td><strong>份额持有数据(对账单)</strong></td>
+                                    <td>
+                                        <div class="freq-select">
+                                            <strong>频率类型：</strong>
+                                            <select id="shareFreqType" style="width: 160px;" onchange="onInputChange()">
+                                                <option value="daily">每个交易日</option>
+                                                <option value="monthLastTrade">每月最后一个交易日</option>
+                                                <option value="monthLastDay">每月最后一个自然日</option>
+                                                <option value="weekLastTrade">每周最后一个交易日</option>
+                                            </select>
+                                        </div>
+                                        <div class="freq-text" style="margin-top: 8px;">
+                                            当日配置的规则于下一交易日生效
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="format-options">
+                                            <label><input type="checkbox" id="shareExcel"> EXCEL</label>
+                                            <label><input type="checkbox" id="sharePdf" checked> PDF</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="mode-options">
+                                            <label><input type="radio" name="mode2" value="summary"> 汇总发送</label>
+                                            <label><input type="radio" name="mode2" value="detail" checked> 逐笔发送</label>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="style-options">
+                                            <label><input type="checkbox" id="styleNetValue"> 含最新净值</label>
+                                            <label><input type="checkbox" id="styleProductRatio"> 含占产品总份额比例</label>
+                                        </div>
+                                        <div class="note-text">
+                                            注：份额余额取基准日当日日终数据，
+                                            当选择净值、市值数据时，则需等待至基准日的估值确认完成后，再执行发送
+                                        </div>
+                                        <div class="template-list">
+                                            <a href="#" class="template-link">【份额持有】份额持有数据_模板.xlsx</a><br>
+                                            <a href="#" class="template-link">【份额持有】份额持有数据_逐笔.pdf</a><br>
+                                            <a href="#" class="template-link">【份额持有】份额持有数据_汇总.pdf</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 邮箱配置 -->
+                <div class="form-group">
+                    <label class="form-label required">接收邮箱：</label>
+                    <div class="form-control">
+                        <div class="email-input-group">
+                            <input type="email" id="receiveEmail" placeholder="请输入数据接收邮箱">
+                            <button class="add-btn-icon" title="添加" onclick="addEmailField('receive')">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">抄送邮箱：</label>
+                    <div class="form-control">
+                        <div class="email-input-group">
+                            <input type="email" id="ccEmail" placeholder="请输入数据抄送邮箱">
+                            <button class="add-btn-icon" title="添加" onclick="addEmailField('cc')">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">密送邮箱：</label>
+                    <div class="form-control">
+                        <div class="email-input-group">
+                            <input type="email" id="bccEmail" placeholder="请输入数据密送邮箱">
+                            <button class="add-btn-icon" title="添加" onclick="addEmailField('bcc')">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 按钮组 -->
+                <div class="button-group">
+                    <button class="btn btn-default" onclick="showView('list')">上一步</button>
+                    <button class="btn btn-primary" onclick="submitForm()">下一步</button>
+                    <button class="btn btn-default" onclick="resetForm()">取消</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 视图2: TA数据发送列表/详情 (带Tab切换) -->
+        <div id="view-list" class="page-view active">
+            <!-- Tab导航 -->
+            <div class="tab-nav">
+                <div class="tab-item active" onclick="switchTab(this, 'list-content')">TA数据发送设置</div>
+                <div class="tab-item" onclick="switchTab(this, 'detail-content')">TA数据发送详情</div>
+            </div>
+
+            <!-- 列表内容 -->
+            <div id="list-content" class="tab-content">
+                <!-- 搜索栏 -->
+                <div class="search-bar">
+                    <div class="search-item">
+                        <label>按发送任务名</label>
+                        <input type="text" placeholder="模糊查询">
+                    </div>
+                    <div class="search-item">
+                        <label>按发送产品</label>
+                        <input type="text" placeholder="模糊查询">
+                    </div>
+                    <div class="search-buttons">
+                        <button class="btn-search">查询</button>
+                        <button class="btn-reset">重置</button>
+                    </div>
+                </div>
+
+                <!-- 操作栏 -->
+                <div class="action-bar">
+                    <button class="btn-action btn-action-primary" onclick="showView('settings')">+ 新增TA数据发送设置</button>
+                    <div style="margin-left: auto; display: flex; gap: 8px;">
+                        <button class="btn-action btn-action-default">导出数据</button>
+                    </div>
+                </div>
+
+                <!-- 数据表格 -->
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>主配置编号</th>
+                            <th>发送任务名</th>
+                            <th>发送维度</th>
+                            <th>开启/发送</th>
+                            <th>发送条件</th>
+                            <th>发送数据类型</th>
+                            <th>操作人</th>
+                            <th>操作日期</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>122979</td>
+                            <td>张三丰_TA确认...</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>
+                                <div class="switch">
+                                    <span class="switch-toggle active" onclick="this.classList.toggle('active')"></span>
+                                </div>
+                            </td>
+                            <td>产品：投资者名下所有产品</td>
+                            <td>
+                                交易确认数据 <span class="tag tag-blue">PDF</span>
+                            </td>
+                            <td>张三丰</td>
+                            <td>2026-06-08</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">修改配置</a>
+                                    <span>|</span>
+                                    <a class="link-action">查看配置详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger">删除</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="openResendModal()">补发</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="copyConfig(this)">复制</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>122607</td>
+                            <td>李四光_TA确认...</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>
+                                <div class="switch">
+                                    <span class="switch-toggle active" onclick="this.classList.toggle('active')"></span>
+                                </div>
+                            </td>
+                            <td>产品：投资者名下所有产品</td>
+                            <td>
+                                交易确认数据 <span class="tag tag-blue">PDF</span>
+                            </td>
+                            <td>李四光</td>
+                            <td>2026-06-05</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">修改配置</a>
+                                    <span>|</span>
+                                    <a class="link-action">查看配置详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger">删除</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="openResendModal()">补发</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="copyConfig(this)">复制</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>122593</td>
+                            <td>王五明_TA确认数据</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>
+                                <div class="switch">
+                                    <span class="switch-toggle active" onclick="this.classList.toggle('active')"></span>
+                                </div>
+                            </td>
+                            <td>产品：投资者名下所有产品</td>
+                            <td>
+                                交易确认数据 <span class="tag tag-blue">PDF</span>
+                            </td>
+                            <td>王五明</td>
+                            <td>2026-06-05</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">修改配置</a>
+                                    <span>|</span>
+                                    <a class="link-action">查看配置详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger">删除</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="openResendModal()">补发</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="copyConfig(this)">复制</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>121947</td>
+                            <td>赵六安_核心优...</td>
+                            <td><span class="tag tag-green">基金</span></td>
+                            <td>
+                                <div class="switch">
+                                    <span class="switch-toggle active" onclick="this.classList.toggle('active')"></span>
+                                </div>
+                            </td>
+                            <td>产品：投资者名下所有产品</td>
+                            <td>
+                                交易确认数据 <span class="tag tag-blue">PDF</span><br>
+                                份额持有数据 <span class="tag tag-blue">EXCEL</span> <span class="tag tag-blue">PDF</span>
+                            </td>
+                            <td>赵六安</td>
+                            <td>2026-06-03</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">修改配置</a>
+                                    <span>|</span>
+                                    <a class="link-action">查看配置详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger">删除</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="openResendModal()">补发</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="copyConfig(this)">复制</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>121942</td>
+                            <td>孙七巧_伯乐6...</td>
+                            <td><span class="tag tag-green">基金</span></td>
+                            <td>
+                                <div class="switch">
+                                    <span class="switch-toggle active" onclick="this.classList.toggle('active')"></span>
+                                </div>
+                            </td>
+                            <td>产品：投资者名下所有产品</td>
+                            <td>
+                                交易确认数据 <span class="tag tag-blue">PDF</span><br>
+                                份额持有数据 <span class="tag tag-blue">PDF</span>
+                            </td>
+                            <td>孙七巧</td>
+                            <td>2026-06-03</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">修改配置</a>
+                                    <span>|</span>
+                                    <a class="link-action">查看配置详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger">删除</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="openResendModal()">补发</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="copyConfig(this)">复制</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 详情内容 -->
+            <div id="detail-content" class="tab-content" style="display: none;">
+                <!-- 搜索栏 -->
+                <div class="search-bar">
+                    <div class="search-item">
+                        <label>按发送任务名</label>
+                        <input type="text" placeholder="模糊查询">
+                    </div>
+                    <div class="search-item">
+                        <label>按发送产品</label>
+                        <input type="text" placeholder="模糊查询">
+                    </div>
+                    <div class="search-item">
+                        <label>按业务日期</label>
+                        <input type="date" value="2026-06-08">
+                        <span>至</span>
+                        <input type="date" value="2026-06-15">
+                    </div>
+                    <div class="search-buttons">
+                        <button class="btn-search">查询</button>
+                        <button class="btn-reset">重置</button>
+                    </div>
+                </div>
+
+                <!-- 操作栏 -->
+                <div class="action-bar">
+                    <div style="margin-left: auto; display: flex; gap: 8px;">
+                        <button class="btn-action btn-action-default" onclick="exportData()">导出数据</button>
+                        <button class="btn-action btn-action-primary" onclick="generateData()">生成数据</button>
+                        <button class="btn-action btn-action-success" id="batchSendBtn" onclick="batchSend()" disabled>发送数据(0)</button>
+                        <button class="btn-action btn-action-danger" id="batchDeleteBtn" onclick="batchDelete()" disabled>删除(0)</button>
+                    </div>
+                    <div style="margin-left: 12px;" class="column-settings-wrapper">
+                        <button class="btn-action btn-action-default" onclick="toggleColumnSettings()">⚙ 列设置 ▼</button>
+                        <div id="columnSettingsDropdown" class="column-settings-dropdown" style="display: none;">
+                            <div class="column-settings-title">显示/隐藏列</div>
+                            <label><input type="checkbox" checked data-column="0"> 选择</label>
+                            <label><input type="checkbox" checked data-column="1"> 主配置编号</label>
+                            <label><input type="checkbox" checked data-column="2"> 配置编号</label>
+                            <label><input type="checkbox" checked data-column="3"> 发送任务名</label>
+                            <label><input type="checkbox" checked data-column="4"> 发送维度</label>
+                            <label><input type="checkbox" checked data-column="5"> 数据类型</label>
+                            <label><input type="checkbox" checked data-column="6"> 业务日期</label>
+                            <label><input type="checkbox" checked data-column="7"> 发送日期</label>
+                            <label><input type="checkbox" checked data-column="8"> 发送状态</label>
+                            <label><input type="checkbox" checked data-column="9"> 发送时间</label>
+                            <label><input type="checkbox" checked data-column="10"> 接收人</label>
+                            <label><input type="checkbox" checked data-column="11"> 抄送人</label>
+                            <label><input type="checkbox" checked data-column="12"> 操作</label>
+                            <hr>
+                            <button class="btn-reset" style="width: 100%; margin-top: 8px;" onclick="resetColumns()">重置为默认</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 详情数据表格 -->
+                <table class="data-table" id="detailTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)"></th>
+                            <th>主配置编号</th>
+                            <th>配置编号</th>
+                            <th>发送任务名</th>
+                            <th>发送维度</th>
+                            <th>数据类型</th>
+                            <th>业务日期</th>
+                            <th>发送日期</th>
+                            <th>发送状态</th>
+                            <th>发送时间</th>
+                            <th>接收人</th>
+                            <th>抄送人</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 已发送数据（定时任务历史） -->
+                        <tr data-status="sent">
+                            <td><input type="checkbox" class="row-checkbox" disabled></td>
+                            <td>115006</td>
+                            <td>120345</td>
+                            <td>周八达_港通私募...</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>份额持有数据</td>
+                            <td>2026-06-11</td>
+                            <td>2026-06-12</td>
+                            <td><span style="color: #52c41a;">● 已发送</span></td>
+                            <td style="color: #1890ff; font-weight: 600;">2026-06-12 16:48:45</td>
+                            <td>jgrfof@gtht.com</td>
+                            <td>1</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">查看详情</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="resendSingle(this)">再次发送</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="sent">
+                            <td><input type="checkbox" class="row-checkbox" disabled></td>
+                            <td>89557</td>
+                            <td>90093</td>
+                            <td>郑十全_银泰嘉享...</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>份额持有数据</td>
+                            <td>2026-06-11</td>
+                            <td>2026-06-12</td>
+                            <td><span style="color: #52c41a;">● 已发送</span></td>
+                            <td style="color: #1890ff; font-weight: 600;">2026-06-12 16:48:44</td>
+                            <td>cpgz@brytasset.c...</td>
+                            <td>3</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">查看详情</a>
+                                    <span>|</span>
+                                    <a class="link-action" onclick="resendSingle(this)">再次发送</a>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- 未发送数据（系统自动生成，等待处理） -->
+                        <tr data-status="unsent">
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>92699</td>
+                            <td>93383</td>
+                            <td>吴九鼎_银泰伯乐5...</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>交易确认数据</td>
+                            <td>2026-06-15</td>
+                            <td>-</td>
+                            <td><span style="color: #faad14;">● 未发送</span></td>
+                            <td>-</td>
+                            <td>cpgz@brytasset.c...</td>
+                            <td>3</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">查看详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-success" onclick="sendSingle(this)">发送</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger" onclick="deleteSingle(this)">删除</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="unsent">
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>115008</td>
+                            <td>120347</td>
+                            <td>张三丰_港通私募...</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>交易确认+份额持有</td>
+                            <td>2026-06-15</td>
+                            <td>-</td>
+                            <td><span style="color: #faad14;">● 未发送</span></td>
+                            <td>-</td>
+                            <td>jgrfof@gtht.com</td>
+                            <td>1</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">查看详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-success" onclick="sendSingle(this)">发送</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger" onclick="deleteSingle(this)">删除</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="unsent">
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>92701</td>
+                            <td>93385</td>
+                            <td>李四光_银泰伯乐...</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>份额持有数据</td>
+                            <td>2026-06-15</td>
+                            <td>-</td>
+                            <td><span style="color: #faad14;">● 未发送</span></td>
+                            <td>-</td>
+                            <td>cpgz@brytasset.c...</td>
+                            <td>2</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">查看详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-success" onclick="sendSingle(this)">发送</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger" onclick="deleteSingle(this)">删除</a>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr data-status="unsent">
+                            <td><input type="checkbox" class="row-checkbox"></td>
+                            <td>89559</td>
+                            <td>90095</td>
+                            <td>王五明_银泰嘉享...</td>
+                            <td><span class="tag tag-blue">投资者</span></td>
+                            <td>交易确认数据</td>
+                            <td>2026-06-15</td>
+                            <td>-</td>
+                            <td><span style="color: #faad14;">● 未发送</span></td>
+                            <td>-</td>
+                            <td>cpgz@brytasset.c...</td>
+                            <td>1</td>
+                            <td>
+                                <div class="action-links">
+                                    <a class="link-action">查看详情</a>
+                                    <span>|</span>
+                                    <a class="link-action link-success" onclick="sendSingle(this)">发送</a>
+                                    <span>|</span>
+                                    <a class="link-action link-danger" onclick="deleteSingle(this)">删除</a>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 补发弹窗 -->
+    <div id="resendModal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">TA数据补发</div>
+                <div style="font-size: 13px; color: #999;">本页发送信息邮件均由gtjazxjs@gtjaqh.com发出。</div>
+                <button class="modal-close" onclick="closeResendModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 投资者信息 -->
+                <div class="investor-info">
+                    <h3>投资者：张三丰</h3>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="info-label">投资者名称</span>
+                            <span class="info-value">张三丰</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">产品名称(含后续新增产品)</span>
+                            <span class="info-value">SAQP21_国泰君安期货趋势1号FOF集合资产管理...</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">渠道(含后续新增渠道)</span>
+                            <span class="info-value">管理人直销</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1. 发送数据明细 -->
+                <div class="section-title">1、发送数据明细</div>
+                <table class="data-type-table">
+                    <thead>
+                        <tr>
+                            <th>配置编号</th>
+                            <th>发送数据类型</th>
+                            <th>发送频率</th>
+                            <th>发送数据格式</th>
+                            <th>发送模式</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>124163</td>
+                            <td>交易确认数据</td>
+                            <td>业务发生时发送（包括认申赎交易、分红、统一计提业绩报酬、清盘等业务）</td>
+                            <td>PDF</td>
+                            <td>逐笔发送</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- 2. 业务日期（唯一可修改项） -->
+                <div class="section-title">2、业务日期</div>
+                <div class="form-group">
+                    <label class="form-label required" style="width: auto;">业务日期：</label>
+                    <div class="form-control" style="max-width: 300px;">
+                        <input type="date" id="baseDateSelect" value="">
+                    </div>
+                    <div style="font-size: 12px; color: #999; margin-top: 4px;">请选择需要补发的业务日期</div>
+                </div>
+
+                <!-- 3. 发送邮箱（只读显示） -->
+                <div class="section-title">3、发送邮箱</div>
+                <div class="email-display">
+                    <div class="email-row">
+                        <span class="email-label">接收邮箱：</span>
+                        <span class="email-value">394238632@qq.com</span>
+                    </div>
+                    <div class="email-row">
+                        <span class="email-label">抄送邮箱：</span>
+                        <span class="email-value">无</span>
+                    </div>
+                    <div class="email-row">
+                        <span class="email-label">密送邮箱：</span>
+                        <span class="email-value">无</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="submitResend()">补发</button>
+                <button class="btn btn-default" onclick="closeResendModal()">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 产品选择弹窗 -->
+    <div id="productSelectModal" class="modal-overlay">
+        <div class="modal" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 class="modal-title">选择产品</h3>
+                <button class="modal-close" onclick="closeProductSelectModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 12px; padding: 8px; background: #f0f2f5; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" id="productSelectAll" onchange="toggleAllProducts(this.checked)">
+                        全选/取消全选
+                    </label>
+                    <span style="color: #666; font-size: 13px;">请勾选需要发送的产品（可多选）</span>
+                </div>
+                
+                <!-- 搜索框 -->
+                <div style="margin-bottom: 12px;">
+                    <input type="text" id="productSearchInput" placeholder="搜索产品名称或代码..." 
+                           style="width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px;"
+                           oninput="filterProducts()">
+                </div>
+                
+                <div id="productModalList" style="max-height: 400px; overflow-y: auto; display: grid; grid-template-columns: repeat(1, 1fr); gap: 8px; padding: 8px;" data-original-content="">
+                    <label class="product-item" style="padding: 8px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="SAQP21_国泰君安期货趋势1号FOF集合资产管理计划">
+                        <input type="checkbox" name="modalProduct" value="SAQP21_国泰君安期货趋势1号FOF集合资产管理计划">
+                        SAQP21_国泰君安期货趋势1号FOF集合资产管理计划
+                    </label>
+                    <label class="product-item" style="padding: 8px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="SANP26_国泰君安期货天利1号集合资产管理计划">
+                        <input type="checkbox" name="modalProduct" value="SANP26_国泰君安期货天利1号集合资产管理计划">
+                        SANP26_国泰君安期货天利1号集合资产管理计划
+                    </label>
+                    <label class="product-item" style="padding: 8px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="SAWM70_国泰君安期货CTA策略1号集合资产管理计划">
+                        <input type="checkbox" name="modalProduct" value="SAWM70_国泰君安期货CTA策略1号集合资产管理计划">
+                        SAWM70_国泰君安期货CTA策略1号集合资产管理计划
+                    </label>
+                    <label class="product-item" style="padding: 8px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="SAQP30_国泰君安期货量化对冲1号集合资产管理计划">
+                        <input type="checkbox" name="modalProduct" value="SAQP30_国泰君安期货量化对冲1号集合资产管理计划">
+                        SAQP30_国泰君安期货量化对冲1号集合资产管理计划
+                    </label>
+                    <label class="product-item" style="padding: 8px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="SAMP88_国泰君安期货稳健增长1号集合资产管理计划">
+                        <input type="checkbox" name="modalProduct" value="SAMP88_国泰君安期货稳健增长1号集合资产管理计划">
+                        SAMP88_国泰君安期货稳健增长1号集合资产管理计划
+                    </label>
+                    <label class="product-item" style="padding: 8px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="SAXP99_国泰君安期货指数增强1号集合资产管理计划">
+                        <input type="checkbox" name="modalProduct" value="SAXP99_国泰君安期货指数增强1号集合资产管理计划">
+                        SAXP99_国泰君安期货指数增强1号集合资产管理计划
+                    </label>
+                    <label class="product-item" style="padding: 8px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="SAQW01_国泰君安期货量化选股1号集合资产管理计划">
+                        <input type="checkbox" name="modalProduct" value="SAQW01_国泰君安期货量化选股1号集合资产管理计划">
+                        SAQW01_国泰君安期货量化选股1号集合资产管理计划
+                    </label>
+                    <label class="product-item" style="padding: 8px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="SAXH02_国泰君安期货套利策略1号集合资产管理计划">
+                        <input type="checkbox" name="modalProduct" value="SAXH02_国泰君安期货套利策略1号集合资产管理计划">
+                        SAXH02_国泰君安期货套利策略1号集合资产管理计划
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeProductSelectModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmProductSelection()">确认选择</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 投资者选择弹窗（按产品发送时使用） -->
+    <div id="investorSelectModal" class="modal-overlay">
+        <div class="modal" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3 class="modal-title">选择投资者</h3>
+                <button class="modal-close" onclick="closeInvestorSelectModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div style="margin-bottom: 12px; padding: 8px; background: #f0f2f5; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" id="investorSelectAll" onchange="toggleAllInvestors(this.checked)">
+                        全选/取消全选
+                    </label>
+                    <span style="color: #666; font-size: 13px;">请勾选需要发送的投资者（可多选）</span>
+                </div>
+                
+                <!-- 搜索框 -->
+                <div style="margin-bottom: 12px;">
+                    <input type="text" id="investorSearchInput" placeholder="搜索投资者名称..." 
+                           style="width: 100%; padding: 8px 12px; border: 1px solid #d9d9d9; border-radius: 4px; font-size: 14px;"
+                           oninput="filterInvestors()">
+                </div>
+                
+                <div id="investorModalList" style="max-height: 350px; overflow-y: auto; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; padding: 8px;" data-original-content="">
+                    <label class="investor-item" style="padding: 10px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="张三丰">
+                        <input type="checkbox" name="modalInvestor" value="张三丰">
+                        张三丰
+                    </label>
+                    <label class="investor-item" style="padding: 10px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="李四光">
+                        <input type="checkbox" name="modalInvestor" value="李四光">
+                        李四光
+                    </label>
+                    <label class="investor-item" style="padding: 10px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="王五明">
+                        <input type="checkbox" name="modalInvestor" value="王五明">
+                        王五明
+                    </label>
+                    <label class="investor-item" style="padding: 10px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="赵六安">
+                        <input type="checkbox" name="modalInvestor" value="赵六安">
+                        赵六安
+                    </label>
+                    <label class="investor-item" style="padding: 10px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="孙七巧">
+                        <input type="checkbox" name="modalInvestor" value="孙七巧">
+                        孙七巧
+                    </label>
+                    <label class="investor-item" style="padding: 10px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="周八达">
+                        <input type="checkbox" name="modalInvestor" value="周八达">
+                        周八达
+                    </label>
+                    <label class="investor-item" style="padding: 10px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="吴九鼎">
+                        <input type="checkbox" name="modalInvestor" value="吴九鼎">
+                        吴九鼎
+                    </label>
+                    <label class="investor-item" style="padding: 10px; background: #fafafa; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 8px;" data-text="郑十全">
+                        <input type="checkbox" name="modalInvestor" value="郑十全">
+                        郑十全
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-default" onclick="closeInvestorSelectModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmInvestorSelection()">确认选择</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== 全局状态管理 ====================
+        const formState = {
+            dimension: 'investor', // investor 或 product
+            sendInstruction: false,
+            investorName: '',
+            productName: '',
+            taskName: '',
+            dataType: {
+                tradeConfirm: true,
+                shareHold: true
+            },
+            isAutoGenerateTaskName: false,
+            productSelectMode: 'all', // all 或 custom
+            selectedProducts: [], // 选中的产品列表（弹窗选择）
+            investorSelectMode: 'all', // all 或 custom（按产品发送时使用）
+            selectedInvestors: [] // 选中的投资者列表（按产品发送时使用）
+        };
+
+        // ==================== 可搜索下拉框功能 ====================
+        
+        // 投资者下拉框
+        function showInvestorDropdown() {
+            document.getElementById('investorDropdown').style.display = 'block';
+            filterInvestorDropdown();
+        }
+
+        function hideInvestorDropdown() {
+            setTimeout(() => {
+                document.getElementById('investorDropdown').style.display = 'none';
+            }, 200);
+        }
+
+        function filterInvestorDropdown() {
+            const searchText = document.getElementById('investorNameInput').value.toLowerCase().trim();
+            const items = document.querySelectorAll('#investorDropdown .dropdown-item');
+            
+            items.forEach(item => {
+                const text = item.getAttribute('data-value').toLowerCase();
+                if (text.includes(searchText)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // 显示下拉列表
+            if (searchText || document.activeElement.id === 'investorNameInput') {
+                document.getElementById('investorDropdown').style.display = 'block';
+            }
+        }
+
+        function selectInvestor(value) {
+            document.getElementById('investorNameInput').value = value;
+            document.getElementById('investorName').value = value;
+            document.getElementById('investorDropdown').style.display = 'none';
+            
+            // 更新选中状态
+            const items = document.querySelectorAll('#investorDropdown .dropdown-item');
+            items.forEach(item => {
+                if (item.getAttribute('data-value') === value) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+            
+            // 触发原有的投资者选择变化事件
+            formState.investorName = value;
+            onInvestorChange();
+        }
+
+        // 产品下拉框
+        function showProductDropdown() {
+            document.getElementById('productDropdown').style.display = 'block';
+            filterProductDropdown();
+        }
+
+        function hideProductDropdown() {
+            setTimeout(() => {
+                document.getElementById('productDropdown').style.display = 'none';
+            }, 200);
+        }
+
+        function filterProductDropdown() {
+            const searchText = document.getElementById('productNameInput').value.toLowerCase().trim();
+            const items = document.querySelectorAll('#productDropdown .dropdown-item');
+            
+            items.forEach(item => {
+                const text = item.getAttribute('data-value').toLowerCase();
+                if (text.includes(searchText)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+            
+            // 显示下拉列表
+            if (searchText || document.activeElement.id === 'productNameInput') {
+                document.getElementById('productDropdown').style.display = 'block';
+            }
+        }
+
+        function selectProduct(value) {
+            document.getElementById('productNameInput').value = value;
+            document.getElementById('productName').value = value;
+            document.getElementById('productDropdown').style.display = 'none';
+            
+            // 更新选中状态
+            const items = document.querySelectorAll('#productDropdown .dropdown-item');
+            items.forEach(item => {
+                if (item.getAttribute('data-value') === value) {
+                    item.classList.add('selected');
+                } else {
+                    item.classList.remove('selected');
+                }
+            });
+            
+            // 触发原有的产品选择变化事件
+            formState.productName = value;
+            onInputChange();
+        }
+
+        // 点击页面其他地方关闭下拉框
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.custom-select')) {
+                document.getElementById('investorDropdown').style.display = 'none';
+                document.getElementById('productDropdown').style.display = 'none';
+            }
+        });
+
+        // ==================== 发送维度切换逻辑 ====================
+        function onDimensionChange() {
+            const dimension = document.getElementById('sendDimension').value;
+            formState.dimension = dimension;
+
+            // 切换显示的字段
+            if (dimension === 'investor') {
+                document.getElementById('investorSelectGroup').style.display = 'flex';
+                document.getElementById('productSelectGroup').style.display = 'none';
+                document.getElementById('sendInstructionGroupWrapper').style.display = 'none';
+                document.getElementById('sendInstruction').checked = false;
+                formState.sendInstruction = false;
+                
+                // 重置数据类型默认状态
+                resetDataTypeDefaults();
+                
+                // 隐藏产品多选区域
+                document.getElementById('productMultiSelectArea').style.display = 'none';
+            } else {
+                // product
+                document.getElementById('investorSelectGroup').style.display = 'none';
+                document.getElementById('productSelectGroup').style.display = 'flex';
+                document.getElementById('sendInstructionGroupWrapper').style.display = 'flex';
+                
+                // 显示投资者选择区域（按产品发送时）
+                document.getElementById('investorForProductArea').style.display = 'block';
+                
+                // 触发一次划款指令变化检查
+                onSendInstructionChange();
+            }
+
+            // 更新任务名
+            generateTaskName();
+        }
+
+        // ==================== 投资者选择变化（显示产品多选区域）====================
+        function onInvestorChange() {
+            const investorName = document.getElementById('investorName').value;
+            formState.investorName = investorName;
+
+            const productArea = document.getElementById('productMultiSelectArea');
+            
+            if (investorName) {
+                // 显示产品选择区域
+                productArea.style.display = 'block';
+                
+                // 这里可以根据选择的投资者加载对应的产品列表
+                console.log(`已选择投资者: ${investorName}，正在加载其名下的基金账号和产品信息...`);
+            } else {
+                // 隐藏产品选择区域
+                productArea.style.display = 'none';
+            }
+
+            // 更新任务名
+            generateTaskName();
+        }
+
+        // ==================== 产品选择模式切换 ====================
+        function onProductModeChange() {
+            const mode = document.querySelector('input[name="productSelectMode"]:checked').value;
+            formState.productSelectMode = mode;
+
+            const openBtn = document.getElementById('openProductModalBtn');
+            
+            if (mode === 'custom') {
+                // 显示选择产品按钮
+                openBtn.style.display = 'inline-block';
+            } else {
+                // 隐藏选择产品按钮
+                openBtn.style.display = 'none';
+                formState.selectedProducts = [];
+                updateSelectedProductsDisplay();
+            }
+
+            console.log('产品选择模式:', mode);
+        }
+
+        // ==================== 投资者选择模式切换（按产品发送时使用）====================
+        function onInvestorModeChange() {
+            const mode = document.querySelector('input[name="investorSelectMode"]:checked').value;
+            formState.investorSelectMode = mode;
+
+            const openBtn = document.getElementById('openInvestorModalBtn');
+            
+            if (mode === 'custom') {
+                // 显示选择投资者按钮
+                openBtn.style.display = 'inline-block';
+            } else {
+                // 隐藏选择投资者按钮
+                openBtn.style.display = 'none';
+                formState.selectedInvestors = [];
+                updateSelectedInvestorsDisplay();
+            }
+
+            console.log('投资者选择模式:', mode);
+        }
+
+        // ==================== 发送划款指令数据联动逻辑 ====================
+        function onSendInstructionChange() {
+            const isChecked = document.getElementById('sendInstruction').checked;
+            formState.sendInstruction = isChecked;
+
+            const taskNameInput = document.getElementById('taskName');
+            const taskNameHint = document.getElementById('taskNameHint');
+            const checkTradeConfirm = document.getElementById('checkTradeConfirm');
+
+            if (isChecked) {
+                // 勾选后:
+                // 1. 任务名变为只读(自动生成)
+                taskNameInput.readOnly = true;
+                taskNameInput.style.backgroundColor = '#f5f5f5';
+                
+                // 2. 显示提示
+                taskNameHint.innerHTML = '<span class="warning-text">已勾选"发送划款指令数据"，任务名将按照以下规则自动生成：<br>' +
+                    '• 仅申购：【产品名称_交易确认数据_确认日期】<br>' +
+                    '• 仅赎回：【产品名称_交易确认数据_确认日期，烦请于赎回交收日期划付赎回款】<br>' +
+                    '• 含分红：在前序基础上增加"，烦请于今日划付分红款"</span>';
+
+                // 3. 默认勾选"交易确认数据"和"份额持有数据"
+                // 其中"交易确认数据"不可取消勾选
+                checkTradeConfirm.checked = true;
+                checkTradeConfirm.disabled = true;
+                formState.dataType.tradeConfirm = true;
+                
+                // 4. 份额持有数据默认勾选
+                document.getElementById('checkShareHold').checked = true;
+                formState.dataType.shareHold = true;
+
+                formState.isAutoGenerateTaskName = true;
+            } else {
+                // 未勾选:
+                // 1. 任务名可编辑
+                taskNameInput.readOnly = false;
+                taskNameInput.style.backgroundColor = '';
+                
+                // 2. 清除提示
+                taskNameHint.textContent = '';
+
+                // 3. 交易确认数据可正常勾选/取消
+                checkTradeConfirm.disabled = false;
+
+                formState.isAutoGenerateTaskName = false;
+            }
+
+            // 重新生成任务名
+            generateTaskName();
+        }
+
+        // ==================== 数据类型勾选逻辑 ====================
+        function onDataTypeChange() {
+            const tradeChecked = document.getElementById('checkTradeConfirm').checked;
+            const shareChecked = document.getElementById('checkShareHold').checked;
+
+            formState.dataType.tradeConfirm = tradeChecked;
+            formState.dataType.shareHold = shareChecked;
+
+            // 如果两个都没勾选,给出提示
+            if (!tradeChecked && !shareChecked) {
+                alert('至少需要选择一种数据类型！');
+                // 恢复之前的勾选状态
+                document.getElementById('checkTradeConfirm').checked = formState.dataType.tradeConfirm || true;
+                document.getElementById('checkShareHold').checked = formState.dataType.shareHold || true;
+                return;
+            }
+
+            // 更新任务名
+            generateTaskName();
+        }
+
+        // 重置数据类型默认值
+        function resetDataTypeDefaults() {
+            document.getElementById('checkTradeConfirm').checked = true;
+            document.getElementById('checkTradeConfirm').disabled = false;
+            document.getElementById('checkShareHold').checked = true;
+            
+            formState.dataType.tradeConfirm = true;
+            formState.dataType.shareHold = true;
+        }
+
+        // ==================== 任务名自动生成规则（根据需求文档完善）====================
+        function generateTaskName() {
+            const taskNameInput = document.getElementById('taskName');
+
+            // 获取基础名称
+            let baseName = '';
+            if (formState.dimension === 'investor') {
+                baseName = formState.investorName || '[投资者名称]';
+            } else {
+                baseName = document.getElementById('productName').value || '[产品名称]';
+            }
+
+            // 如果是自动生成模式(勾选了划款指令)
+            if (formState.isAutoGenerateTaskName) {
+                let name = '';
+                const today = getTodayDate();
+
+                // 根据需求文档的命名规则
+                if (!formState.dataType.shareHold && formState.dataType.tradeConfirm) {
+                    // 仅交易确认数据（不含份额）
+                    name = `${baseName}_交易确认数据${today}`;
+                } else if (formState.dataType.shareHold && !formState.dataType.tradeConfirm) {
+                    // 仅份额持有数据（理论上不应该出现这种情况,因为划款指令模式下交易确认必须勾选）
+                    name = `${baseName}_TA确认数据+份额持有数据`;
+                } else {
+                    // 同时包含两种数据
+                    name = `${baseName}_交易确认数据${today}，烦请于今日划付分红款`;
+                }
+
+                // 强制更新任务名输入框的值
+                taskNameInput.value = name;
+                formState.taskName = name;
+                
+                console.log('自动生成任务名:', name);
+            } else {
+                // 手动编辑模式,清空任务名或保留用户输入
+                if (!taskNameInput.readOnly) {
+                    // 如果之前是自动生成的任务名，清空它让用户重新输入
+                    const dataTypeStr = getDataTypeName();
+                    const suggestedName = `${baseName}_${dataTypeStr}`;
+                    
+                    // 只设置placeholder，不自动填充
+                    taskNameInput.placeholder = `例如: ${suggestedName}`;
+                    taskNameInput.value = '';
+                    formState.taskName = '';
+                }
+            }
+        }
+
+        function getDataTypeName() {
+            let types = [];
+            if (formState.dataType.tradeConfirm) types.push('TA确认数据');
+            if (formState.dataType.shareHold) types.push('份额持有数据');
+            return types.join('+');
+        }
+
+        function getTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}${month}${day}`;
+        }
+
+        // ==================== 输入变化监听 ====================
+        function onInputChange() {
+            // 当投资者名称或产品名称改变时,更新任务名
+            if (formState.isAutoGenerateTaskName) {
+                generateTaskName();
+            }
+        }
+
+        function onTaskNameInput() {
+            // 如果不是自动生成模式,记录用户输入的任务名
+            if (!formState.isAutoGenerateTaskName) {
+                formState.taskName = document.getElementById('taskName').value;
+            }
+        }
+
+        // ==================== 邮箱字段动态添加 ====================
+        function addEmailField(type) {
+            // 简单演示:实际项目中可以实现多邮箱输入
+            alert('可在此处扩展添加多个邮箱的功能');
+        }
+
+        // ==================== 表单验证与提交 ====================
+        function validateForm() {
+            const errors = [];
+
+            // 验证必填项
+            if (formState.dimension === 'investor' && !document.getElementById('investorName').value.trim()) {
+                errors.push('请选择投资者');
+            }
+            
+            if (formState.dimension === 'product' && !document.getElementById('productName').value.trim()) {
+                errors.push('请选择产品');
+            }
+
+            // 验证按投资者发送时的产品选择
+            if (formState.dimension === 'investor' && formState.investorName) {
+                if (formState.productSelectMode === 'custom' && formState.selectedProducts.length === 0) {
+                    errors.push('请至少选择一个产品');
+                }
+            }
+
+            if (!document.getElementById('receiveEmail').value.trim()) {
+                errors.push('请填写接收邮箱');
+            }
+
+            // 验证邮箱格式
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const receiveEmail = document.getElementById('receiveEmail').value;
+            if (receiveEmail && !emailRegex.test(receiveEmail)) {
+                errors.push('接收邮箱格式不正确');
+            }
+
+            // 验证数据类型
+            if (!formState.dataType.tradeConfirm && !formState.dataType.shareHold) {
+                errors.push('请至少选择一种发送数据类型');
+            }
+
+            return errors;
+        }
+
+        function submitForm() {
+            const errors = validateForm();
+            
+            if (errors.length > 0) {
+                alert('表单验证失败:\n\n' + errors.join('\n'));
+                return false;
+            }
+
+            // 收集表单数据
+            const formData = {
+                dimension: formState.dimension,
+                sendInstruction: formState.sendInstruction,
+                investorOrProduct: formState.dimension === 'investor' 
+                    ? document.getElementById('investorName').value 
+                    : document.getElementById('productName').value,
+                taskName: document.getElementById('taskName').value,
+                dataType: formState.dataType,
+                receiveEmail: document.getElementById('receiveEmail').value,
+                ccEmail: document.getElementById('ccEmail').value,
+                bccEmail: document.getElementById('bccEmail').value,
+                // 按投资者发送时的产品选择信息
+                ...(formState.dimension === 'investor' && {
+                    productSelectMode: formState.productSelectMode,
+                    selectedProducts: formState.selectedProducts
+                }),
+                // 交易确认数据配置
+                tradeConfig: {
+                    format: {
+                        excel: document.getElementById('tradeExcel').checked,
+                        pdf: document.getElementById('tradePdf').checked
+                    },
+                    mode: document.querySelector('input[name="mode1"]:checked').value,
+                    styles: {
+                        holdShare: document.getElementById('styleHoldShare').checked,
+                        holdRatio: document.getElementById('styleHoldRatio').checked,
+                        baseValue: document.getElementById('styleBaseValue').checked
+                    }
+                },
+                // 份额持有数据配置
+                shareConfig: {
+                    freqType: document.getElementById('shareFreqType').value,
+                    format: {
+                        excel: document.getElementById('shareExcel').checked,
+                        pdf: document.getElementById('sharePdf').checked
+                    },
+                    mode: document.querySelector('input[name="mode2"]:checked').value,
+                    styles: {
+                        netValue: document.getElementById('styleNetValue').checked,
+                        productRatio: document.getElementById('styleProductRatio').checked
+                    }
+                }
+            };
+
+            console.log('提交的表单数据:', formData);
+            
+            // 模拟提交成功
+            alert('配置保存成功！\n\n正在跳转到列表页面...');
+            
+            // 跳转到列表页
+            showView('list');
+            
+            return true;
+        }
+
+        function resetForm() {
+            if (confirm('确定要重置表单吗？所有未保存的数据将丢失。')) {
+                // 重置所有字段
+                document.getElementById('sendDimension').value = 'investor';
+                document.getElementById('sendInstruction').checked = false;
+                
+                // 重置可搜索下拉框
+                document.getElementById('investorNameInput').value = '';
+                document.getElementById('investorName').value = '';
+                document.getElementById('productNameInput').value = '';
+                document.getElementById('productName').value = '';
+                
+                // 清除选中状态
+                document.querySelectorAll('#investorDropdown .dropdown-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                document.querySelectorAll('#productDropdown .dropdown-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                
+                document.getElementById('taskName').value = '';
+                document.getElementById('taskName').readOnly = false;
+                document.getElementById('taskName').style.backgroundColor = '';
+                document.getElementById('taskNameHint').textContent = '';
+                document.getElementById('receiveEmail').value = '';
+                document.getElementById('ccEmail').value = '';
+                document.getElementById('bccEmail').value = '';
+
+                // 重置数据类型
+                resetDataTypeDefaults();
+
+                // 重置其他选项
+                document.getElementById('tradeExcel').checked = false;
+                document.getElementById('tradePdf').checked = true;
+                document.getElementById('shareExcel').checked = false;
+                document.getElementById('sharePdf').checked = true;
+                document.getElementById('shareFreqType').value = 'daily';
+                document.querySelector('input[name="mode1"][value="detail"]').checked = true;
+                document.querySelector('input[name="mode2"][value="detail"]').checked = true;
+                
+                // 清空样式选项
+                document.querySelectorAll('.style-options input[type="checkbox"]').forEach(cb => {
+                    cb.checked = false;
+                });
+
+                // 重置产品选择（弹窗模式）
+                document.querySelector('input[name="productSelectMode"][value="all"]').checked = true;
+                document.getElementById('openProductModalBtn').style.display = 'none';
+                formState.selectedProducts = [];
+                updateSelectedProductsDisplay();
+
+                // 重置投资者选择（按产品发送时）
+                if (document.querySelector('input[name="investorSelectMode"]')) {
+                    document.querySelector('input[name="investorSelectMode"][value="all"]').checked = true;
+                    document.getElementById('openInvestorModalBtn').style.display = 'none';
+                    formState.selectedInvestors = [];
+                    updateSelectedInvestorsDisplay();
+                }
+
+                // 重置状态
+                formState.dimension = 'investor';
+                formState.sendInstruction = false;
+                formState.investorName = '';
+                formState.productName = '';
+                formState.taskName = '';
+                formState.isAutoGenerateTaskName = false;
+                formState.productSelectMode = 'all';
+                formState.selectedProducts = [];
+                formState.investorSelectMode = 'all';
+                formState.selectedInvestors = [];
+
+                // 重新触发维度切换
+                onDimensionChange();
+
+                console.log('表单已重置');
+            }
+        }
+
+        // ==================== 复制配置功能 ====================
+        function copyConfig(element) {
+            // 获取当前行的配置信息
+            const row = element.closest('tr');
+            const configId = row.querySelector('td:nth-child(1)').textContent;
+            const taskName = row.querySelector('td:nth-child(2)').textContent;
+            
+            console.log('复制配置:', {configId, taskName});
+            
+            alert(`配置复制功能\n\n已复制配置：${taskName}\n（配置编号：${configId}）\n\n提示：实际应用中会将此配置作为模板创建新的发送任务`);
+        }
+
+        // ==================== 补发弹窗逻辑 ====================
+        function openResendModal() {
+            document.getElementById('resendModal').classList.add('show');
+            // 可以在这里加载对应的补发数据
+        }
+
+        function closeResendModal() {
+            document.getElementById('resendModal').classList.remove('show');
+        }
+
+        function submitResend() {
+            const baseDate = document.getElementById('baseDateSelect').value;
+            
+            if (!baseDate) {
+                alert('请选择业务日期');
+                return;
+            }
+
+            // 收集补发表单数据
+            const resendData = {
+                baseDate: baseDate,
+                // 其他信息（投资者、产品、邮箱等）均为只读，使用原配置
+            };
+
+            console.log('补发数据:', resendData);
+            
+            alert(`补发请求已提交！\n\n业务日期：${baseDate}\n\n系统将在指定日期后执行补发操作。`);
+            closeResendModal();
+        }
+
+        // ==================== 页面切换和通用交互 ====================
+        
+        // 切换视图
+        function showView(viewName) {
+            document.querySelectorAll('.page-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById('view-' + viewName).classList.add('active');
+        }
+
+        // 切换Tab
+        function switchTab(element, contentId) {
+            // 移除所有tab的active状态
+            document.querySelectorAll('.tab-item').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // 添加当前tab的active状态
+            element.classList.add('active');
+            
+            // 隐藏所有内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            // 显示对应内容
+            document.getElementById(contentId).style.display = 'block';
+        }
+
+        // 展开/收起通知
+        function toggleNotice() {
+            const content = document.getElementById('noticeContent');
+            const btn = event.target;
+            if (content.classList.contains('show')) {
+                content.classList.remove('show');
+                btn.textContent = '(展开+)';
+            } else {
+                content.classList.add('show');
+                btn.textContent = '(收起-)';
+            }
+        }
+
+        // 点击遮罩层关闭弹窗
+        document.getElementById('resendModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeResendModal();
+            }
+        });
+
+        // ==================== 产品选择弹窗 ====================
+        function openProductSelectModal() {
+            const modal = document.getElementById('productSelectModal');
+            modal.classList.add('show');
+            
+            // 清空搜索框
+            document.getElementById('productSearchInput').value = '';
+            
+            // 显示所有产品
+            showAllProducts();
+            
+            // 恢复之前的选择状态
+            restoreProductSelection();
+        }
+
+        function closeProductSelectModal() {
+            const modal = document.getElementById('productSelectModal');
+            modal.classList.remove('show');
+            
+            // 更新已选择的产品展示
+            updateSelectedProductsDisplay();
+        }
+
+        // 产品搜索过滤
+        function filterProducts() {
+            const searchText = document.getElementById('productSearchInput').value.toLowerCase().trim();
+            const items = document.querySelectorAll('#productModalList .product-item');
+            
+            items.forEach(item => {
+                const text = item.getAttribute('data-text').toLowerCase();
+                if (text.includes(searchText)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // 显示所有产品（清空搜索时使用）
+        function showAllProducts() {
+            const items = document.querySelectorAll('#productModalList .product-item');
+            items.forEach(item => {
+                item.style.display = 'flex';
+            });
+        }
+
+        // 产品全选/取消全选
+        function toggleAllProducts(checked) {
+            const checkboxes = document.querySelectorAll('#productModalList input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+            });
+        }
+
+        // 确认选择产品
+        function confirmProductSelection() {
+            const checkedBoxes = document.querySelectorAll('#productModalList input[type="checkbox"]:checked');
+            formState.selectedProducts = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            console.log('已选择产品:', formState.selectedProducts);
+            closeProductSelectModal();
+            generateTaskName();
+        }
+
+        // 恢复产品选择状态
+        function restoreProductSelection() {
+            // 先取消全选
+            const selectAllCb = document.getElementById('productSelectAll');
+            if (selectAllCb) selectAllCb.checked = false;
+            
+            // 恢复之前的选择
+            const checkboxes = document.querySelectorAll('#productModalList input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = formState.selectedProducts.includes(cb.value);
+            });
+        }
+
+        // 更新已选择产品的展示
+        function updateSelectedProductsDisplay() {
+            const displayArea = document.getElementById('selectedProductsDisplay');
+            const tagsContainer = document.getElementById('selectedProductsTags');
+            
+            if (formState.selectedProducts.length > 0) {
+                displayArea.style.display = 'block';
+                tagsContainer.innerHTML = formState.selectedProducts.map(product => 
+                    `<span class="tag tag-blue" style="margin: 2px;">${product}</span>`
+                ).join('');
+            } else {
+                displayArea.style.display = 'none';
+                tagsContainer.innerHTML = '';
+            }
+        }
+
+        // ==================== 投资者选择弹窗（按产品发送时使用）====================
+        function openInvestorSelectModal() {
+            const modal = document.getElementById('investorSelectModal');
+            modal.classList.add('show');
+            
+            // 清空搜索框
+            document.getElementById('investorSearchInput').value = '';
+            
+            // 显示所有投资者
+            showAllInvestors();
+            
+            // 恢复之前的选择状态
+            restoreInvestorSelection();
+        }
+
+        function closeInvestorSelectModal() {
+            const modal = document.getElementById('investorSelectModal');
+            modal.classList.remove('show');
+            
+            // 更新已选择的投资者展示
+            updateSelectedInvestorsDisplay();
+        }
+
+        // 投资者搜索过滤
+        function filterInvestors() {
+            const searchText = document.getElementById('investorSearchInput').value.toLowerCase().trim();
+            const items = document.querySelectorAll('#investorModalList .investor-item');
+            
+            items.forEach(item => {
+                const text = item.getAttribute('data-text').toLowerCase();
+                if (text.includes(searchText)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        // 显示所有投资者（清空搜索时使用）
+        function showAllInvestors() {
+            const items = document.querySelectorAll('#investorModalList .investor-item');
+            items.forEach(item => {
+                item.style.display = 'flex';
+            });
+        }
+
+        // 投资者全选/取消全选
+        function toggleAllInvestors(checked) {
+            const checkboxes = document.querySelectorAll('#investorModalList input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = checked;
+            });
+        }
+
+        // 确认选择投资者
+        function confirmInvestorSelection() {
+            const checkedBoxes = document.querySelectorAll('#investorModalList input[type="checkbox"]:checked');
+            formState.selectedInvestors = Array.from(checkedBoxes).map(cb => cb.value);
+            
+            console.log('已选择投资者:', formState.selectedInvestors);
+            closeInvestorSelectModal();
+        }
+
+        // 恢复投资者选择状态
+        function restoreInvestorSelection() {
+            // 先取消全选
+            const selectAllCb = document.getElementById('investorSelectAll');
+            if (selectAllCb) selectAllCb.checked = false;
+            
+            // 恢复之前的选择
+            const checkboxes = document.querySelectorAll('#investorModalList input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = formState.selectedInvestors && formState.selectedInvestors.includes(cb.value);
+            });
+        }
+
+        // 更新已选择投资者的展示
+        function updateSelectedInvestorsDisplay() {
+            const displayArea = document.getElementById('selectedInvestorsDisplay');
+            const tagsContainer = document.getElementById('selectedInvestorsTags');
+            
+            if (formState.selectedInvestors && formState.selectedInvestors.length > 0) {
+                displayArea.style.display = 'block';
+                tagsContainer.innerHTML = formState.selectedInvestors.map(investor => 
+                    `<span class="tag tag-green" style="margin: 2px;">${investor}</span>`
+                ).join('');
+            } else {
+                displayArea.style.display = 'none';
+                tagsContainer.innerHTML = '';
+            }
+        }
+
+        // ==================== 表格多选与批量操作功能 ====================
+        
+        // 全选/取消全选
+        function toggleSelectAll(checkbox) {
+            const rowCheckboxes = document.querySelectorAll('.row-checkbox:not(:disabled)');
+            const isChecked = checkbox.checked;
+            
+            rowCheckboxes.forEach(cb => {
+                cb.checked = isChecked;
+                cb.closest('tr').classList.toggle('selected', isChecked);
+            });
+            
+            updateBatchButtons();
+        }
+        
+        // 单行选择
+        function setupRowCheckboxListeners() {
+            document.querySelectorAll('.row-checkbox').forEach(checkbox => {
+                if (!checkbox.disabled) {
+                    checkbox.addEventListener('change', function() {
+                        this.closest('tr').classList.toggle('selected', this.checked);
+                        
+                        // 更新全选状态
+                        const allEnabled = document.querySelectorAll('.row-checkbox:not(:disabled)');
+                        const allChecked = document.querySelectorAll('.row-checkbox:not(:disabled):checked');
+                        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+                        
+                        if (allChecked.length === allEnabled.length) {
+                            selectAllCheckbox.checked = true;
+                            selectAllCheckbox.indeterminate = false;
+                        } else if (allChecked.length > 0) {
+                            selectAllCheckbox.checked = false;
+                            selectAllCheckbox.indeterminate = true;
+                        } else {
+                            selectAllCheckbox.checked = false;
+                            selectAllCheckbox.indeterminate = false;
+                        }
+                        
+                        updateBatchButtons();
+                    });
+                }
+            });
+        }
+        
+        // 更新批量操作按钮状态
+        function updateBatchButtons() {
+            const selectedCount = document.querySelectorAll('.row-checkbox:checked').length;
+            const batchSendBtn = document.getElementById('batchSendBtn');
+            const batchDeleteBtn = document.getElementById('batchDeleteBtn');
+            
+            if (selectedCount > 0) {
+                batchSendBtn.disabled = false;
+                batchDeleteBtn.disabled = false;
+                batchSendBtn.textContent = `发送数据(${selectedCount})`;
+                batchDeleteBtn.textContent = `删除(${selectedCount})`;
+            } else {
+                batchSendBtn.disabled = true;
+                batchDeleteBtn.disabled = true;
+                batchSendBtn.textContent = '发送数据(0)';
+                batchDeleteBtn.textContent = '删除(0)';
+            }
+        }
+        
+        // 导出数据
+        function exportData() {
+            alert('导出数据功能\n\n将导出当前筛选条件下的所有数据为Excel格式。\n\n提示：实际应用中会调用后端API生成文件并下载');
+        }
+        
+        // 生成数据（一键生成）
+        function generateData() {
+            // 显示加载状态
+            const btn = event.target;
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            
+            setTimeout(() => {
+                // 模拟生成3条未发送的数据
+                addGeneratedRows();
+                
+                btn.disabled = false;
+                btn.textContent = originalText;
+                
+                alert(`✅ 数据生成成功！\n\n已生成 3 条待发送数据：\n• 张三丰_港通私募 - 交易确认数据\n• 李四光_银泰伯乐 - 份额持有数据\n• 王五明_银泰嘉享 - 交易确认数据\n\n请查看表格中的新增记录`);
+                
+                // 重新绑定复选框事件
+                setupRowCheckboxListeners();
+            }, 2000);
+        }
+        
+        // 添加生成的数据行
+        function addGeneratedRows() {
+            const tbody = document.querySelector('#detailTable tbody');
+            const generatedData = [
+                { id: '115007', configId: '120346', name: '张三丰_港通私募...', dimension: '投资者', type: '交易确认数据', date: '2026-06-15' },
+                { id: '92700', configId: '93384', name: '李四光_银泰伯乐...', dimension: '投资者', type: '份额持有数据', date: '2026-06-15' },
+                { id: '89558', configId: '90094', name: '王五明_银泰嘉享...', dimension: '投资者', type: '交易确认数据', date: '2026-06-15' }
+            ];
+            
+            generatedData.forEach((data, index) => {
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-status', 'unsent');
+                tr.innerHTML = `
+                    <td><input type="checkbox" class="row-checkbox" onchange="updateRowSelection(this)"></td>
+                    <td>${data.id}</td>
+                    <td>${data.configId}</td>
+                    <td>${data.name}</td>
+                    <td><span class="tag tag-blue">${data.dimension}</span></td>
+                    <td>${data.type}</td>
+                    <td>${data.date}</td>
+                    <td>-</td>
+                    <td><span style="color: #faad14;">● 未发送</span></td>
+                    <td>-</td>
+                    <td>jgrfof@gtht.com</td>
+                    <td>1</td>
+                    <td>
+                        <div class="action-links">
+                            <a class="link-action">查看详情</a>
+                            <span>|</span>
+                            <a class="link-action link-success" onclick="sendSingle(this)">发送</a>
+                            <span>|</span>
+                            <a class="link-action link-danger" onclick="deleteSingle(this)">删除</a>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+        
+        // 更新单行选择状态
+        function updateRowSelection(checkbox) {
+            const tr = checkbox.closest('tr');
+            tr.classList.toggle('selected', checkbox.checked);
+            
+            // 触发全选更新逻辑
+            const allEnabled = document.querySelectorAll('.row-checkbox:not(:disabled)');
+            const allChecked = document.querySelectorAll('.row-checkbox:not(:disabled):checked');
+            const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+            
+            if (allChecked.length === allEnabled.length) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else if (allChecked.length > 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            }
+            
+            updateBatchButtons();
+        }
+        
+        // 批量发送
+        function batchSend() {
+            const selectedRows = document.querySelectorAll('.row-checkbox:checked');
+            const dataList = [];
+            
+            selectedRows.forEach(cb => {
+                const row = cb.closest('tr');
+                const taskName = row.cells[3].textContent.trim();
+                dataList.push(taskName);
+            });
+            
+            const confirmMsg = `确认批量发送\n\n即将发送以下 ${dataList.length} 条数据：\n${dataList.map(name => '• ' + name).join('\n')}\n\n接收邮箱将使用原配置邮箱`;
+            
+            if (confirm(confirmMsg)) {
+                // 模拟发送过程
+                selectedRows.forEach(cb => {
+                    const row = cb.closest('tr');
+                    row.setAttribute('data-status', 'sent');
+                    row.cells[7].textContent = new Date().toISOString().split('T')[0];
+                    row.cells[8].innerHTML = '<span style="color: #52c41a;">● 已发送</span>';
+                    row.cells[9].innerHTML = `<span style="color: #1890ff; font-weight: 600;">${new Date().toLocaleString()}</span>`;
+                    
+                    // 禁用复选框
+                    const checkbox = row.querySelector('.row-checkbox');
+                    checkbox.disabled = true;
+                    checkbox.checked = false;
+                    
+                    // 更新操作按钮
+                    row.cells[12].innerHTML = `
+                        <div class="action-links">
+                            <a class="link-action">查看详情</a>
+                            <span>|</span>
+                            <a class="link-action" onclick="resendSingle(this)">再次发送</a>
+                        </div>
+                    `;
+                });
+                
+                updateBatchButtons();
+                alert(`✅ 发送成功！\n\n已成功发送 ${dataList.length} 条数据`);
+            }
+        }
+        
+        // 批量删除
+        function batchDelete() {
+            const selectedRows = document.querySelectorAll('.row-checkbox:checked');
+            const count = selectedRows.length;
+            
+            if (confirm(`⚠️ 警告\n\n确定要删除这 ${count} 条记录吗？\n此操作不可恢复！`)) {
+                selectedRows.forEach(cb => {
+                    cb.closest('tr').remove();
+                });
+                
+                // 重置全选框
+                document.getElementById('selectAllCheckbox').checked = false;
+                document.getElementById('selectAllCheckbox').indeterminate = false;
+                
+                updateBatchButtons();
+                alert(`✅ 删除成功！\n\n已删除 ${count} 条记录`);
+            }
+        }
+        
+        // 单条发送
+        function sendSingle(element) {
+            const row = element.closest('tr');
+            const taskName = row.cells[3].textContent.trim();
+            
+            if (confirm(`确认发送\n\n任务名：${taskName}\n接收邮箱：${row.cells[10].textContent}`)) {
+                row.setAttribute('data-status', 'sent');
+                row.cells[7].textContent = new Date().toISOString().split('T')[0];
+                row.cells[8].innerHTML = '<span style="color: #52c41a;">● 已发送</span>';
+                row.cells[9].innerHTML = `<span style="color: #1890ff; font-weight: 600;">${new Date().toLocaleString()}</span>`;
+                
+                // 禁用复选框
+                const checkbox = row.querySelector('.row-checkbox');
+                checkbox.disabled = true;
+                checkbox.checked = false;
+                
+                // 更新操作按钮
+                row.cells[12].innerHTML = `
+                    <div class="action-links">
+                        <a class="link-action">查看详情</a>
+                        <span>|</span>
+                        <a class="link-action" onclick="resendSingle(this)">再次发送</a>
+                    </div>
+                `;
+                
+                updateBatchButtons();
+                alert('✅ 发送成功！');
+            }
+        }
+        
+        // 单条删除
+        function deleteSingle(element) {
+            const row = element.closest('tr');
+            const taskName = row.cells[3].textContent.trim();
+            
+            if (confirm(`确定要删除这条记录吗？\n\n任务名：${taskName}`)) {
+                row.remove();
+                updateBatchButtons();
+                alert('✅ 删除成功！');
+            }
+        }
+        
+        // 再次发送（单条）
+        function resendSingle(element) {
+            const row = element.closest('tr');
+            const taskName = row.cells[3].textContent.trim();
+            
+            if (confirm(`再次发送\n\n任务名：${taskName}\n\n将使用原配置重新发送一次`)) {
+                row.cells[9].innerHTML = `<span style="color: #1890ff; font-weight: 600;">${new Date().toLocaleString()} (重发)</span>`;
+                alert('✅ 重发成功！\n\n邮件已重新发送至原配置邮箱');
+            }
+        }
+        
+        // ==================== 列显示控制功能 ====================
+        
+        function toggleColumnSettings() {
+            const dropdown = document.getElementById('columnSettingsDropdown');
+            dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        }
+        
+        // 点击其他地方关闭下拉菜单
+        document.addEventListener('click', function(e) {
+            const wrapper = document.querySelector('.column-settings-wrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('columnSettingsDropdown').style.display = 'none';
+            }
+        });
+        
+        // 列设置checkbox变化时切换列显示/隐藏
+        document.addEventListener('change', function(e) {
+            if (e.target.matches('#columnSettingsDropdown input[type="checkbox"]')) {
+                const columnIndex = e.target.getAttribute('data-column');
+                const table = document.getElementById('detailTable');
+                const theadCells = table.querySelectorAll('thead th');
+                const tbodyRows = table.querySelectorAll('tbody tr');
+                
+                // 控制表头列
+                if (theadCells[columnIndex]) {
+                    theadCells[columnIndex].style.display = e.target.checked ? '' : 'none';
+                }
+                
+                // 控制数据行对应列
+                tbodyRows.forEach(row => {
+                    if (row.cells[columnIndex]) {
+                        row.cells[columnIndex].style.display = e.target.checked ? '' : 'none';
+                    }
+                });
+            }
+        });
+        
+        // 重置列为默认显示
+        function resetColumns() {
+            const checkboxes = document.querySelectorAll('#columnSettingsDropdown input[type="checkbox"]');
+            checkboxes.forEach(cb => {
+                cb.checked = true;
+                cb.dispatchEvent(new Event('change'));
+            });
+        }
+
+        // ==================== 页面初始化 ====================
+        window.onload = function() {
+            console.log('TA数据发送系统初始化完成');
+            console.log('当前状态:', formState);
+            
+            // 初始化时触发一次维度切换,确保界面状态正确
+            onDimensionChange();
+            
+            // 初始化表格复选框事件监听
+            setupRowCheckboxListeners();
+            
+            // 初始化批量按钮状态
+            updateBatchButtons();
+        };
+    </script>
+</body>
+</html>

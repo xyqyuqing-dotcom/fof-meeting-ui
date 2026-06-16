@@ -23,12 +23,13 @@
         /* 侧边栏 */
         .sidebar {
             width: 200px;
-            background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff;
+            background: #fff;
             height: 100vh;
             position: fixed;
             left: 0;
             top: 0;
+            border-right: 1px solid #e8e8e8;
+            z-index: 100;
         }
 
         .sidebar-header {
@@ -36,57 +37,58 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid #f0f0f0;
         }
 
         .logo {
             width: 36px;
             height: 36px;
-            background: linear-gradient(135deg, #ffd700 0%, #ff6b35 100%);
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: bold;
             font-size: 16px;
-            color: #1a1a2e;
+            color: white;
         }
 
         .brand-name {
             font-weight: 600;
             font-size: 16px;
+            color: #333;
         }
 
         .sidebar-menu {
-            padding: 16px 0;
+            padding: 12px 0;
         }
 
         .menu-title {
             padding: 12px 20px;
             font-size: 12px;
-            color: rgba(255,255,255,0.5);
-            text-transform: uppercase;
+            color: #999;
         }
 
         .menu-item {
-            padding: 12px 20px;
+            padding: 11px 20px;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             cursor: pointer;
-            color: rgba(255,255,255,0.7);
-            transition: all 0.2s;
+            color: #666;
+            transition: all 0.15s;
         }
 
         .menu-item:hover {
-            background: rgba(255,255,255,0.1);
-            color: #fff;
+            background: #e6f7ff;
+            color: #1890ff;
         }
 
         .menu-item.active {
-            background: rgba(255,215,0,0.2);
-            color: #ffd700;
-            border-left: 3px solid #ffd700;
+            background: #e6f7ff;
+            color: #1890ff;
+            border-right: 3px solid #1890ff;
+            font-weight: 500;
         }
 
         .menu-icon {
@@ -1512,8 +1514,8 @@
                         <div id="wechatFileList" class="wechat-files"></div>
                     </div>
 
-                    <!-- 文件收集链接 -->
-                    <div class="wechat-section">
+                    <!-- 文件收集链接（已隐藏） -->
+                    <div class="wechat-section" style="display: none;">
                         <label class="wechat-section-title">文件收集链接</label>
                         <div style="margin-top: 10px;">
                             <div class="wechat-link-box">
@@ -2188,6 +2190,11 @@
         // 打开用印划款流程
         function openTransferWorkflow(orderId) {
             window.location.href = `用印划款流程.html?orderId=${orderId}`;
+        }
+
+        // 打开补充材料流程（与用印划款流程类似，但不需要用印前附件自动挂接）
+        function openSupplementWorkflow(orderId) {
+            window.location.href = `用印划款流程.html?orderId=${orderId}&type=supplement`;
         }
 
         // ===== 匹配/解绑 =====

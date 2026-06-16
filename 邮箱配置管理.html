@@ -137,7 +137,7 @@
         .right-header h2 { font-size: 16px; font-weight: 600; }
         .right-header-sub { font-size: 12px; color: #999; margin-top: 2px; }
 
-        /* 邮箱类型列展示 */
+        /* 邮箱类型标签栏 */
         .email-type-bar {
             padding: 10px 24px; border-bottom: 1px solid #f0f0f0;
             display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
@@ -148,22 +148,18 @@
             background: white; border: 1px solid #d9d9d9;
         }
 
-        /* 邮箱矩阵表格 */
-        .matrix-table-wrapper { overflow-x: auto; padding: 16px 24px; }
-        .matrix-table {
-            width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px;
+        /* 竖排邮箱配置列表 */
+        .matrix-list { padding: 16px 24px; }
+        .matrix-row {
+            display: flex; align-items: center; gap: 16px;
+            padding: 12px 0; border-bottom: 1px solid #f0f0f0;
         }
-        .matrix-table th {
-            background: #fafafa; padding: 10px 12px; text-align: left;
-            font-weight: 600; border-bottom: 2px solid #e8e8e8;
-            white-space: nowrap; font-size: 12px; color: #666;
+        .matrix-row:last-child { border-bottom: none; }
+        .matrix-row-label {
+            width: 80px; flex-shrink: 0; font-weight: 500;
+            font-size: 13px; color: #333;
         }
-        .matrix-table td {
-            padding: 8px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle;
-        }
-        .matrix-table tr:hover td { background: #fafafa; }
-        .matrix-row-label { font-weight: 500; white-space: nowrap; min-width: 120px; }
-        .matrix-cell { min-width: 180px; max-width: 260px; }
+        .matrix-cell { flex: 1; min-width: 0; }
 
         /* 其他列 - 自由输入 */
         .other-input {
@@ -397,16 +393,11 @@
                 </div>
             </div>
 
-            <!-- 邮箱类型列 -->
+            <!-- 邮箱类型标签栏 -->
             <div class="email-type-bar" id="emailTypeBar"></div>
 
-            <!-- 矩阵表格 -->
-            <div class="matrix-table-wrapper">
-                <table class="matrix-table" id="matrixTable">
-                    <thead><tr id="matrixHeader"></tr></thead>
-                    <tbody id="matrixBody"></tbody>
-                </table>
-            </div>
+            <!-- 竖排配置列表 -->
+            <div class="matrix-list" id="matrixList"></div>
         </div>
     </div>
 </div>
@@ -602,47 +593,64 @@ function updateRightHeader() {
 }
 
 // ============================================================
-// 矩阵表格
+// 竖排配置列表
 // ============================================================
 function renderMatrix() {
     const types = getEmailTypesForCurrentDt();
-    document.getElementById('matrixHeader').innerHTML =
-        '<th class="matrix-row-label">配置对象</th>' +
-        types.map(t => `<th>${t}<button class="btn btn-sm btn-link" style="float:right;padding:0;font-size:11px;" onclick="openCellPicker('${currentDataType}','${currentConfigKey}','${t}')">编辑</button></th>`).join('') +
-        '<th>其他</th>';
+    const allTypes = [...types, '其他'];
+    let html = '';
 
-    let html = renderRow(currentDataType, currentConfigKey, types);
-    if (currentConfigKey !== 'universal') html += renderInheritPreviewRow(currentDataType, currentConfigKey, types);
-    document.getElementById('matrixBody').innerHTML = html;
-}
-
-function renderRow(dt, key, types) {
-    const rowLabel = key === 'universal'
+    // 当前配置行
+    const configName = currentConfigKey === 'universal'
         ? '<strong>私客通用</strong>'
-        : (() => { const p = productOverrides.find(x=>x.code===key); return p ? `<strong>${p.name}</strong><br><small>${p.code}</small>` : key; })();
-    return `<tr><td class="matrix-row-label">${rowLabel}</td>${types.map(t => renderCell(dt, key, t)).join('')}${renderOtherCell(dt, key)}</tr>`;
+        : (() => { const p = productOverrides.find(x=>x.code===currentConfigKey); return p ? `<strong>${p.name}</strong><small style="color:#999;margin-left:6px;">${p.code}</small>` : currentConfigKey; })();
+
+    html += `<div style="margin-bottom:16px;"><div style="font-size:13px;color:#999;margin-bottom:8px;">${configName}</div>`;
+    html += allTypes.map(t => renderVerticalCell(currentDataType, currentConfigKey, t)).join('');
+    html += `</div>`;
+
+    // 特殊产品显示继承预览
+    if (currentConfigKey !== 'universal') {
+        html += `<div style="border-top:2px solid #e8e8e8;padding-top:16px;">
+            <div style="font-size:12px;color:#999;margin-bottom:8px;">实际生效（含继承私客通用）</div>`;
+        html += allTypes.map(t => renderVerticalPreview(currentDataType, currentConfigKey, t)).join('');
+        html += `</div>`;
+    }
+
+    document.getElementById('matrixList').innerHTML = html;
 }
 
-function renderInheritPreviewRow(dt, key, types) {
-    return `<tr style="background:#fafafa;"><td class="matrix-row-label"><em style="color:#999;">实际生效（含继承）</em></td>` +
-        types.map(t => {
-            const emails = getEffectiveEmails(dt, key, t);
-            return `<td class="matrix-cell"><div class="email-display inherited" onclick="openCellPicker('${dt}','${key}','${t}')">${emails.length > 0 ? emails.join('; ') + '<span class="email-count">' + emails.length + '个</span>' : '<span class="empty">(无)</span>'}</div></td>`;
-        }).join('') + renderOtherCellPreview(dt, key) + '</tr>';
+function renderVerticalCell(dt, key, et) {
+    if (et === '其他') {
+        const val = configs[dt]?.[key]?.['其他'] || '';
+        const isUniversal = key === 'universal';
+        const hasOwn = configs[dt]?.[key]?.['其他'] !== undefined;
+        const cls = !isUniversal && !hasOwn ? 'inherited' : '';
+        return `<div class="matrix-row">
+            <div class="matrix-row-label">其他</div>
+            <div class="matrix-cell"><input type="text" class="other-input ${cls}" placeholder="${isUniversal ? '输入邮箱，多个用;分隔' : (hasOwn ? '' : '继承通用')}" value="${val}" onchange="saveOtherEmail('${dt}','${key}',this.value)"></div>
+        </div>`;
+    }
+    return `<div class="matrix-row">
+        <div class="matrix-row-label">${et}</div>
+        <div class="matrix-cell">${renderCell(dt, key, et)}</div>
+    </div>`;
 }
 
-function renderOtherCell(dt, key) {
-    const val = configs[dt]?.[key]?.['其他'] || '';
-    const isUniversal = key === 'universal';
-    const hasOwn = configs[dt]?.[key]?.['其他'] !== undefined;
-    const cls = !isUniversal && !hasOwn ? 'inherited' : '';
-    return `<td class="matrix-cell"><input type="text" class="other-input ${cls}" placeholder="${isUniversal ? '输入邮箱，多个用;分隔' : (hasOwn ? '' : '继承通用')}" value="${val}" onchange="saveOtherEmail('${dt}','${key}',this.value)" title="自由输入邮箱地址"></td>`;
-}
-
-function renderOtherCellPreview(dt, key) {
-    const own = configs[dt]?.[key]?.['其他'];
-    const val = own !== undefined ? own : (configs[dt]?.['universal']?.['其他'] || '');
-    return `<td class="matrix-cell"><div class="email-display inherited">${val || '<span class="empty">(无)</span>'}</div></td>`;
+function renderVerticalPreview(dt, key, et) {
+    if (et === '其他') {
+        const own = configs[dt]?.[key]?.['其他'];
+        const val = own !== undefined ? own : (configs[dt]?.['universal']?.['其他'] || '');
+        return `<div class="matrix-row" style="background:#fafafa;">
+            <div class="matrix-row-label" style="color:#999;">其他</div>
+            <div class="matrix-cell"><div class="email-display inherited">${val || '<span class="empty">(无)</span>'}</div></div>
+        </div>`;
+    }
+    const emails = getEffectiveEmails(dt, key, et);
+    return `<div class="matrix-row" style="background:#fafafa;">
+        <div class="matrix-row-label" style="color:#999;">${et}</div>
+        <div class="matrix-cell"><div class="email-display inherited" onclick="openCellPicker('${dt}','${key}','${et}')">${emails.length > 0 ? emails.join('; ') + '<span class="email-count">' + emails.length + '个</span>' : '<span class="empty">(无)</span>'}</div></div>
+    </div>`;
 }
 
 function saveOtherEmail(dt, key, val) {
@@ -659,11 +667,11 @@ function renderCell(dt, key, et) {
     const hasOwn = configs[dt]?.[key]?.[et] !== undefined;
     const displayEmails = hasOwn ? cellEmails : [];
     const isUniversal = key === 'universal';
-    return `<td class="matrix-cell"><div class="email-display ${displayEmails.length === 0 && !isUniversal ? 'inherited empty' : ''}" onclick="openCellPicker('${dt}','${key}','${et}')" title="${isUniversal ? '' : (hasOwn ? '已单独配置' : '继承自私客通用')}">${
+    return `<div class="email-display ${displayEmails.length === 0 && !isUniversal ? 'inherited empty' : ''}" onclick="openCellPicker('${dt}','${key}','${et}')" title="${isUniversal ? '' : (hasOwn ? '已单独配置' : '继承自私客通用')}">${
         displayEmails.length > 0
             ? displayEmails.join('; ') + '<span class="email-count">' + displayEmails.length + '个</span>'
             : (isUniversal ? '<span class="empty">点击选择邮箱...</span>' : '<span class="empty">继承通用</span>')
-    }${displayEmails.length > 0 ? '<span class="clear-icon" onclick="event.stopPropagation();clearCell(\'' + dt + '\',\'' + key + '\',\'' + et + '\')">&times;</span>' : ''}${!isUniversal && !hasOwn ? '<span class="inherit-badge">继承</span>' : ''}</div></td>`;
+    }${displayEmails.length > 0 ? '<span class="clear-icon" onclick="event.stopPropagation();clearCell(\'' + dt + '\',\'' + key + '\',\'' + et + '\')">&times;</span>' : ''}${!isUniversal && !hasOwn ? '<span class="inherit-badge">继承</span>' : ''}</div>`;
 }
 
 function getConfigEmails(dt, key, et) { return configs[dt]?.[key]?.[et] || []; }

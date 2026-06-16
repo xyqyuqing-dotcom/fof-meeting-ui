@@ -12,32 +12,32 @@
             min-height: 100vh; display: flex;
         }
 
-        /* ======== 左侧导航栏（与5-自动用印一致） ======== */
+        /* ======== 左侧导航栏 ======== */
         .sidebar {
-            width: 200px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
-            color: #fff; height: 100vh; position: fixed; left: 0; top: 0;
+            width: 200px; background: #fff; height: 100vh; position: fixed; left: 0; top: 0;
+            border-right: 1px solid #e8e8e8; z-index: 100;
         }
         .sidebar-header {
             padding: 20px; display: flex; align-items: center; gap: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            border-bottom: 1px solid #f0f0f0;
         }
         .logo {
             width: 36px; height: 36px;
-            background: linear-gradient(135deg, #ffd700 0%, #ff6b35 100%);
+            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
             border-radius: 8px; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 16px; color: #1a1a2e;
+            font-weight: bold; font-size: 16px; color: white;
         }
-        .brand-name { font-weight: 600; font-size: 16px; }
-        .sidebar-menu { padding: 16px 0; }
+        .brand-name { font-weight: 600; font-size: 16px; color: #333; }
+        .sidebar-menu { padding: 12px 0; }
         .menu-title {
-            padding: 12px 20px; font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase;
+            padding: 12px 20px; font-size: 12px; color: #999;
         }
         .menu-item {
-            padding: 12px 20px; display: flex; align-items: center; gap: 12px;
-            cursor: pointer; color: rgba(255,255,255,0.7); transition: all 0.2s;
+            padding: 11px 20px; display: flex; align-items: center; gap: 10px;
+            cursor: pointer; color: #666; transition: all 0.15s;
         }
-        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
-        .menu-item.active { background: rgba(255,215,0,0.2); color: #ffd700; border-left: 3px solid #ffd700; }
+        .menu-item:hover { background: #e6f7ff; color: #1890ff; }
+        .menu-item.active { background: #e6f7ff; color: #1890ff; border-right: 3px solid #1890ff; font-weight: 500; }
         .menu-icon { font-size: 16px; }
 
         /* ======== 主内容区 ======== */
@@ -52,7 +52,7 @@
         .top-bar h2 { font-size: 16px; font-weight: 600; }
 
         /* 页面主体：左右分栏 */
-        .page-container { max-width: 1500px; margin: 20px auto; padding: 0 24px; display: flex; gap: 16px; align-items: flex-start; }
+        .page-container { margin: 20px 24px; padding: 0; display: flex; gap: 16px; align-items: flex-start; }
 
         /* 左侧面板 */
         .left-panel {
@@ -164,6 +164,16 @@
         .matrix-table tr:hover td { background: #fafafa; }
         .matrix-row-label { font-weight: 500; white-space: nowrap; min-width: 120px; }
         .matrix-cell { min-width: 180px; max-width: 260px; }
+
+        /* 其他列 - 自由输入 */
+        .other-input {
+            width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9;
+            border-radius: 4px; font-size: 12px; line-height: 1.5;
+            background: white; outline: none; transition: all 0.2s;
+            min-height: 32px;
+        }
+        .other-input:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
+        .other-input.inherited { color: #999; font-style: italic; background: #fafafa; }
 
         .email-display {
             min-height: 32px; padding: 6px 10px; border: 1px solid #d9d9d9;
@@ -553,7 +563,7 @@ function getEmailTypesForCurrentDt() { return dataTypeEmailTypes[currentDataType
 function renderEmailTypeBar() {
     document.getElementById('emailTypeBar').innerHTML = getEmailTypesForCurrentDt().map(t =>
         `<span class="email-type-tag">${t}</span>`
-    ).join('');
+    ).join('') + '<span class="email-type-tag">其他</span>';
 }
 
 // ============================================================
@@ -592,7 +602,8 @@ function renderMatrix() {
     const types = getEmailTypesForCurrentDt();
     document.getElementById('matrixHeader').innerHTML =
         '<th class="matrix-row-label">配置对象</th>' +
-        types.map(t => `<th>${t}<button class="btn btn-sm btn-link" style="float:right;padding:0;font-size:11px;" onclick="openCellPicker('${currentDataType}','${currentConfigKey}','${t}')">编辑</button></th>`).join('');
+        types.map(t => `<th>${t}<button class="btn btn-sm btn-link" style="float:right;padding:0;font-size:11px;" onclick="openCellPicker('${currentDataType}','${currentConfigKey}','${t}')">编辑</button></th>`).join('') +
+        '<th>其他</th>';
 
     let html = renderRow(currentDataType, currentConfigKey, types);
     if (currentConfigKey !== 'universal') html += renderInheritPreviewRow(currentDataType, currentConfigKey, types);
@@ -603,7 +614,7 @@ function renderRow(dt, key, types) {
     const rowLabel = key === 'universal'
         ? '<strong>私客通用</strong>'
         : (() => { const p = productOverrides.find(x=>x.code===key); return p ? `<strong>${p.name}</strong><br><small>${p.code}</small>` : key; })();
-    return `<tr><td class="matrix-row-label">${rowLabel}</td>${types.map(t => renderCell(dt, key, t)).join('')}</tr>`;
+    return `<tr><td class="matrix-row-label">${rowLabel}</td>${types.map(t => renderCell(dt, key, t)).join('')}${renderOtherCell(dt, key)}</tr>`;
 }
 
 function renderInheritPreviewRow(dt, key, types) {
@@ -611,7 +622,30 @@ function renderInheritPreviewRow(dt, key, types) {
         types.map(t => {
             const emails = getEffectiveEmails(dt, key, t);
             return `<td class="matrix-cell"><div class="email-display inherited" onclick="openCellPicker('${dt}','${key}','${t}')">${emails.length > 0 ? emails.join('; ') + '<span class="email-count">' + emails.length + '个</span>' : '<span class="empty">(无)</span>'}</div></td>`;
-        }).join('') + '</tr>';
+        }).join('') + renderOtherCellPreview(dt, key) + '</tr>';
+}
+
+function renderOtherCell(dt, key) {
+    const val = configs[dt]?.[key]?.['其他'] || '';
+    const isUniversal = key === 'universal';
+    const hasOwn = configs[dt]?.[key]?.['其他'] !== undefined;
+    const cls = !isUniversal && !hasOwn ? 'inherited' : '';
+    return `<td class="matrix-cell"><input type="text" class="other-input ${cls}" placeholder="${isUniversal ? '输入邮箱，多个用;分隔' : (hasOwn ? '' : '继承通用')}" value="${val}" onchange="saveOtherEmail('${dt}','${key}',this.value)" title="自由输入邮箱地址"></td>`;
+}
+
+function renderOtherCellPreview(dt, key) {
+    const own = configs[dt]?.[key]?.['其他'];
+    const val = own !== undefined ? own : (configs[dt]?.['universal']?.['其他'] || '');
+    return `<td class="matrix-cell"><div class="email-display inherited">${val || '<span class="empty">(无)</span>'}</div></td>`;
+}
+
+function saveOtherEmail(dt, key, val) {
+    if (!configs[dt]) configs[dt] = {};
+    if (!configs[dt][key]) configs[dt][key] = {};
+    if (!val || val.trim() === '') delete configs[dt][key]['其他'];
+    else configs[dt][key]['其他'] = val.trim();
+    saveToStorage();
+    renderMatrix();
 }
 
 function renderCell(dt, key, et) {

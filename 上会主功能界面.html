@@ -880,6 +880,7 @@
                             <tr>
                                 <th>母基金</th>
                                 <th>子基金</th>
+                                <th>交易类型</th>
                                 <th>策略</th>
                                 <th>配置比例 <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="npRatioType" checked onclick="toggleNpInputMode()"> 按比例</label></th>
                                 <th>金额(万) <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="npRatioType" onclick="toggleNpInputMode()"> 按金额</label></th>
@@ -921,7 +922,7 @@
 
             <div class="form-row">
                 <div class="form-group">
-                    <label class="form-label">本次调仓总金额</label>
+                    <label class="form-label">本次调仓申购/追加总金额</label>
                     <input type="text" class="form-input" id="naTotalAmount">
                 </div>
                 <div class="form-group">
@@ -954,9 +955,11 @@
                             <tr>
                                 <th>母基金</th>
                                 <th>子基金</th>
+                                <th>交易类型</th>
                                 <th>策略</th>
                                 <th>配置比例 <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="naRatioType" checked onclick="toggleNaInputMode()"> 按比例</label></th>
                                 <th>金额(万) <label style="font-weight:normal;font-size:12px;margin-left:4px;"><input type="radio" name="naRatioType" onclick="toggleNaInputMode()"> 按金额</label></th>
+                                <th>调仓份额</th>
                                 <th>池子</th>
                                 <th>操作</th>
                             </tr>
@@ -1299,7 +1302,7 @@ function renderDetailView() {
         <div class="sidebar-item ${i === currentDetailFundIndex ? 'active' : ''}" onclick="selectFund(${i})">
             <span class="sidebar-item-name">${fund.name}</span>
             <span class="sidebar-item-code">${fund.code}</span>
-            ${fund.status === 'pending' ? '<span class="sidebar-item-tag">待上会</span>' : ''}
+            ${fund.status === 'pending' ? '<span class="sidebar-item-tag">今日上会</span>' : ''}
         </div>
     `).join('');
 
@@ -1407,12 +1410,28 @@ function renderFundDetail(fund) {
         <div class="record-card">
             <div class="record-card-header">
                 <span class="record-title">建仓和调仓记录</span>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span style="font-size:13px;color:#666;">上会/方案日期</span>
+                    <input type="date" id="recordDateStart" onchange="filterRecordsByDate()" style="padding:5px 8px;border:1px solid #d9d9d9;border-radius:4px;font-size:13px;outline:none;width:150px;">
+                    <span style="font-size:13px;color:#999;">至</span>
+                    <input type="date" id="recordDateEnd" onchange="filterRecordsByDate()" style="padding:5px 8px;border:1px solid #d9d9d9;border-radius:4px;font-size:13px;outline:none;width:150px;">
+                </div>
             </div>
             <div class="record-body">
                 ${renderRecordTable()}
             </div>
         </div>
     `;
+
+    // 设置日期范围默认值：近一年
+    const today = new Date();
+    const oneYearAgo = new Date(today);
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const fmt = d => d.toISOString().split('T')[0];
+    const startEl = document.getElementById('recordDateStart');
+    const endEl = document.getElementById('recordDateEnd');
+    if (startEl && !startEl.value) startEl.value = fmt(oneYearAgo);
+    if (endEl && !endEl.value) endEl.value = fmt(today);
 }
 
 function renderRecordTable() {
@@ -1437,13 +1456,14 @@ function renderRecordTable() {
                     <th>子基金管理人</th>
                     <th>子基金代码</th>
                     <th>子基金名称</th>
+                    <th>交易类型</th>
                     <th>策略</th>
                     <th>策略比例</th>
                     <th>最新估值日期</th>
                     <th>已投金额(万)</th>
-                    <th>配置比例</th>
                     <th>调仓原因</th>
                     <th>调仓金额(万)</th>
+                    <th>调仓份额</th>
                     <th>调仓后金额(万)</th>
                     <th>调仓后配置比例</th>
                     <th>证券交易落地营业部</th>
@@ -1456,62 +1476,62 @@ function renderRecordTable() {
                     <tr>
                         <td><input type="checkbox"></td>
                         <td><span class="status-exempt">豁免上会</span></td>
-                        <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>量化指增</td>
+                        <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>申购</td><td>量化指增</td>
                         <td>32.78%</td>
-                        <td>2026-05-13</td><td>574.00</td><td>6.46%</td>
-                        <td style="max-width:140px;font-size:12px;">平滑组合整体收益风险特征</td><td>86.00</td>
+                        <td>2026-05-13</td><td>574.00</td>
+                        <td style="max-width:140px;font-size:12px;">平滑组合整体收益风险特征</td><td>86.00</td><td></td>
                         <td>660.00</td><td>7.43%</td>
                         <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">南京新街口营业部</td>
                         <td>86.00</td><td>0.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',86)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',86,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
                         <td><span class="status-done">已上会</span></td>
-                        <td>九坤投资</td><td>JK001</td><td>九坤量化对冲1号</td><td>量化对冲</td>
+                        <td>九坤投资</td><td>JK001</td><td>九坤量化对冲1号</td><td>申购</td><td>量化对冲</td>
                         <td>48.05%</td>
-                        <td>2026-05-12</td><td>435.00</td><td>4.90%</td>
-                        <td style="max-width:140px;font-size:12px;">增强组合防守属性</td><td>163.00</td>
+                        <td>2026-05-12</td><td>435.00</td>
+                        <td style="max-width:140px;font-size:12px;">增强组合防守属性</td><td>163.00</td><td></td>
                         <td>598.00</td><td>6.73%</td>
                         <td style="font-size:12px;">上海陆家嘴营业部</td><td style="font-size:12px;">上海陆家嘴营业部</td>
                         <td>163.00</td><td>0.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('九坤投资','JK001','九坤量化对冲1号','量化对冲',163)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('九坤投资','JK001','九坤量化对冲1号','量化对冲',163,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
                         <td><span class="status-done">已上会</span></td>
-                        <td>幻方量化</td><td>HF002</td><td>幻方量化中性3号</td><td>量化中性</td>
+                        <td>幻方量化</td><td>HF002</td><td>幻方量化中性3号</td><td>赎回</td><td>量化中性</td>
                         <td>25.36%</td>
-                        <td>2026-05-04</td><td>663.00</td><td>7.46%</td>
+                        <td>2026-05-04</td><td>663.00</td>
                         <td style="max-width:140px;font-size:12px;">平滑组合整体收益风险特征</td><td>57.00</td>
                         <td>720.00</td><td>8.11%</td>
                         <td style="font-size:12px;">北京金融街营业部总部</td><td style="font-size:12px;">北京金融街营业部总部</td>
                         <td>57.00</td><td>0.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('幻方量化','HF002','幻方量化中性3号','量化中性',57)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('幻方量化','HF002','幻方量化中性3号','量化中性',57,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
                         <td><span class="status-done">已上会</span></td>
-                        <td>黑翼资产</td><td>HY007</td><td>黑翼对冲基金6号</td><td>量化对冲</td>
+                        <td>黑翼资产</td><td>HY007</td><td>黑翼对冲基金6号</td><td>申购</td><td>量化对冲</td>
                         <td>48.05%</td>
-                        <td>2026-05-16</td><td>624.00</td><td>7.02%</td>
-                        <td style="max-width:140px;font-size:12px;">根据市场环境调整策略配置</td><td>119.00</td>
+                        <td>2026-05-16</td><td>624.00</td>
+                        <td style="max-width:140px;font-size:12px;">根据市场环境调整策略配置</td><td>119.00</td><td></td>
                         <td>743.00</td><td>8.37%</td>
                         <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">广州天河营业部</td>
                         <td>119.00</td><td>0.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('黑翼资产','HY007','黑翼对冲基金6号','量化对冲',119)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('黑翼资产','HY007','黑翼对冲基金6号','量化对冲',119,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
                         <td><span class="status-waiting">待豁免</span></td>
-                        <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>量化指增</td>
+                        <td>衍复投资</td><td>YF005</td><td>衍复量化增强1号</td><td>申购</td><td>量化指增</td>
                         <td>32.78%</td>
-                        <td>-</td><td>0.00</td><td>0.00%</td>
-                        <td style="max-width:140px;font-size:12px;">新策略首次配置</td><td>150.00</td>
+                        <td>-</td><td>0.00</td>
+                        <td style="max-width:140px;font-size:12px;">新策略首次配置</td><td>150.00</td><td></td>
                         <td>150.00</td><td>1.69%</td>
                         <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">南京新街口营业部</td>
                         <td>0.00</td><td>150.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',150)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',150,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                 </tbody>
             </table>
@@ -1557,7 +1577,7 @@ function renderRecordTable() {
                         <td>229.00</td><td>19.98%</td><td>上分50池-核心池</td>
                         <td style="font-size:12px;">北京金融街营业部总部</td><td style="font-size:12px;">北京金融街营业部总部</td>
                         <td>0.00</td><td>229.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('幻方量化','HF002','幻方量化中性3号','量化中性',229)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('幻方量化','HF002','幻方量化中性3号','量化中性',229,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
@@ -1567,7 +1587,7 @@ function renderRecordTable() {
                         <td>231.00</td><td>20.16%</td><td>上分50池-配置池</td>
                         <td style="font-size:12px;">北京金融街营业部</td><td style="font-size:12px;">杭州西湖营业部</td>
                         <td>0.00</td><td>231.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('宁波幻方','NB008','宁波幻方混合1号','混合策略',231)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('宁波幻方','NB008','宁波幻方混合1号','混合策略',231,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
@@ -1577,7 +1597,7 @@ function renderRecordTable() {
                         <td>289.00</td><td>25.22%</td><td>上分50池-配置池</td>
                         <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">上海陆家嘴营业部</td>
                         <td>0.00</td><td>289.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('九坤投资','JK001','九坤量化对冲1号','量化对冲',289)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('九坤投资','JK001','九坤量化对冲1号','量化对冲',289,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
@@ -1587,7 +1607,7 @@ function renderRecordTable() {
                         <td>199.00</td><td>17.36%</td><td>上分50池-核心池</td>
                         <td style="font-size:12px;">深圳福田营业部</td><td style="font-size:12px;">南京新街口营业部</td>
                         <td><a style="color:#1890ff;cursor:pointer;font-weight:500;" onclick="openModal('scheduledPlansModal')">573.00</a></td><td>199.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',199)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('衍复投资','YF005','衍复量化增强1号','量化指增',199,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                     <tr>
                         <td><input type="checkbox"></td>
@@ -1597,7 +1617,7 @@ function renderRecordTable() {
                         <td>180.00</td><td>15.71%</td><td>上分50池-配置池</td>
                         <td style="font-size:12px;">上海浦东营业部</td><td style="font-size:12px;">上海陆家嘴营业部</td>
                         <td>0.00</td><td>180.00</td>
-                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('明汯投资','MH001','明汯多策略1号','混合策略',180)" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
+                        <td><a class="action-link" onclick="openScheduleOrderFromDetail('明汯投资','MH001','明汯多策略1号','混合策略',180,'申购')" style="margin-right:4px">排期</a><a class="action-link delete" onclick="this.closest('tr').remove()" title="删除该条">删除</a></td>
                     </tr>
                 </tbody>
             </table>
@@ -1623,6 +1643,14 @@ function addNpDetailRow() {
             <option value="HF002" data-strategy="量化中性">HF002 幻方量化中性3号</option>
             <option value="LJ004" data-strategy="CTA策略">LJ004 灵均CTA策略2号</option>
             <option value="YN006" data-strategy="量化中性">YN006 因诺中性策略4号</option>
+        </select></td>
+        <td><select class="form-select np-tradeType" style="min-width:120px">
+            <option value="申购" selected>申购</option>
+            <option value="追加">追加</option>
+            <option value="金额赎回">金额赎回</option>
+            <option value="份额赎回">份额赎回</option>
+            <option value="份额转让转入">份额转让转入</option>
+            <option value="份额转让转出">份额转让转出</option>
         </select></td>
         <td><span class="np-strategy-display" style="color:#666;font-size:13px;">-</span></td>
         <td><input type="text" class="form-input np-ratio" style="width:80px" placeholder="" oninput="calcNpAmount(this)"></td>
@@ -1688,19 +1716,58 @@ function toggleNpInputMode() {
     });
 }
 
-// 调仓 - 输入模式切换
+// 调仓 - 输入模式切换（仅对申购/追加行生效，赎回/转让行始终可编辑金额或份额）
 function toggleNaInputMode() {
-    const byRatio = document.querySelector('input[name="naRatioType"]:checked') === document.querySelectorAll('input[name="naRatioType"]')[0];
+    const radios = document.querySelectorAll('input[name="naRatioType"]');
+    const byRatio = radios[0].checked;
     document.querySelectorAll('#naDetailBody tr').forEach(row => {
+        const tradeType = row.querySelector('.na-tradeType');
+        const isShareType = tradeType && (tradeType.value === '份额赎回' || tradeType.value === '份额转让转入' || tradeType.value === '份额转让转出');
+        const isBuyOrAdd = tradeType && (tradeType.value === '申购' || tradeType.value === '追加');
         const ratioInput = row.querySelector('.na-ratio');
-        const amountInput = row.querySelector('.na-amount');
-        if (ratioInput && amountInput) {
-            ratioInput.readOnly = !byRatio;
-            amountInput.readOnly = byRatio;
-            ratioInput.style.background = byRatio ? '#fff' : '#f5f5f5';
-            amountInput.style.background = byRatio ? '#f5f5f5' : '#fff';
+        const amtInput = row.querySelector('.na-amount');
+        const shrInput = row.querySelector('.na-share');
+        const amountCell = row.querySelector('.na-amount-cell');
+        const shareCell = row.querySelector('.na-share-cell');
+
+        // 配置比例
+        if (ratioInput) {
+            if (isBuyOrAdd) {
+                ratioInput.readOnly = !byRatio;
+                ratioInput.style.background = byRatio ? '#fff' : '#f5f5f5';
+                if (!byRatio) { ratioInput.value = ''; } // 切到按金额时清空比例
+            } else {
+                ratioInput.readOnly = true;
+                ratioInput.style.background = '#f5f5f5';
+            }
+        }
+
+        // 金额 vs 份额 切换
+        if (isShareType) {
+            // 份额类型：隐藏金额输入，显示份额输入
+            if (amtInput) { amtInput.style.display = 'none'; }
+            if (shrInput) { shrInput.style.display = ''; }
+        } else {
+            // 金额类型：显示金额输入，隐藏份额输入
+            if (amtInput) {
+                amtInput.style.display = '';
+                if (isBuyOrAdd) {
+                    amtInput.readOnly = byRatio;
+                    amtInput.style.background = byRatio ? '#f5f5f5' : '#fff';
+                    if (byRatio) { amtInput.value = ''; } // 切到按比例时清空金额
+                } else {
+                    amtInput.readOnly = false;
+                    amtInput.style.background = '#fff';
+                }
+            }
+            if (shrInput) { shrInput.style.display = 'none'; }
         }
     });
+}
+
+// 调仓 - 交易类型变更时切换金额/份额显示
+function onNaTradeTypeChange(selectEl) {
+    toggleNaInputMode();
 }
 
 // 建仓 - 填比例→算金额
@@ -1723,9 +1790,11 @@ function calcNpRatio(amountInput) {
     if (ratioInput) ratioInput.value = ratio > 0 ? ratio.toFixed(2) : '';
 }
 
-// 调仓 - 填比例→算金额
+// 调仓 - 填比例→算金额（仅申购/追加行参与计算，简单百分比：金额=总金额×比例%）
 function calcNaAmount(ratioInput) {
     const row = ratioInput.closest('tr');
+    const tradeType = row.querySelector('.na-tradeType');
+    if (tradeType && tradeType.value !== '申购' && tradeType.value !== '追加') return;
     const totalAmt = parseFloat(document.getElementById('naTotalAmount').value) || 0;
     const ratio = parseFloat(ratioInput.value) || 0;
     const amount = totalAmt * ratio / 100;
@@ -1733,9 +1802,11 @@ function calcNaAmount(ratioInput) {
     if (amtInput) amtInput.value = amount > 0 ? amount.toFixed(2) : '';
 }
 
-// 调仓 - 填金额→算比例
+// 调仓 - 填金额→算比例（仅申购/追加行参与计算，简单百分比：比例=金额÷总金额×100）
 function calcNaRatio(amountInput) {
     const row = amountInput.closest('tr');
+    const tradeType = row.querySelector('.na-tradeType');
+    if (tradeType && tradeType.value !== '申购' && tradeType.value !== '追加') return;
     const totalAmt = parseFloat(document.getElementById('naTotalAmount').value) || 0;
     const amount = parseFloat(amountInput.value) || 0;
     const ratio = totalAmt > 0 ? (amount / totalAmt * 100) : 0;
@@ -1764,9 +1835,19 @@ function addNaDetailRow() {
             <option value="HF002" data-strategy="量化中性">HF002 幻方量化中性3号</option>
             <option value="LJ004" data-strategy="CTA策略">LJ004 灵均CTA策略2号</option>
         </select></td>
+        <td><select class="form-select na-tradeType" style="min-width:120px" onchange="onNaTradeTypeChange(this)">
+            <option value="">请选择</option>
+            <option value="申购">申购</option>
+            <option value="追加">追加</option>
+            <option value="金额赎回">金额赎回</option>
+            <option value="份额赎回">份额赎回</option>
+            <option value="份额转让转入">份额转让转入</option>
+            <option value="份额转让转出">份额转让转出</option>
+        </select></td>
         <td><span class="na-strategy-display" style="color:#666;font-size:13px;">-</span></td>
         <td><input type="text" class="form-input na-ratio" style="width:80px" placeholder="" oninput="calcNaAmount(this)"></td>
-        <td><input type="text" class="form-input na-amount" style="width:90px" placeholder="" oninput="calcNaRatio(this)" readonly></td>
+        <td class="na-amount-cell"><input type="text" class="form-input na-amount" style="width:90px" placeholder="" oninput="calcNaRatio(this)"></td>
+        <td class="na-share-cell"><input type="text" class="form-input na-share" style="width:90px;display:none" placeholder=""></td>
         <td>上分50池</td>
         <td style="white-space:nowrap;">
             <button class="exempt-btn" onclick="toggleExempt(this)">豁免</button>
@@ -1908,22 +1989,20 @@ document.querySelectorAll('.modal-overlay').forEach(modal => {
 //  批量创建投资计划
 // ============================================================
 function applyBatchFill() {
-    const tradeType = document.getElementById('bcpTradeType').value;
     const tradeDate = document.getElementById('bcpTradeDate').value;
     const material = document.getElementById('bcpMaterial').value;
 
-    if (!tradeType && !tradeDate && !material) {
+    if (!tradeDate && !material) {
         showToast('请先填写要填充的字段');
         return;
     }
 
     const rows = document.querySelectorAll('#bcpDetailBody tr');
     rows.forEach(row => {
-        const selects = row.querySelectorAll('select');
+        const selects = row.querySelectorAll('select:not([disabled])');
         const dates = row.querySelectorAll('input[type="date"]');
-        if (tradeType && selects[0]) selects[0].value = tradeType;
         if (tradeDate && dates[0]) dates[0].value = tradeDate;
-        if (material && selects[1]) selects[1].value = material;
+        if (material && selects[0]) selects[0].value = material;
     });
     showToast('✅ 已应用到所有行');
 }
@@ -1942,17 +2021,19 @@ function openScheduleOrder(rowId) {
     document.getElementById('soSubFund').value = `${row.subCode} ${row.subName}`;
     document.getElementById('soStrategy').value = row.strategy;
     document.getElementById('soAmount').value = row.amount !== '-' ? row.amount : '';
+    document.getElementById('soTradeType').value = row.tradeType || '申购';
     const infoLine = document.querySelector('#scheduleOrderModal .modal-body > div:nth-child(2)');
     if (infoLine) infoLine.innerHTML = `最近交易日:<strong>2026-05-13</strong>(赎回); 最新持仓日:<strong>2026-05-10</strong>`;
     openModal('scheduleOrderModal');
 }
 
 // 排期下单（单行）- 自动填充（从母基金视图详情）
-function openScheduleOrderFromDetail(subManager, subCode, subName, strategy, amount) {
+function openScheduleOrderFromDetail(subManager, subCode, subName, strategy, amount, tradeType) {
     document.getElementById('soParentFund').value = 'SKZX001 私客尊享FOF1号';
     document.getElementById('soSubFund').value = `${subCode} ${subName}`;
     document.getElementById('soStrategy').value = strategy;
     document.getElementById('soAmount').value = amount || '';
+    document.getElementById('soTradeType').value = tradeType || '申购';
     const infoLine = document.querySelector('#scheduleOrderModal .modal-body > div:nth-child(2)');
     if (infoLine) infoLine.innerHTML = `最近交易日:<strong>2026-05-13</strong>(赎回); 最新持仓日:<strong>2026-05-10</strong>`;
     openModal('scheduleOrderModal');
@@ -2119,11 +2200,6 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
             <div class="batch-fill-section">
                 <div class="batch-fill-hint">批量填充-填写后点击"应用到所有行"</div>
                 <div class="batch-fill-grid">
-                    <select class="form-select" id="bcpTradeType">
-                        <option value="">交易类型</option>
-                        <option value="申购">申购</option>
-                        <option value="赎回">赎回</option>
-                    </select>
                     <input type="date" class="form-input" id="bcpTradeDate">
                     <select class="form-select" id="bcpMaterial">
                         <option value="">材料形式</option>
@@ -2171,7 +2247,7 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
                             <td>宁波幻方混合1号</td>
                             <td>混合策略</td>
                             <td>100</td>
-                            <td><select class="form-select"><option value=""></option><option>申购</option><option>赎回</option></select></td>
+                            <td><select class="form-select" disabled style="background:#f5f5f5;"><option value="申购" selected>申购</option><option>赎回</option></select></td>
                             <td><input type="date" class="form-input"></td>
                             <td><select class="form-select"><option value=""></option><option>直销-妥妥递</option><option>纸质</option></select></td>
                             <td style="font-size:12px;">2026-05-19<br>(申购)</td>
@@ -2183,7 +2259,7 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
                             <td>宁波幻方混合1号</td>
                             <td>混合策略</td>
                             <td>200</td>
-                            <td><select class="form-select"><option value=""></option><option>申购</option><option>赎回</option></select></td>
+                            <td><select class="form-select" disabled style="background:#f5f5f5;"><option value="申购" selected>申购</option><option>赎回</option></select></td>
                             <td><input type="date" class="form-input" value="2026-05-11"></td>
                             <td><select class="form-select"><option value=""></option><option>直销-妥妥递</option><option>纸质</option></select></td>
                             <td style="font-size:12px;">2026-05-11</td>
@@ -2195,7 +2271,7 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
                             <td>宁波幻方混合1号</td>
                             <td>混合策略</td>
                             <td>300</td>
-                            <td><select class="form-select"><option value=""></option><option>申购</option><option>赎回</option></select></td>
+                            <td><select class="form-select" disabled style="background:#f5f5f5;"><option value="申购" selected>申购</option><option>赎回</option></select></td>
                             <td><input type="date" class="form-input"></td>
                             <td><select class="form-select"><option value=""></option><option>直销-妥妥递</option><option>纸质</option></select></td>
                             <td style="color:#999;font-size:12px;">无</td>
@@ -2279,7 +2355,7 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
                 <div class="form-group">
                     <label class="form-label">母基金</label>
-                    <select class="form-select" id="soParentFund">
+                    <select class="form-select" id="soParentFund" disabled style="background:#f5f5f5;">
                         <option value="" selected>SKZX001 私客尊享FOF1号</option>
                         <option value="">SKZX002 私客尊享FOF2号</option>
                         <option value="">SKZX003 私客尊享FOF3号</option>
@@ -2287,7 +2363,7 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
                 </div>
                 <div class="form-group">
                     <label class="form-label">子基金</label>
-                    <select class="form-select" id="soSubFund">
+                    <select class="form-select" id="soSubFund" disabled style="background:#f5f5f5;">
                         <option value="" selected>NB008 宁波幻方混合1号</option>
                         <option value="">HF002 幻方量化中性3号</option>
                         <option value="">YF005 衍复量化增强1号</option>
@@ -2310,7 +2386,7 @@ for (let i = 0; i < 2; i++) addNaDetailRow();
             <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;">
                 <div class="form-group">
                     <label class="form-label">交易类型</label>
-                    <select class="form-select" id="soTradeType">
+                    <select class="form-select" id="soTradeType" disabled style="background:#f5f5f5;">
                         <option value="">请选择</option>
                         <option value="申购">申购</option>
                         <option value="赎回">赎回</option>

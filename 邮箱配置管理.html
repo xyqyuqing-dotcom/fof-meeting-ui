@@ -7,28 +7,59 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
-            font-size: 14px; color: #333; background-color: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            font-size: 14px; color: #333; background: #f5f5f5;
+            min-height: 100vh; display: flex;
         }
-        .header {
-            background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-            color: white; padding: 12px 24px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        }
-        .header h1 { font-size: 18px; font-weight: 600; }
-        .header-right { display: flex; gap: 16px; align-items: center; font-size: 13px; }
-        .header-link { color: rgba(255,255,255,0.85); text-decoration: none; cursor: pointer; }
-        .header-link:hover { color: white; }
 
-        .container { max-width: 1500px; margin: 20px auto; padding: 0 20px; display: flex; gap: 16px; align-items: flex-start; }
+        /* ======== 左侧导航栏（与5-自动用印一致） ======== */
+        .sidebar {
+            width: 200px; background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff; height: 100vh; position: fixed; left: 0; top: 0;
+        }
+        .sidebar-header {
+            padding: 20px; display: flex; align-items: center; gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .logo {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #ffd700 0%, #ff6b35 100%);
+            border-radius: 8px; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 16px; color: #1a1a2e;
+        }
+        .brand-name { font-weight: 600; font-size: 16px; }
+        .sidebar-menu { padding: 16px 0; }
+        .menu-title {
+            padding: 12px 20px; font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase;
+        }
+        .menu-item {
+            padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; color: rgba(255,255,255,0.7); transition: all 0.2s;
+        }
+        .menu-item:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .menu-item.active { background: rgba(255,215,0,0.2); color: #ffd700; border-left: 3px solid #ffd700; }
+        .menu-icon { font-size: 16px; }
+
+        /* ======== 主内容区 ======== */
+        .main-content {
+            flex: 1; margin-left: 200px; display: flex; flex-direction: column; overflow-x: auto;
+        }
+        .top-bar {
+            background: #fff; padding: 12px 24px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        .top-bar h2 { font-size: 16px; font-weight: 600; }
+
+        /* 页面主体：左右分栏 */
+        .page-container { max-width: 1500px; margin: 20px auto; padding: 0 24px; display: flex; gap: 16px; align-items: flex-start; }
 
         /* 左侧面板 */
         .left-panel {
             width: 340px; flex-shrink: 0;
             background: white; border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            overflow: hidden; max-height: calc(100vh - 90px);
+            overflow: hidden; max-height: calc(100vh - 120px);
             position: sticky; top: 80px;
         }
         .panel-section { border-bottom: 1px solid #f0f0f0; }
@@ -43,8 +74,7 @@
         .data-type-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 16px; background: white; }
         .data-tab {
             padding: 6px 12px; border-radius: 4px; cursor: pointer;
-            font-size: 13px; border: 1px solid #d9d9d9; background: white;
-            transition: all 0.2s;
+            font-size: 13px; border: 1px solid #d9d9d9; background: white; transition: all 0.2s;
         }
         .data-tab:hover { border-color: #1890ff; color: #1890ff; }
         .data-tab.active { background: #1890ff; color: white; border-color: #1890ff; }
@@ -84,7 +114,7 @@
         }
         .product-item:hover .product-item-delete { opacity: 1; }
 
-        /* 添加产品按钮 */
+        /* 添加按钮 */
         .add-btn {
             width: 100%; padding: 10px; border: 1px dashed #d9d9d9; border-radius: 4px;
             background: none; cursor: pointer; color: #1890ff; font-size: 13px;
@@ -107,7 +137,7 @@
         .right-header h2 { font-size: 16px; font-weight: 600; }
         .right-header-sub { font-size: 12px; color: #999; margin-top: 2px; }
 
-        /* 邮箱类型列管理 */
+        /* 邮箱类型列展示 */
         .email-type-bar {
             padding: 10px 24px; border-bottom: 1px solid #f0f0f0;
             display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
@@ -115,22 +145,13 @@
         }
         .email-type-tag {
             padding: 4px 10px; border-radius: 3px; font-size: 12px;
-            background: white; border: 1px solid #d9d9d9; cursor: move;
-            user-select: none; display: flex; align-items: center; gap: 4px;
+            background: white; border: 1px solid #d9d9d9;
         }
-        .email-type-tag .remove-et { cursor: pointer; color: #999; font-size: 14px; line-height: 1; }
-        .email-type-tag .remove-et:hover { color: #ff4d4f; }
-        .add-email-type-btn {
-            padding: 4px 10px; border: 1px dashed #d9d9d9; border-radius: 3px;
-            background: none; cursor: pointer; color: #1890ff; font-size: 12px;
-        }
-        .add-email-type-btn:hover { border-color: #1890ff; }
 
         /* 邮箱矩阵表格 */
         .matrix-table-wrapper { overflow-x: auto; padding: 16px 24px; }
         .matrix-table {
-            width: 100%; border-collapse: collapse; font-size: 13px;
-            min-width: 700px;
+            width: 100%; border-collapse: collapse; font-size: 13px; min-width: 700px;
         }
         .matrix-table th {
             background: #fafafa; padding: 10px 12px; text-align: left;
@@ -142,14 +163,12 @@
         }
         .matrix-table tr:hover td { background: #fafafa; }
         .matrix-row-label { font-weight: 500; white-space: nowrap; min-width: 120px; }
-        .matrix-cell {
-            min-width: 180px; max-width: 260px;
-        }
+        .matrix-cell { min-width: 180px; max-width: 260px; }
+
         .email-display {
             min-height: 32px; padding: 6px 10px; border: 1px solid #d9d9d9;
             border-radius: 4px; cursor: pointer; font-size: 12px; line-height: 1.5;
-            background: white; transition: all 0.2s; word-break: break-all;
-            position: relative;
+            background: white; transition: all 0.2s; word-break: break-all; position: relative;
         }
         .email-display:hover { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
         .email-display.empty { color: #bbb; }
@@ -166,8 +185,7 @@
         .modal-overlay {
             display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             background: rgba(0,0,0,0.45); z-index: 1000;
-            justify-content: center; align-items: flex-start;
-            padding-top: 60px;
+            justify-content: center; align-items: flex-start; padding-top: 60px;
         }
         .modal-overlay.show { display: flex; }
         .modal {
@@ -190,22 +208,18 @@
             display: flex; justify-content: flex-end; gap: 8px;
         }
 
-        /* 按钮样式 */
+        /* 按钮 */
         .btn {
             padding: 6px 16px; border-radius: 4px; cursor: pointer; font-size: 13px;
             border: 1px solid #d9d9d9; background: white; transition: all 0.2s;
         }
         .btn:hover { border-color: #1890ff; color: #1890ff; }
-        .btn-primary {
-            background: #1890ff; color: white; border-color: #1890ff;
-        }
+        .btn-primary { background: #1890ff; color: white; border-color: #1890ff; }
         .btn-primary:hover { background: #096dd9; border-color: #096dd9; color: white; }
         .btn-danger { color: #ff4d4f; border-color: #ff4d4f; }
         .btn-danger:hover { background: #ff4d4f; color: white; }
         .btn-sm { padding: 3px 10px; font-size: 12px; }
-        .btn-link {
-            border: none; background: none; color: #1890ff; cursor: pointer; padding: 0;
-        }
+        .btn-link { border: none; background: none; color: #1890ff; cursor: pointer; padding: 0; }
         .btn-link:hover { color: #096dd9; text-decoration: underline; }
 
         /* 搜索框 */
@@ -215,7 +229,7 @@
         }
         .search-box:focus { border-color: #1890ff; box-shadow: 0 0 0 2px rgba(24,144,255,0.1); }
 
-        /* 通讯录联系人项 */
+        /* 联系人列表 */
         .contact-list { list-style: none; }
         .contact-item {
             display: flex; align-items: center; padding: 8px 10px;
@@ -224,10 +238,7 @@
         }
         .contact-item:hover { background: #f5f7fa; }
         .contact-item.selected { background: #e6f7ff; border-color: #91d5ff; }
-        .contact-checkbox {
-            width: 16px; height: 16px; margin-right: 10px; cursor: pointer;
-            accent-color: #1890ff;
-        }
+        .contact-checkbox { width: 16px; height: 16px; margin-right: 10px; cursor: pointer; accent-color: #1890ff; }
         .contact-info { flex: 1; }
         .contact-name { font-size: 13px; font-weight: 500; }
         .contact-email { font-size: 11px; color: #999; margin-top: 1px; }
@@ -236,11 +247,10 @@
             background: #f0f0f0; color: #666; margin-left: 8px;
         }
 
-        /* 已选邮箱展示区 */
+        /* 已选邮箱区 */
         .selected-emails-area {
             border: 1px solid #e8e8e8; border-radius: 4px; padding: 10px;
-            margin-bottom: 12px; min-height: 48px; max-height: 120px; overflow-y: auto;
-            background: #fafafa;
+            margin-bottom: 12px; min-height: 48px; max-height: 120px; overflow-y: auto; background: #fafafa;
         }
         .selected-email-tag {
             display: inline-flex; align-items: center; gap: 4px;
@@ -262,20 +272,18 @@
         .product-select-item.added { opacity: 0.4; pointer-events: none; }
         .product-select-item.added::after { content: "已添加"; font-size: 11px; color: #52c41a; }
 
-        /* 通讯录管理入口 */
+        /* 通讯录入口 */
         .address-book-entry {
-            padding: 12px 16px; border-top: 1px solid #f0f0f0;
-            background: #fafafa;
+            padding: 12px 16px; border-top: 1px solid #f0f0f0; background: #fafafa;
         }
         .ab-btn {
             width: 100%; padding: 8px; border: 1px dashed #d9d9d9; border-radius: 4px;
             background: white; cursor: pointer; font-size: 13px; color: #666;
-            display: flex; align-items: center; justify-content: center; gap: 6px;
-            transition: all 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;
         }
         .ab-btn:hover { border-color: #1890ff; color: #1890ff; }
 
-        /* 通讯录管理弹窗内表格 */
+        /* 通讯录表格 */
         .ab-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .ab-table th { background: #fafafa; padding: 8px 10px; text-align: left; border-bottom: 1px solid #e8e8e8; font-size: 12px; }
         .ab-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; }
@@ -285,16 +293,9 @@
 
         /* 空状态 */
         .empty-state { text-align: center; padding: 40px 20px; color: #bbb; }
-        .empty-state-icon { font-size: 40px; margin-bottom: 10px; }
 
-        /* 提示信息 */
+        /* 提示 */
         .tip-text { font-size: 12px; color: #999; margin-top: 4px; }
-
-        /* 邮箱类型自定义输入 */
-        .et-inline-input {
-            width: 100px; padding: 3px 6px; border: 1px solid #1890ff;
-            border-radius: 3px; font-size: 12px; outline: none;
-        }
 
         /* 继承标记 */
         .inherit-badge {
@@ -305,76 +306,91 @@
 </head>
 <body>
 
-<div class="header">
-    <h1>邮箱配置管理</h1>
-    <div class="header-right">
-        <a class="header-link" href="ta-data-send.html">TA数据发送</a>
-        <a class="header-link" href="上会主功能界面.html">上会主功能</a>
+<!-- ======== 左侧导航栏 ======== -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div class="logo">妥</div>
+        <div class="brand-name">妥妥递系统</div>
+    </div>
+    <div class="sidebar-menu">
+        <div class="menu-title">功能菜单</div>
+        <div class="menu-item" onclick="location.href='ta-data-send.html'"><span class="menu-icon">&#128231;</span>TA数据发送</div>
+        <div class="menu-item" onclick="location.href='上会主功能界面.html'"><span class="menu-icon">&#128203;</span>上会主功能</div>
+        <div class="menu-item active" onclick="location.href='邮箱配置管理.html'"><span class="menu-icon">&#128231;</span>邮箱配置管理</div>
+        <div class="menu-item" onclick="location.href='5-自动用印.html'"><span class="menu-icon">&#128220;</span>自动用印</div>
     </div>
 </div>
 
-<div class="container">
-    <!-- 左侧面板 -->
-    <div class="left-panel">
-        <!-- 数据类型Tab -->
-        <div class="data-type-tabs" id="dataTypeTabs"></div>
-
-        <!-- 私客通用配置 -->
-        <div class="panel-section">
-            <div class="panel-title">私客通用配置（默认）</div>
-            <div class="panel-body">
-                <div class="config-card selected" id="universalCard" onclick="selectConfig('universal')">
-                    <div class="config-card-header">
-                        <span>私客通用</span>
-                        <span class="config-card-badge">默认模板</span>
-                    </div>
-                    <div class="config-card-desc">大部分期货资管产品共用此配置</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 产品级覆盖 -->
-        <div class="panel-section" style="flex:1;">
-            <div class="panel-title">
-                产品级覆盖
-                <button class="btn btn-sm btn-primary" onclick="openProductSelectModal()">+ 添加产品</button>
-            </div>
-            <div class="panel-body">
-                <div class="product-list" id="productList"></div>
-                <button class="add-btn" onclick="openProductSelectModal()">+ 添加产品覆盖</button>
-                <p class="tip-text">选中的产品将使用独立邮箱配置，未配置的单元格继承私客通用</p>
-            </div>
-        </div>
-
-        <!-- 通讯录入口 -->
-        <div class="address-book-entry">
-            <button class="ab-btn" onclick="openAddressBookModal()">
-                <span>&#128231;</span> 管理通讯录
-            </button>
-        </div>
+<!-- ======== 主内容区 ======== -->
+<div class="main-content">
+    <div class="top-bar">
+        <h2>邮箱配置管理</h2>
+        <button class="btn btn-sm btn-primary" onclick="saveCurrentConfig()">保存全部配置</button>
     </div>
 
-    <!-- 右侧面板：邮箱矩阵 -->
-    <div class="right-panel">
-        <div class="right-header">
-            <div>
-                <h2 id="rightTitle">私客通用 - 净值</h2>
-                <div class="right-header-sub" id="rightSubTitle"></div>
+    <div class="page-container">
+        <!-- 左侧面板 -->
+        <div class="left-panel">
+            <!-- 数据类型Tab -->
+            <div class="data-type-tabs" id="dataTypeTabs"></div>
+
+            <!-- 私客通用配置 -->
+            <div class="panel-section">
+                <div class="panel-title">私客通用配置（默认）</div>
+                <div class="panel-body">
+                    <div class="config-card selected" id="universalCard" onclick="selectConfig('universal')">
+                        <div class="config-card-header">
+                            <span>私客通用</span>
+                            <span class="config-card-badge">默认模板</span>
+                        </div>
+                        <div class="config-card-desc">大部分期货资管产品共用此配置</div>
+                    </div>
+                </div>
             </div>
-            <div style="display:flex;gap:8px;">
-                <button class="btn btn-sm" onclick="saveCurrentConfig()">保存配置</button>
+
+            <!-- 特殊产品配置（原产品级覆盖） -->
+            <div class="panel-section" style="flex:1;">
+                <div class="panel-title">
+                    特殊产品配置
+                    <button class="btn btn-sm btn-primary" onclick="openProductSelectModal()">+ 添加产品</button>
+                </div>
+                <div class="panel-body">
+                    <div class="product-list" id="productList"></div>
+                    <button class="add-btn" onclick="openProductSelectModal()">+ 添加特殊产品</button>
+                    <p class="tip-text">选中的产品将使用独立邮箱配置，未单独配置的单元格继承私客通用</p>
+                </div>
+            </div>
+
+            <!-- 通讯录入口 -->
+            <div class="address-book-entry">
+                <button class="ab-btn" onclick="openAddressBookModal()">
+                    <span>&#128231;</span> 管理通讯录
+                </button>
             </div>
         </div>
 
-        <!-- 邮箱类型列管理 -->
-        <div class="email-type-bar" id="emailTypeBar"></div>
+        <!-- 右侧面板：邮箱矩阵 -->
+        <div class="right-panel">
+            <div class="right-header">
+                <div>
+                    <h2 id="rightTitle">私客通用 - 净值</h2>
+                    <div class="right-header-sub" id="rightSubTitle"></div>
+                </div>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-sm" onclick="saveCurrentConfig()">保存当前页</button>
+                </div>
+            </div>
 
-        <!-- 矩阵表格 -->
-        <div class="matrix-table-wrapper">
-            <table class="matrix-table" id="matrixTable">
-                <thead><tr id="matrixHeader"></tr></thead>
-                <tbody id="matrixBody"></tbody>
-            </table>
+            <!-- 邮箱类型列 -->
+            <div class="email-type-bar" id="emailTypeBar"></div>
+
+            <!-- 矩阵表格 -->
+            <div class="matrix-table-wrapper">
+                <table class="matrix-table" id="matrixTable">
+                    <thead><tr id="matrixHeader"></tr></thead>
+                    <tbody id="matrixBody"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -430,12 +446,7 @@
             </div>
             <table class="ab-table" id="abTable">
                 <thead>
-                    <tr>
-                        <th style="width:100px;">姓名</th>
-                        <th style="width:220px;">邮箱地址</th>
-                        <th style="width:140px;">所属邮箱类型</th>
-                        <th style="width:80px;">操作</th>
-                    </tr>
+                    <tr><th style="width:100px;">姓名</th><th style="width:220px;">邮箱地址</th><th style="width:140px;">所属邮箱类型</th><th style="width:80px;">操作</th></tr>
                 </thead>
                 <tbody id="abTableBody"></tbody>
             </table>
@@ -446,35 +457,13 @@
     </div>
 </div>
 
-<!-- ==================== 新增/编辑邮箱类型弹窗 ==================== -->
-<div class="modal-overlay" id="emailTypeModal">
-    <div class="modal" style="width:380px;">
-        <div class="modal-header">
-            <h3 id="etModalTitle">新增邮箱类型</h3>
-            <button class="modal-close" onclick="closeEmailTypeModal()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <label style="font-size:13px;display:block;margin-bottom:6px;">邮箱类型名称：</label>
-            <input type="text" class="ab-input" id="newEmailTypeName" placeholder="如：合规部、运营部..." style="margin-bottom:12px;">
-            <label style="font-size:13px;display:block;margin-bottom:6px;">适用于数据类型：</label>
-            <div id="etDataTypeCheckboxes" style="display:flex;flex-direction:column;gap:6px;"></div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn" onclick="closeEmailTypeModal()">取消</button>
-            <button class="btn btn-primary" onclick="confirmEmailType()">确定</button>
-        </div>
-    </div>
-</div>
-
 <script>
 // ============================================================
 // 数据模型
 // ============================================================
-
 const DEFAULT_EMAIL_TYPES = ['交易台', 'FOF', '风控', '后台', '外包', '托管', '我司'];
 const DATA_TYPES = ['净值', '估值表', '交易确认单', '历史净值'];
 
-// 示例产品库
 const PRODUCT_LIBRARY = [
     { code: 'SKZX001', name: '私募尊享FOF1号' },
     { code: 'SKZX002', name: '私募尊享FOF2号' },
@@ -486,7 +475,6 @@ const PRODUCT_LIBRARY = [
     { code: 'HY007', name: '黑翼对冲基金6号' },
 ];
 
-// 默认通讯录
 let addressBook = [
     { id: 1, name: '张三', email: 'zhangsan@company.com', group: '交易台' },
     { id: 2, name: '李四', email: 'lisi@company.com', group: 'FOF' },
@@ -498,25 +486,15 @@ let addressBook = [
     { id: 8, name: '吴十', email: 'wushi@fof.com', group: 'FOF' },
 ];
 
-// 当前状态
 let currentDataType = DATA_TYPES[0];
-let currentConfigKey = 'universal'; // 'universal' 或 productCode
-let currentEditingCell = null; // { dataType, configKey, emailType }
+let currentConfigKey = 'universal';
+let currentEditingCell = null;
 let tempSelectedEmails = [];
 
-// 邮箱配置存储
-// 结构: configs[dataType][configKey][emailType] = [email1, email2, ...]
 let configs = {};
-// 每个数据类型可见的邮箱类型列
 let dataTypeEmailTypes = {};
-
-// 产品级覆盖列表
 let productOverrides = [];
 
-// 自定义邮箱类型（追加在默认之后）
-let customEmailTypes = [];
-
-// 初始化
 function init() {
     loadFromStorage();
     renderDataTypeTabs();
@@ -531,33 +509,22 @@ function saveToStorage() {
     localStorage.setItem('emailConfigs', JSON.stringify(configs));
     localStorage.setItem('addressBook', JSON.stringify(addressBook));
     localStorage.setItem('productOverrides', JSON.stringify(productOverrides));
-    localStorage.setItem('customEmailTypes', JSON.stringify(customEmailTypes));
     localStorage.setItem('dataTypeEmailTypes', JSON.stringify(dataTypeEmailTypes));
 }
 
 function loadFromStorage() {
     try {
-        const saved = localStorage.getItem('emailConfigs');
-        if (saved) configs = JSON.parse(saved);
-        const ab = localStorage.getItem('addressBook');
-        if (ab) addressBook = JSON.parse(ab);
-        const po = localStorage.getItem('productOverrides');
-        if (po) productOverrides = JSON.parse(po);
-        const cet = localStorage.getItem('customEmailTypes');
-        if (cet) customEmailTypes = JSON.parse(cet);
-        const dtet = localStorage.getItem('dataTypeEmailTypes');
-        if (dtet) dataTypeEmailTypes = JSON.parse(dtet);
+        const saved = localStorage.getItem('emailConfigs'); if (saved) configs = JSON.parse(saved);
+        const ab = localStorage.getItem('addressBook'); if (ab) addressBook = JSON.parse(ab);
+        const po = localStorage.getItem('productOverrides'); if (po) productOverrides = JSON.parse(po);
+        const dtet = localStorage.getItem('dataTypeEmailTypes'); if (dtet) dataTypeEmailTypes = JSON.parse(dtet);
     } catch(e) {}
-    // 初始化默认结构
     DATA_TYPES.forEach(dt => {
         if (!configs[dt]) configs[dt] = {};
         if (!configs[dt]['universal']) configs[dt]['universal'] = {};
         if (!dataTypeEmailTypes[dt]) {
-            // 净值不需要交易台，其他默认全显示
             dataTypeEmailTypes[dt] = [...DEFAULT_EMAIL_TYPES];
-            if (dt === '净值') {
-                dataTypeEmailTypes[dt] = dataTypeEmailTypes[dt].filter(t => t !== '交易台');
-            }
+            if (dt === '净值') dataTypeEmailTypes[dt] = dataTypeEmailTypes[dt].filter(t => t !== '交易台');
         }
     });
 }
@@ -566,12 +533,10 @@ function loadFromStorage() {
 // 数据类型Tab
 // ============================================================
 function renderDataTypeTabs() {
-    const el = document.getElementById('dataTypeTabs');
-    el.innerHTML = DATA_TYPES.map(dt =>
+    document.getElementById('dataTypeTabs').innerHTML = DATA_TYPES.map(dt =>
         `<div class="data-tab ${dt === currentDataType ? 'active' : ''}" onclick="switchDataType('${dt}')">${dt}</div>`
     ).join('');
 }
-
 function switchDataType(dt) {
     currentDataType = dt;
     renderDataTypeTabs();
@@ -581,89 +546,21 @@ function switchDataType(dt) {
 }
 
 // ============================================================
-// 邮箱类型栏（可配置列）
+// 邮箱类型列
 // ============================================================
-function getEmailTypesForCurrentDt() {
-    return dataTypeEmailTypes[currentDataType] || [...DEFAULT_EMAIL_TYPES];
-}
+function getEmailTypesForCurrentDt() { return dataTypeEmailTypes[currentDataType] || [...DEFAULT_EMAIL_TYPES]; }
 
 function renderEmailTypeBar() {
-    const types = getEmailTypesForCurrentDt();
-    const bar = document.getElementById('emailTypeBar');
-    bar.innerHTML = types.map(t =>
-        `<span class="email-type-tag">${t}
-            ${customEmailTypes.includes(t) ? '<span class="remove-et" onclick="removeEmailType(\'' + t + '\')">&times;</span>' : ''}
-        </span>`
-    ).join('') +
-    `<button class="add-email-type-btn" onclick="openEmailTypeModal()">+ 自定义邮箱类型</button>`;
-}
-
-function openEmailTypeModal(editName) {
-    document.getElementById('emailTypeModal').classList.add('show');
-    document.getElementById('etModalTitle').textContent = editName ? '编辑邮箱类型' : '新增邮箱类型';
-    document.getElementById('newEmailTypeName').value = editName || '';
-    // 适用数据类型checkboxes
-    const cbContainer = document.getElementById('etDataTypeCheckboxes');
-    cbContainer.innerHTML = DATA_TYPES.map(dt => {
-        const types = dataTypeEmailTypes[dt] || [];
-        const checked = editName ? types.includes(editName) : true;
-        return `<label style="font-size:13px;"><input type="checkbox" value="${dt}" ${checked?'checked':''} style="margin-right:4px;"> ${dt}</label>`;
-    }).join('');
-}
-
-function closeEmailTypeModal() {
-    document.getElementById('emailTypeModal').classList.remove('show');
-}
-
-function confirmEmailType() {
-    const name = document.getElementById('newEmailTypeName').value.trim();
-    if (!name) { alert('请输入邮箱类型名称'); return; }
-    const cbs = document.querySelectorAll('#etDataTypeCheckboxes input:checked');
-    const applyDts = Array.from(cbs).map(cb => cb.value);
-
-    // 如果是编辑模式，先从所有数据类型中移除旧名
-    const oldName = document.getElementById('etModalTitle').textContent === '编辑邮箱类型'
-        ? document.getElementById('newEmailTypeName').getAttribute('data-old') : null;
-
-    DATA_TYPES.forEach(dt => {
-        if (!dataTypeEmailTypes[dt]) dataTypeEmailTypes[dt] = [...DEFAULT_EMAIL_TYPES];
-        if (oldName) {
-            dataTypeEmailTypes[dt] = dataTypeEmailTypes[dt].filter(t => t !== oldName);
-        }
-        if (applyDts.includes(dt) && !dataTypeEmailTypes[dt].includes(name)) {
-            dataTypeEmailTypes[dt].push(name);
-        }
-    });
-
-    if (!customEmailTypes.includes(name) && !DEFAULT_EMAIL_TYPES.includes(name)) {
-        customEmailTypes.push(name);
-    }
-
-    saveToStorage();
-    closeEmailTypeModal();
-    renderEmailTypeBar();
-    renderMatrix();
-}
-
-function removeEmailType(name) {
-    if (!confirm(`确定移除邮箱类型「${name}」？`)) return;
-    DATA_TYPES.forEach(dt => {
-        if (dataTypeEmailTypes[dt]) {
-            dataTypeEmailTypes[dt] = dataTypeEmailTypes[dt].filter(t => t !== name);
-        }
-    });
-    customEmailTypes = customEmailTypes.filter(t => t !== name);
-    saveToStorage();
-    renderEmailTypeBar();
-    renderMatrix();
+    document.getElementById('emailTypeBar').innerHTML = getEmailTypesForCurrentDt().map(t =>
+        `<span class="email-type-tag">${t}</span>`
+    ).join('');
 }
 
 // ============================================================
-// 配置选择（私客通用 / 产品）
+// 配置选择
 // ============================================================
 function selectConfig(key) {
     currentConfigKey = key;
-    // 更新选中态
     document.querySelectorAll('.config-card').forEach(c => c.classList.remove('selected'));
     document.querySelectorAll('.product-item').forEach(p => p.classList.remove('selected'));
     if (key === 'universal') {
@@ -672,68 +569,49 @@ function selectConfig(key) {
         const item = document.querySelector(`.product-item[data-code="${key}"]`);
         if (item) item.classList.add('selected');
     }
-    renderMatrix();
-    updateRightHeader();
+    renderMatrix(); updateRightHeader();
 }
 
 function updateRightHeader() {
     let title, sub;
     if (currentConfigKey === 'universal') {
-        title = `私客通用 - ${currentDataType}`;
-        sub = '默认模板，大部分产品共用';
+        title = `私客通用 - ${currentDataType}`; sub = '默认模板，大部分产品共用';
     } else {
         const prod = productOverrides.find(p => p.code === currentConfigKey);
         title = `${prod ? prod.name : currentConfigKey} - ${currentDataType}`;
-        sub = `产品级覆盖配置，未单独配置的单元格将继承私客通用`;
+        sub = `特殊产品独立配置，未单独配置的单元格将继承私客通用`;
     }
     document.getElementById('rightTitle').textContent = title;
     document.getElementById('rightSubTitle').textContent = sub;
 }
 
 // ============================================================
-// 矩阵表格渲染
+// 矩阵表格
 // ============================================================
 function renderMatrix() {
     const types = getEmailTypesForCurrentDt();
-    const headerEl = document.getElementById('matrixHeader');
-    const bodyEl = document.getElementById('matrixBody');
+    document.getElementById('matrixHeader').innerHTML =
+        '<th class="matrix-row-label">配置对象</th>' +
+        types.map(t => `<th>${t}<button class="btn btn-sm btn-link" style="float:right;padding:0;font-size:11px;" onclick="openCellPicker('${currentDataType}','${currentConfigKey}','${t}')">编辑</button></th>`).join('');
 
-    headerEl.innerHTML = '<th class="matrix-row-label">配置对象</th>' +
-        types.map(t => `<th>${t}<button class="btn btn-sm btn-link" style="float:right;padding:0;font-size:11px;" onclick="openCellPicker(\'${currentDataType}\',\'${currentConfigKey}\',\'${t}\')">编辑</button></th>`).join('');
-
-    // 行：当前选中的配置
-    bodyEl.innerHTML = renderRow(currentDataType, currentConfigKey, types);
-
-    // 如果是产品级配置，额外显示一行「继承预览」
-    if (currentConfigKey !== 'universal') {
-        bodyEl.innerHTML += renderInheritPreviewRow(currentDataType, currentConfigKey, types);
-    }
+    let html = renderRow(currentDataType, currentConfigKey, types);
+    if (currentConfigKey !== 'universal') html += renderInheritPreviewRow(currentDataType, currentConfigKey, types);
+    document.getElementById('matrixBody').innerHTML = html;
 }
 
 function renderRow(dt, key, types) {
     const rowLabel = key === 'universal'
         ? '<strong>私客通用</strong>'
         : (() => { const p = productOverrides.find(x=>x.code===key); return p ? `<strong>${p.name}</strong><br><small>${p.code}</small>` : key; })();
-
-    return `<tr>
-        <td class="matrix-row-label">${rowLabel}</td>
-        ${types.map(t => renderCell(dt, key, t)).join('')}
-    </tr>`;
+    return `<tr><td class="matrix-row-label">${rowLabel}</td>${types.map(t => renderCell(dt, key, t)).join('')}</tr>`;
 }
 
 function renderInheritPreviewRow(dt, key, types) {
-    return `<tr style="background:#fafafa;">
-        <td class="matrix-row-label"><em style="color:#999;">实际生效（含继承）</em></td>
-        ${types.map(t => {
+    return `<tr style="background:#fafafa;"><td class="matrix-row-label"><em style="color:#999;">实际生效（含继承）</em></td>` +
+        types.map(t => {
             const emails = getEffectiveEmails(dt, key, t);
-            return `<td class="matrix-cell">
-                <div class="email-display inherited" onclick="openCellPicker('${dt}','${key}','${t}')">
-                    ${emails.length > 0 ? emails.join('; ') : '<span class="empty">(无)</span>'}
-                    <span class="email-count">${emails.length}个</span>
-                </div>
-            </td>`;
-        }).join('')}
-    </tr>`;
+            return `<td class="matrix-cell"><div class="email-display inherited" onclick="openCellPicker('${dt}','${key}','${t}')">${emails.length > 0 ? emails.join('; ') + '<span class="email-count">' + emails.length + '个</span>' : '<span class="empty">(无)</span>'}</div></td>`;
+        }).join('') + '</tr>';
 }
 
 function renderCell(dt, key, et) {
@@ -741,287 +619,125 @@ function renderCell(dt, key, et) {
     const hasOwn = configs[dt]?.[key]?.[et] !== undefined;
     const displayEmails = hasOwn ? cellEmails : [];
     const isUniversal = key === 'universal';
-
-    return `<td class="matrix-cell">
-        <div class="email-display ${displayEmails.length === 0 && !isUniversal ? 'inherited empty' : ''}"
-             onclick="openCellPicker('${dt}','${key}','${et}')"
-             title="${isUniversal ? '' : (hasOwn ? '已单独配置' : '继承自私客通用')}">
-            ${displayEmails.length > 0
-                ? displayEmails.join('; ') + `<span class="email-count">${displayEmails.length}个</span>`
-                : (isUniversal ? '<span class="empty">点击选择邮箱...</span>' : '<span class="empty">继承通用</span>')
-            }
-            ${displayEmails.length > 0 ? `<span class="clear-icon" onclick="event.stopPropagation();clearCell('${dt}','${key}','${et}')">&times;</span>` : ''}
-            ${!isUniversal && !hasOwn ? '<span class="inherit-badge">继承</span>' : ''}
-        </div>
-    </td>`;
+    return `<td class="matrix-cell"><div class="email-display ${displayEmails.length === 0 && !isUniversal ? 'inherited empty' : ''}" onclick="openCellPicker('${dt}','${key}','${et}')" title="${isUniversal ? '' : (hasOwn ? '已单独配置' : '继承自私客通用')}">${
+        displayEmails.length > 0
+            ? displayEmails.join('; ') + '<span class="email-count">' + displayEmails.length + '个</span>'
+            : (isUniversal ? '<span class="empty">点击选择邮箱...</span>' : '<span class="empty">继承通用</span>')
+    }${displayEmails.length > 0 ? '<span class="clear-icon" onclick="event.stopPropagation();clearCell(\'' + dt + '\',\'' + key + '\',\'' + et + '\')">&times;</span>' : ''}${!isUniversal && !hasOwn ? '<span class="inherit-badge">继承</span>' : ''}</div></td>`;
 }
 
-function getConfigEmails(dt, key, et) {
-    return configs[dt]?.[key]?.[et] || [];
-}
+function getConfigEmails(dt, key, et) { return configs[dt]?.[key]?.[et] || []; }
+function getEffectiveEmails(dt, key, et) { const own = configs[dt]?.[key]?.[et]; if (own && own.length > 0) return own; return configs[dt]?.['universal']?.[et] || []; }
 
-function getEffectiveEmails(dt, key, et) {
-    // 先查自身配置
-    const own = configs[dt]?.[key]?.[et];
-    if (own && own.length > 0) return own;
-    // 回退到私客通用
-    return configs[dt]?.['universal']?.[et] || [];
-}
-
-function clearCell(dt, key, et) {
-    if (configs[dt]?.[key]) delete configs[dt][key][et];
-    saveToStorage();
-    renderMatrix();
-}
-
-function saveCurrentConfig() {
-    saveToStorage();
-    alert('配置已保存');
-}
+function clearCell(dt, key, et) { if (configs[dt]?.[key]) delete configs[dt][key][et]; saveToStorage(); renderMatrix(); }
+function saveCurrentConfig() { saveToStorage(); alert('配置已保存'); }
 
 // ============================================================
 // 邮箱选择器弹窗
 // ============================================================
 function openCellPicker(dt, key, et) {
     currentEditingCell = { dataType: dt, configKey: key, emailType: et };
-    const existing = getConfigEmails(dt, key, et);
-    tempSelectedEmails = existing.map(e => {
-        const contact = addressBook.find(c => c.email === e);
-        return contact ? contact.email : e; // 支持手动输入的非通讯录邮箱
-    });
-
-    document.getElementById('pickerTitle').textContent =
-        `选择邮箱 - ${key === 'universal' ? '私客通用' : key} / ${dt} / ${et}`;
-
-    renderSelectedEmails();
-    renderContactPickerList();
-    document.getElementById('pickerSearch').value = '';
+    tempSelectedEmails = getConfigEmails(dt, key, et).map(e => { const c = addressBook.find(x => x.email === e); return c ? c.email : e; });
+    document.getElementById('pickerTitle').textContent = '选择邮箱 - ' + (key === 'universal' ? '私客通用' : key) + ' / ' + dt + ' / ' + et;
+    renderSelectedEmails(); renderContactPickerList(); document.getElementById('pickerSearch').value = '';
     document.getElementById('emailPickerModal').classList.add('show');
 }
-
-function closeEmailPicker() {
-    document.getElementById('emailPickerModal').classList.remove('show');
-    currentEditingCell = null;
-    tempSelectedEmails = [];
-}
-
-function filterContacts() {
-    renderContactPickerList();
-}
+function closeEmailPicker() { document.getElementById('emailPickerModal').classList.remove('show'); currentEditingCell = null; tempSelectedEmails = []; }
+function filterContacts() { renderContactPickerList(); }
 
 function renderContactPickerList() {
-    const keyword = document.getElementById('pickerSearch').value.toLowerCase().trim();
-    const filtered = addressBook.filter(c =>
-        !keyword || c.name.toLowerCase().includes(keyword) || c.email.toLowerCase().includes(keyword)
-    );
+    const kw = document.getElementById('pickerSearch').value.toLowerCase().trim();
+    const filtered = addressBook.filter(c => !kw || c.name.toLowerCase().includes(kw) || c.email.toLowerCase().includes(kw));
     const el = document.getElementById('contactListForPicker');
-    el.innerHTML = filtered.map(c => `
-        <li class="contact-item ${tempSelectedEmails.includes(c.email) ? 'selected' : ''}"
-            onclick="toggleContactPick('${c.email}')">
-            <input type="checkbox" class="contact-checkbox"
-                   ${tempSelectedEmails.includes(c.email) ? 'checked' : ''} onchange="event.stopPropagation();toggleContactPick('${c.email}')">
-            <div class="contact-info">
-                <div class="contact-name">${c.name} <span class="contact-group-tag">${c.group}</span></div>
-                <div class="contact-email">${c.email}</div>
-            </div>
-        </li>
-    `).join('');
-
-    if (filtered.length === 0) {
-        el.innerHTML = '<div class="empty-state">无匹配联系人，请先在通讯录中添加</div>';
-    }
+    el.innerHTML = filtered.map(c => `<li class="contact-item ${tempSelectedEmails.includes(c.email) ? 'selected' : ''}" onclick="toggleContactPick('${c.email}')"><input type="checkbox" class="contact-checkbox" ${tempSelectedEmails.includes(c.email) ? 'checked' : ''} onchange="event.stopPropagation();toggleContactPick('${c.email}')"><div class="contact-info"><div class="contact-name">${c.name} <span class="contact-group-tag">${c.group}</span></div><div class="contact-email">${c.email}</div></div></li>`).join('');
+    if (filtered.length === 0) el.innerHTML = '<div class="empty-state">无匹配联系人，请先在通讯录中添加</div>';
 }
 
 function toggleContactPick(email) {
     const idx = tempSelectedEmails.indexOf(email);
-    if (idx >= 0) {
-        tempSelectedEmails.splice(idx, 1);
-    } else {
-        tempSelectedEmails.push(email);
-    }
-    renderSelectedEmails();
-    renderContactPickerList();
+    if (idx >= 0) tempSelectedEmails.splice(idx, 1); else tempSelectedEmails.push(email);
+    renderSelectedEmails(); renderContactPickerList();
 }
 
 function renderSelectedEmails() {
     const area = document.getElementById('selectedEmailsArea');
-    if (tempSelectedEmails.length === 0) {
-        area.innerHTML = '<div class="no-selected">尚未选择任何邮箱</div>';
-        return;
-    }
-    area.innerHTML = tempSelectedEmails.map(e => {
-        const c = addressBook.find(x => x.email === e);
-        return `<span class="selected-email-tag">
-            ${c ? c.name : e}
-            <span class="remove-sel" onclick="removeTempEmail('${e}')">&times;</span>
-        </span>`;
-    }).join('');
+    area.innerHTML = tempSelectedEmails.length === 0 ? '<div class="no-selected">尚未选择任何邮箱</div>'
+        : tempSelectedEmails.map(e => { const c = addressBook.find(x => x.email === e); return '<span class="selected-email-tag">' + (c ? c.name : e) + '<span class="remove-sel" onclick="removeTempEmail(\'' + e + '\')">&times;</span></span>'; }).join('');
 }
-
-function removeTempEmail(email) {
-    tempSelectedEmails = tempSelectedEmails.filter(e => e !== email);
-    renderSelectedEmails();
-    renderContactPickerList();
-}
+function removeTempEmail(email) { tempSelectedEmails = tempSelectedEmails.filter(e => e !== email); renderSelectedEmails(); renderContactPickerList(); }
 
 function confirmEmailPick() {
     if (!currentEditingCell) return;
     const { dataType, configKey, emailType } = currentEditingCell;
     if (!configs[dataType]) configs[dataType] = {};
     if (!configs[dataType][configKey]) configs[dataType][configKey] = {};
-    if (tempSelectedEmails.length > 0) {
-        configs[dataType][configKey][emailType] = [...tempSelectedEmails];
-    } else {
-        delete configs[dataType][configKey][emailType];
-    }
-    saveToStorage();
-    closeEmailPicker();
-    renderMatrix();
+    if (tempSelectedEmails.length > 0) configs[dataType][configKey][emailType] = [...tempSelectedEmails];
+    else delete configs[dataType][configKey][emailType];
+    saveToStorage(); closeEmailPicker(); renderMatrix();
 }
 
 // ============================================================
 // 产品选择与覆盖
 // ============================================================
-function openProductSelectModal() {
-    document.getElementById('productSelectModal').classList.add('show');
-    document.getElementById('productSearchInput').value = '';
-    renderProductSelectList();
-}
-
-function closeProductSelect() {
-    document.getElementById('productSelectModal').classList.remove('show');
-}
-
+function openProductSelectModal() { document.getElementById('productSelectModal').classList.add('show'); document.getElementById('productSearchInput').value = ''; renderProductSelectList(); }
+function closeProductSelect() { document.getElementById('productSelectModal').classList.remove('show'); }
 function filterProducts() { renderProductSelectList(); }
 
 function renderProductSelectList() {
     const kw = document.getElementById('productSearchInput').value.toLowerCase().trim();
     const addedCodes = productOverrides.map(p => p.code);
-    const filtered = PRODUCT_LIBRARY.filter(p =>
-        (p.code.toLowerCase().includes(kw) || p.name.includes(kw))
-    );
-    const el = document.getElementById('productSelectList');
-    el.innerHTML = filtered.map(p => `
-        <div class="product-select-item ${addedCodes.includes(p.code) ? 'added' : ''}"
-             onclick="${addedCodes.includes(p.code) ? '' : `addProductOverride('${p.code}','${p.name}')`}">
-            <div>
-                <div style="font-weight:500;font-size:13px;">${p.name}</div>
-                <div style="font-size:11px;color:#999;">${p.code}</div>
-            </div>
-        </div>
-    `).join('');
+    const filtered = PRODUCT_LIBRARY.filter(p => p.code.toLowerCase().includes(kw) || p.name.includes(kw));
+    document.getElementById('productSelectList').innerHTML = filtered.map(p =>
+        `<div class="product-select-item ${addedCodes.includes(p.code) ? 'added' : ''}" onclick="${addedCodes.includes(p.code) ? '' : "addProductOverride('" + p.code + "','" + p.name + "')"}"><div><div style="font-weight:500;font-size:13px;">${p.name}</div><div style="font-size:11px;color:#999;">${p.code}</div></div></div>`
+    ).join('');
 }
 
 function addProductOverride(code, name) {
     if (productOverrides.find(p => p.code === code)) return;
-    productOverrides.push({ code, name });
-    saveToStorage();
-    renderProductList();
-    closeProductSelect();
-
-    // 自动初始化该产品的配置结构
-    DATA_TYPES.forEach(dt => {
-        if (!configs[dt]) configs[dt] = {};
-        if (!configs[dt][code]) configs[dt][code] = {};
-    });
-
-    // 自动选中新产品
+    productOverrides.push({ code, name }); saveToStorage(); renderProductList(); closeProductSelect();
+    DATA_TYPES.forEach(dt => { if (!configs[dt]) configs[dt] = {}; if (!configs[dt][code]) configs[dt][code] = {}; });
     selectConfig(code);
 }
 
 function removeProductOverride(code) {
-    if (!confirm(`确定移除产品 ${code} 的覆盖配置？`)) return;
+    if (!confirm('确定移除产品 ' + code + ' 的配置？')) return;
     productOverrides = productOverrides.filter(p => p.code !== code);
-    // 清理该产品的配置数据
-    DATA_TYPES.forEach(dt => {
-        if (configs[dt]) delete configs[dt][code];
-    });
+    DATA_TYPES.forEach(dt => { if (configs[dt]) delete configs[dt][code]; });
     if (currentConfigKey === code) selectConfig('universal');
-    saveToStorage();
-    renderProductList();
-    renderMatrix();
+    saveToStorage(); renderProductList(); renderMatrix();
 }
 
 function renderProductList() {
     const el = document.getElementById('productList');
-    if (productOverrides.length === 0) {
-        el.innerHTML = '<div class="empty-state" style="padding:20px;">暂无产品级覆盖<br><small style="color:#bbb;">点击下方按钮添加</small></div>';
-        return;
-    }
-    el.innerHTML = productOverrides.map(p => `
-        <div class="product-item ${p.code === currentConfigKey ? 'selected' : ''}" data-code="${p.code}" onclick="selectConfig('${p.code}')">
-            <div class="product-item-info">
-                <div class="product-item-name">${p.name}</div>
-                <div class="product-item-code">${p.code}</div>
-            </div>
-            <span class="product-item-delete" onclick="event.stopPropagation();removeProductOverride('${p.code}')">&times;</span>
-        </div>
-    `).join('');
+    if (productOverrides.length === 0) { el.innerHTML = '<div class="empty-state" style="padding:20px;">暂无特殊产品<br><small style="color:#bbb;">点击下方按钮添加</small></div>'; return; }
+    el.innerHTML = productOverrides.map(p =>
+        `<div class="product-item ${p.code === currentConfigKey ? 'selected' : ''}" data-code="${p.code}" onclick="selectConfig('${p.code}')"><div class="product-item-info"><div class="product-item-name">${p.name}</div><div class="product-item-code">${p.code}</div></div><span class="product-item-delete" onclick="event.stopPropagation();removeProductOverride('${p.code}')">&times;</span></div>`
+    ).join('');
 }
 
 // ============================================================
 // 通讯录管理
 // ============================================================
-function openAddressBookModal() {
-    document.getElementById('addressBookModal').classList.add('show');
-    renderABTable();
-}
-
-function closeAddressBook() {
-    document.getElementById('addressBookModal').classList.remove('show');
-}
+function openAddressBookModal() { document.getElementById('addressBookModal').classList.add('show'); renderABTable(); }
+function closeAddressBook() { document.getElementById('addressBookModal').classList.remove('show'); }
 
 function renderABTable() {
     const kw = document.getElementById('abSearch').value.toLowerCase().trim();
     const filtered = kw ? addressBook.filter(c => c.name.toLowerCase().includes(kw) || c.email.toLowerCase().includes(kw)) : addressBook;
-    const tbody = document.getElementById('abTableBody');
-    tbody.innerHTML = filtered.map(c => `
-        <tr>
-            <td><input type="text" class="ab-input" value="${c.name}" onchange="updateContact(${c.id},'name',this.value)"></td>
-            <td><input type="text" class="ab-input" value="${c.email}" onchange="updateContact(${c.id},'email',this.value)"></td>
-            <td>
-                <select class="ab-select" onchange="updateContact(${c.id},'group',this.value)">
-                    ${[...DEFAULT_EMAIL_TYPES, ...customEmailTypes].map(g =>
-                        `<option value="${g}" ${c.group === g ? 'selected' : ''}>${g}</option>`
-                    ).join('')}
-                    <option value="">-- 未分组 --</option>
-                </select>
-            </td>
-            <td><button class="btn btn-sm btn-danger" onclick="deleteContact(${c.id})">删除</button></td>
-        </tr>
-    `).join('');
+    document.getElementById('abTableBody').innerHTML = filtered.map(c =>
+        `<tr><td><input type="text" class="ab-input" value="${c.name}" onchange="updateContact(${c.id},'name',this.value)"></td><td><input type="text" class="ab-input" value="${c.email}" onchange="updateContact(${c.id},'email',this.value)"></td><td><select class="ab-select" onchange="updateContact(${c.id},'group',this.value)">${DEFAULT_EMAIL_TYPES.map(g => '<option value="' + g + '"' + (c.group === g ? ' selected' : '') + '>' + g + '</option>').join('')}<option value="">-- 未分组 --</option></select></td><td><button class="btn btn-sm btn-danger" onclick="deleteContact(${c.id})">删除</button></td></tr>`
+    ).join('');
 }
 
 function addNewContact() {
     const newId = Math.max(...addressBook.map(c => c.id), 0) + 1;
-    addressBook.push({ id: newId, name: '', email: '', group: '' });
-    saveToStorage();
-    renderABTable();
-    // 聚焦到最后一行
-    setTimeout(() => {
-        const inputs = document.querySelectorAll('#abTableBody input.ab-input');
-        if (inputs.length > 0) inputs[inputs.length - 2].focus();
-    }, 50);
+    addressBook.push({ id: newId, name: '', email: '', group: '' }); saveToStorage(); renderABTable();
+    setTimeout(() => { const inputs = document.querySelectorAll('#abTableBody input.ab-input'); if (inputs.length > 0) inputs[inputs.length - 2].focus(); }, 50);
 }
+function updateContact(id, field, value) { const c = addressBook.find(x => x.id === id); if (c) c[field] = value; saveToStorage(); }
+function deleteContact(id) { if (!confirm('确定删除该联系人？')) return; addressBook = addressBook.filter(c => c.id !== id); saveToStorage(); renderABTable(); }
 
-function updateContact(id, field, value) {
-    const c = addressBook.find(x => x.id === id);
-    if (c) c[field] = value;
-    saveToStorage();
-}
-
-function deleteContact(id) {
-    if (!confirm('确定删除该联系人？')) return;
-    addressBook = addressBook.filter(c => c.id !== id);
-    saveToStorage();
-    renderABTable();
-}
-
-// ============================================================
-// 启动
-// ============================================================
-init();
-renderProductList();
+init(); renderProductList();
 </script>
 
 </body>

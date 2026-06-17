@@ -707,6 +707,7 @@
                             <th style="width: 60px;">序号</th>
                             <th>私募管理人名称</th>
                             <th>私募群信息</th>
+                            <th>机器人</th>
                             <th>匹配规则</th>
                             <th style="width: 120px;">操作</th>
                         </tr>
@@ -741,6 +742,14 @@
                     <select class="form-select" id="modalGroupSelect">
                         <option value="">请选择群</option>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">消息机器人 *</label>
+                    <select class="form-select" id="modalRobotSelect">
+                        <option value="">请选择机器人</option>
+                    </select>
+                    <div style="font-size:12px;color:#999;margin-top:4px;">用于指定该群发送消息时使用的机器人</div>
                 </div>
 
                 <div class="form-group">
@@ -789,6 +798,16 @@
             { id: 8, name: '易方达基金管理有限公司' }
         ];
 
+        // 机器人数据（3个可选机器人）
+        const robotData = [
+            { id: 'R001', name: '妥妥递消息助手', isDefault: true },
+            { id: 'R002', name: 'FOF投研机器人' },
+            { id: 'R003', name: '合规审核机器人' }
+        ];
+
+        // 默认机器人ID
+        const DEFAULT_ROBOT_ID = 'R001';
+
         const groupData = [
             { id: 1, name: '生产测试用群', groupId: 'R:10699598106076777', robotName: '测试助手Bot' },
             { id: 2, name: '招商财富-辰丰17号管理群', groupId: 'R:10888665209912345', robotName: '辰丰管理Bot' },
@@ -833,7 +852,8 @@
                 groupName: '招商财富-辰丰17号管理群',
                 groupIcon: '招',
                 groupColor: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-                robotName: '辰丰管理Bot',
+                robotId: 'R001',
+                robotName: '妥妥递消息助手',
                 exactProducts: ['P002'],
                 exactProductNames: ['辰丰17号私募证券投资基金']
             },
@@ -845,7 +865,8 @@
                 groupName: '量化对冲策略交流群',
                 groupIcon: '量',
                 groupColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                robotName: '量化策略Bot',
+                robotId: 'R002',
+                robotName: 'FOF投研机器人',
                 exactProducts: ['P003', 'P005', 'P020'],
                 exactProductNames: ['嘉澳共赢1号私募证券投资基金', '国泰君安量化增强1号', '光融七号量化选股1号']
             },
@@ -857,7 +878,8 @@
                 groupName: 'FOF下投上会审批群',
                 groupIcon: 'F',
                 groupColor: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)',
-                robotName: '审批流程Bot',
+                robotId: 'R003',
+                robotName: '合规审核机器人',
                 exactProducts: [],
                 exactProductNames: []
             },
@@ -869,7 +891,8 @@
                 groupName: '嘉澳共赢1号投资交流群',
                 groupIcon: '嘉',
                 groupColor: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                robotName: '嘉澳投研Bot',
+                robotId: 'R001',
+                robotName: '妥妥递消息助手',
                 exactProducts: [],
                 exactProductNames: []
             },
@@ -881,7 +904,8 @@
                 groupName: '固收+投资组合群',
                 groupIcon: '固',
                 groupColor: 'linear-gradient(135deg, #30cfd0 0%, #330867 100%)',
-                robotName: '固收投资Bot',
+                robotId: 'R002',
+                robotName: 'FOF投研机器人',
                 exactProducts: ['P002', 'P012'],
                 exactProductNames: ['辰丰17号私募证券投资基金', '光融七号稳健收益1号']
             },
@@ -893,7 +917,8 @@
                 groupName: 'CTA策略研究群',
                 groupIcon: 'C',
                 groupColor: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
-                robotName: 'CTA研究Bot',
+                robotId: 'R001',
+                robotName: '妥妥递消息助手',
                 exactProducts: ['P001'],
                 exactProductNames: ['SAZM91_九木CTA2号私募证券投资基金']
             }
@@ -914,7 +939,7 @@
             if (relationsData.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #999;">
                             暂无关联记录，点击"新增私募群管理人关系"添加
                         </td>
                     </tr>
@@ -931,7 +956,16 @@
                             <div class="group-icon" style="background: ${relation.groupColor}">${relation.groupIcon}</div>
                             <div class="group-details">
                                 <span class="group-name">${relation.groupName}</span>
-                                <span class="group-id">${relation.robotName}</span>
+                                <span class="group-id">${relation.groupId ? groupData.find(g => g.id === relation.groupId)?.groupId || '' : ''}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="robot-info">
+                            <span class="robot-icon">🤖</span>
+                            <div class="robot-details">
+                                <span class="robot-name">${relation.robotName}</span>
+                                ${relation.robotId === DEFAULT_ROBOT_ID ? '<span style="font-size:11px;color:#52c41a;">(默认)</span>' : ''}
                             </div>
                         </div>
                     </td>
@@ -972,6 +1006,11 @@
                 managerData.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
 
             updateGroupOptions();
+
+            // 初始化机器人选项
+            const robotSelect = document.getElementById('modalRobotSelect');
+            robotSelect.innerHTML = '<option value="">请选择机器人</option>' +
+                robotData.map(r => `<option value="${r.id}" ${r.isDefault ? 'selected' : ''}>${r.name}${r.isDefault ? ' (默认)' : ''}</option>`).join('');
         }
 
         function onManagerChange() {
@@ -1019,6 +1058,7 @@
             document.getElementById('editId').value = '';
             document.getElementById('modalManagerSelect').value = '';
             document.getElementById('modalGroupSelect').value = '';
+            document.getElementById('modalRobotSelect').value = DEFAULT_ROBOT_ID;
 
             // 重置产品选择器
             selectedProductIds = [];
@@ -1037,6 +1077,7 @@
             document.getElementById('editId').value = id;
             document.getElementById('modalManagerSelect').value = relation.managerId;
             document.getElementById('modalGroupSelect').value = relation.groupId;
+            document.getElementById('modalRobotSelect').value = relation.robotId || DEFAULT_ROBOT_ID;
 
             // 恢复已选产品
             selectedProductIds = [...(relation.exactProducts || [])];
@@ -1069,6 +1110,7 @@
             const editId = document.getElementById('editId').value;
             const managerId = parseInt(document.getElementById('modalManagerSelect').value);
             const groupId = parseInt(document.getElementById('modalGroupSelect').value);
+            const robotId = document.getElementById('modalRobotSelect').value;
 
             if (!managerId) {
                 alert('请选择私募管理人');
@@ -1078,9 +1120,14 @@
                 alert('请选择私募群');
                 return;
             }
+            if (!robotId) {
+                alert('请选择消息机器人');
+                return;
+            }
 
             const manager = managerData.find(m => m.id === managerId);
             const group = groupData.find(g => g.id === groupId);
+            const robot = robotData.find(r => r.id === robotId);
 
             // 获取已选产品信息
             const exactProducts = selectedProductIds;
@@ -1095,7 +1142,8 @@
                 groupName: group.name,
                 groupIcon: group.name.charAt(0),
                 groupColor: getRandomGradient(),
-                robotName: group.robotName,
+                robotId,
+                robotName: robot.name,
                 exactProducts,
                 exactProductNames
             };
